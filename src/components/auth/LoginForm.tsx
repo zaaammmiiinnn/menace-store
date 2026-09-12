@@ -361,6 +361,7 @@ export function LoginForm({ defaultAdminMode = false, forcedRedirect }: LoginFor
                 <span>E</span>
                 <span>N</span>
                 <span>A</span>
+                <span>N</span>
                 <span>C</span>
                 <span>E</span>
               </div>

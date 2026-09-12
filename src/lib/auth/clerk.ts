@@ -8,9 +8,21 @@ import type { AuthUser, AuthSession, OAuthProvider, SignInResult, SignUpResult, 
 export function mapClerkError(err: unknown): string {
   if (!err) return "SOMETHING'S OFF. TRY AGAIN.";
 
-  const anyErr = err as { errors?: Array<{ code?: string; message?: string }> };
+  const anyErr = err as {
+    message?: string;
+    errors?: Array<{ code?: string; message?: string; longMessage?: string }>;
+  };
   const firstCode = anyErr.errors?.[0]?.code;
-  const firstMsg = anyErr.errors?.[0]?.message;
+  const firstMsg = anyErr.errors?.[0]?.message || anyErr.message || '';
+
+  if (
+    firstCode === 'strategy_for_user_invalid' ||
+    firstCode === 'form_strategy_invalid' ||
+    firstCode === 'strategy_invalid' ||
+    firstMsg.toLowerCase().includes('strategy')
+  ) {
+    return "This account uses Google login or passwordless link. Tap 'CONTINUE WITH GOOGLE' above or click 'PASSWORDLESS?'.";
+  }
 
   switch (firstCode) {
     case 'form_identifier_not_found':
@@ -183,19 +195,20 @@ export function useClerkSignIn() {
       });
 
       const emailFactor = signInAttempt.supportedFirstFactors?.find(
-        (factor: any) => factor.strategy === 'email_link'
-      ) as { emailAddressId?: string } | undefined;
+        (factor: any) => factor.strategy === 'email_link' || factor.strategy === 'email_code'
+      ) as { strategy?: string; emailAddressId?: string } | undefined;
 
       const emailAddressId = emailFactor?.emailAddressId;
+      const factorStrategy = emailFactor?.strategy || 'email_link';
 
       if (!emailAddressId) {
-        return { success: false, error: "No email address found for magic link." };
+        return { success: false, error: "No email verification factor found for this account." };
       }
 
       await client.signIn.prepareFirstFactor({
-        strategy: 'email_link',
+        strategy: factorStrategy as any,
         emailAddressId,
-        redirectUrl: window.location.origin + '/account',
+        redirectUrl: typeof window !== 'undefined' ? window.location.origin + '/account' : undefined,
       });
 
       return { success: true };

@@ -31,7 +31,11 @@ export async function getAdminUser(): Promise<AdminUser | null> {
     if (!user) return null;
 
     const primaryEmail = user.emailAddresses?.[0]?.emailAddress?.toLowerCase() || '';
-    const adminEmailsEnv = (process.env.ADMIN_EMAILS || '')
+    const adminEmailsEnv = (
+      process.env.ADMIN_EMAILS ||
+      process.env.NEXT_PUBLIC_ADMIN_EMAILS ||
+      'zamin@menance.store,admin@menance.store,zamin@menace.store,admin@menace.store,zaminaskari.work@gmail.com,askarizamin110@gmail.com'
+    )
       .split(',')
       .map((e) => e.trim().toLowerCase())
       .filter(Boolean);
