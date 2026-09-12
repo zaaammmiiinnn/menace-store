@@ -3,6 +3,14 @@ main = ".open-next/worker.js"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 
+[vars]
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_ZmFpdGhmdWwtdGFkcG9sZS01MzYyLmNsZXJrLmFjY291bnRzLmRldiQ"
+NEXT_PUBLIC_CLERK_SIGN_IN_URL = "/login"
+NEXT_PUBLIC_CLERK_SIGN_UP_URL = "/signup"
+NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL = "/account"
+NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL = "/account"
+ADMIN_EMAILS = "zamin@menace.store,admin@menace.store,zaminaskari.work@gmail.com,askarizamin110@gmail.com"
+
 # Cloudflare D1 Database Binding
 [[d1_databases]]
 binding = "DB"

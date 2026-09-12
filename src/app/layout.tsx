@@ -89,7 +89,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-full flex flex-col bg-base-black text-off-white font-body">
         <ClerkProvider
-          publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 'pk_test_bWVuYWNlLXN0b3JlLmNsZXJrLmFjY291bnRzLmRldiQ'}
+          publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 'pk_test_ZmFpdGhmdWwtdGFkcG9sZS01MzYyLmNsZXJrLmFjY291bnRzLmRldiQ'}
           appearance={{
             theme: dark,
             variables: {
