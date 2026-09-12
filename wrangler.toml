@@ -13,25 +13,24 @@ NEXT_PUBLIC_CLERK_SIGN_IN_URL = "/login"
 NEXT_PUBLIC_CLERK_SIGN_UP_URL = "/signup"
 NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL = "/account"
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL = "/account"
-ADMIN_EMAILS = "zamin@menance.store,admin@menance.store,zaminaskari.work@gmail.com,askarizamin110@gmail.com"
+ADMIN_EMAILS = "zamin@menance.store,admin@menance.store,zamin@menace.store,admin@menace.store,zaminaskari.work@gmail.com,askarizamin110@gmail.com"
 
-# Cloudflare D1 Database Binding
-[[d1_databases]]
-binding = "DB"
-database_name = "menance-db"
-database_id = "your-d1-database-id"
-migrations_dir = "src/lib/db/migrations"
+# --- Optional Cloudflare Resource Bindings ---
+# Uncomment and insert your real Cloudflare IDs once created in the dashboard:
 
-# Cloudflare R2 Storage Bucket for Garment Imagery
-[[r2_buckets]]
-binding = "R2_BUCKET"
-bucket_name = "menance-assets"
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "menance-db"
+# database_id = "<your-real-d1-id>"
+# migrations_dir = "src/lib/db/migrations"
 
-# Cloudflare KV Namespace for 5-minute Dashboard Metric Caching
-[[kv_namespaces]]
-binding = "MENANCE_KV"
-id = "your-kv-namespace-id"
+# [[r2_buckets]]
+# binding = "R2_BUCKET"
+# bucket_name = "menance-assets"
 
-# Cron Trigger: Daily Midnight UTC Stats Aggregation
-[triggers]
-crons = ["0 0 * * *"]
+# [[kv_namespaces]]
+# binding = "MENANCE_KV"
+# id = "<your-real-kv-id>"
+
+# [triggers]
+# crons = ["0 0 * * *"]
