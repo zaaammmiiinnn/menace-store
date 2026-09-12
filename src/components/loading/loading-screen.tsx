@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useUiStore } from "@/store/ui-store";
 
-const letters = ["M", "E", "N", "A", "C", "E"];
+const letters = ["M", "E", "N", "A", "N", "C", "E"];
 
 export function LoadingScreen() {
   const isLoading = useUiStore((state) => state.isLoading);

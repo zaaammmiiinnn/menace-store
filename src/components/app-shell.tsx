@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { LenisProvider } from "@/providers/lenis-provider";
 import { MotionProvider } from "@/providers/motion-provider";
@@ -39,6 +40,19 @@ function GlobalToast() {
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const isAdmin = pathname?.startsWith('/admin');
+
+  if (isAdmin) {
+    return (
+      <MotionProvider>
+        <CustomCursor />
+        <GlobalToast />
+        <main className="flex-1">{children}</main>
+      </MotionProvider>
+    );
+  }
+
   return (
     <LenisProvider>
       <MotionProvider>
