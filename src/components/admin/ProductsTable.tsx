@@ -1,0 +1,201 @@
+'use client';
+
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { ColumnDef } from '@tanstack/react-table';
+import { DataTable } from '@/components/admin/DataTable';
+import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
+import { deleteProductAction } from '@/lib/admin/actions';
+import { toast } from 'sonner';
+import { Edit2, Trash2, ExternalLink } from 'lucide-react';
+
+interface ProductRow {
+  id: string;
+  slug: string;
+  name: string;
+  price_inr: number;
+  category: string;
+  status: string;
+  dropName: string;
+  totalStock: number;
+  variantsCount: number;
+  updated_at: number;
+}
+
+interface ProductsTableProps {
+  products: ProductRow[];
+}
+
+export function ProductsTable({ products }: ProductsTableProps) {
+  const [data, setData] = useState<ProductRow[]>(products);
+  const [deleteTarget, setDeleteTarget] = useState<ProductRow | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await deleteProductAction(deleteTarget.id);
+      setData((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+      toast.success(`Deleted product "${deleteTarget.name}".`);
+      setDeleteTarget(null);
+    } catch {
+      toast.error('Failed to delete product.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const columns: ColumnDef<ProductRow>[] = [
+    {
+      accessorKey: 'name',
+      header: 'Product',
+      cell: ({ row }) => {
+        const item = row.original;
+        return (
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded bg-[#1A1A1A] border border-[#2E2E2E] flex items-center justify-center font-mono text-[10px] text-[#C6FF00] shrink-0 uppercase">
+              {item.name.substring(4, 6) || 'MN'}
+            </div>
+            <div>
+              <Link
+                href={`/admin/products/${item.id}`}
+                className="font-medium text-[#F5F1E8] hover:text-[#C6FF00] transition-colors"
+              >
+                {item.name}
+              </Link>
+              <div className="text-[11px] font-mono text-[#666]">{item.slug}</div>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'category',
+      header: 'Category',
+      cell: ({ row }) => (
+        <span className="font-mono text-[11px] uppercase text-[#8A8A8A]">
+          {row.getValue('category')}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'price_inr',
+      header: 'Price',
+      cell: ({ row }) => (
+        <span className="font-mono font-semibold text-[#F5F1E8]">
+          ₹{Number(row.getValue('price_inr')).toLocaleString()}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'totalStock',
+      header: 'Stock / Variants',
+      cell: ({ row }) => {
+        const stock = row.original.totalStock;
+        const variantsCount = row.original.variantsCount;
+        return (
+          <div className="font-mono text-[12px]">
+            <span
+              className={`font-semibold ${
+                stock === 0
+                  ? 'text-red-400'
+                  : stock < 15
+                  ? 'text-amber-400'
+                  : 'text-[#F5F1E8]'
+              }`}
+            >
+              {stock} units
+            </span>
+            <span className="text-[#666] text-[10px] ml-1">({variantsCount} SKUs)</span>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+      cell: ({ row }) => {
+        const status = row.getValue('status') as string;
+        return (
+          <span
+            className={`inline-block text-[10px] font-mono uppercase px-2 py-0.5 rounded ${
+              status === 'active'
+                ? 'bg-[#C6FF00]/10 text-[#C6FF00] border border-[#C6FF00]/20'
+                : status === 'draft'
+                ? 'bg-[#1F1F1F] text-[#8A8A8A] border border-[#2E2E2E]'
+                : 'bg-red-500/10 text-red-400 border border-red-500/20'
+            }`}
+          >
+            {status}
+          </span>
+        );
+      },
+    },
+    {
+      accessorKey: 'dropName',
+      header: 'Collection',
+      cell: ({ row }) => (
+        <span className="text-[11px] font-mono text-[#8A8A8A] truncate max-w-[120px] block">
+          {row.getValue('dropName')}
+        </span>
+      ),
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      cell: ({ row }) => {
+        const item = row.original;
+        return (
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/shop/${item.slug}`}
+              target="_blank"
+              className="p-1 text-[#666] hover:text-[#C6FF00] transition-colors"
+              title="View on live store"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+            </Link>
+            <Link
+              href={`/admin/products/${item.id}`}
+              className="p-1 text-[#666] hover:text-[#F5F1E8] transition-colors"
+              title="Edit product"
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+            </Link>
+            <button
+              onClick={() => setDeleteTarget(item)}
+              className="p-1 text-[#666] hover:text-red-400 transition-colors"
+              title="Delete product"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        );
+      },
+    },
+  ];
+
+  return (
+    <>
+      <DataTable
+        columns={columns}
+        data={data}
+        searchPlaceholder="Search products by title, SKU, or category..."
+        emptyMessage="No products found in the catalog."
+        exportFileName="menace-products.csv"
+      />
+
+      <ConfirmDialog
+        isOpen={Boolean(deleteTarget)}
+        title="Delete Product"
+        description={`Are you sure you want to permanently delete "${deleteTarget?.name}"? All related variants, inventory logs, and imagery will be deleted immediately.`}
+        confirmText="Delete Product"
+        expectedWord={deleteTarget?.name}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+        isLoading={isDeleting}
+      />
+    </>
+  );
+}
