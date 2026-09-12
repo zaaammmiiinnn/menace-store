@@ -195,8 +195,32 @@ html.lenis, html.lenis body {
 
 @media (pointer: fine) {
   .custom-cursor-active,
-  .custom-cursor-active * {
+  .custom-cursor-active *:not(input):not(textarea):not([class*="cl-"]):not([data-clerk-portal] *) {
     cursor: none !important;
+  }
+  input, textarea {
+    cursor: text !important;
+  }
+  .cl-rootBox,
+  .cl-rootBox *,
+  .cl-modalBackdrop,
+  .cl-modalBackdrop *,
+  [data-clerk-portal],
+  [data-clerk-portal] *,
+  [class*="cl-"] {
+    cursor: auto !important;
+  }
+  .cl-rootBox input,
+  .cl-modalBackdrop input,
+  [data-clerk-portal] input,
+  input[class*="cl-"] {
+    cursor: text !important;
+  }
+  .cl-rootBox button,
+  .cl-modalBackdrop button,
+  [data-clerk-portal] button,
+  button[class*="cl-"] {
+    cursor: pointer !important;
   }
 }
 

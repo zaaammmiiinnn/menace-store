@@ -18,6 +18,7 @@ export function CustomCursor() {
   const [particles, setParticles] = useState<Particle[]>([]);
   const particleIdRef = useRef(0);
   
+  const [isOverInteractive, setIsOverInteractive] = useState(false);
   const mouseX = useMotionValue(-100);
   const mouseY = useMotionValue(-100);
   
@@ -49,7 +50,13 @@ export function CustomCursor() {
       mouseX.set(e.clientX);
       mouseY.set(e.clientY);
 
-      if (!isReduced && (cursorType === 'default' || !cursorType)) {
+      const target = e.target as HTMLElement | null;
+      const isClerkOrInput = !!target?.closest?.(
+        '.cl-rootBox, .cl-modalBackdrop, .cl-card, [data-clerk-portal], input, textarea, select, [contenteditable="true"], [class*="cl-"]'
+      );
+      setIsOverInteractive(isClerkOrInput);
+
+      if (!isReduced && !isClerkOrInput && (cursorType === 'default' || !cursorType)) {
         particleIdRef.current += 1;
         const newParticle = {
           id: particleIdRef.current,
@@ -89,27 +96,57 @@ export function CustomCursor() {
     <>
       <style>{`
         @media (pointer: fine) {
-          body, a, button, input, [role="button"] {
+          body, a, button, [role="button"] {
             cursor: none !important;
+          }
+          input, textarea, select, [contenteditable="true"] {
+            cursor: text !important;
+          }
+          .cl-rootBox,
+          .cl-rootBox *,
+          .cl-modalBackdrop,
+          .cl-modalBackdrop *,
+          .cl-card,
+          .cl-card *,
+          [data-clerk-portal],
+          [data-clerk-portal] *,
+          [class*="cl-"] {
+            cursor: auto !important;
+          }
+          .cl-rootBox input,
+          .cl-modalBackdrop input,
+          .cl-card input,
+          [data-clerk-portal] input,
+          input[class*="cl-"] {
+            cursor: text !important;
+          }
+          .cl-rootBox button,
+          .cl-modalBackdrop button,
+          .cl-card button,
+          [data-clerk-portal] button,
+          button[class*="cl-"] {
+            cursor: pointer !important;
           }
         }
       `}</style>
       
       {/* Particle Trail */}
-      {!isReduced && particles.map((p) => (
+      {!isReduced && !isOverInteractive && particles.map((p) => (
         <motion.div
           key={p.id}
           initial={{ opacity: 0.6, scale: 1 }}
           animate={{ opacity: 0, scale: 0 }}
           transition={{ duration: 0.35, ease: 'easeOut' }}
-          className="fixed top-0 left-0 w-1.5 h-1.5 rounded-full bg-acid-green pointer-events-none z-[9998]"
+          className="fixed top-0 left-0 w-1.5 h-1.5 rounded-full bg-acid-green pointer-events-none z-[2147483646]"
           style={{ x: p.x - 3, y: p.y - 3 }}
         />
       ))}
 
       {/* Main Custom Cursor */}
       <motion.div
-        className="fixed top-0 left-0 flex items-center justify-center rounded-full pointer-events-none z-[9999] overflow-hidden bg-acid-green text-base-black font-display text-[10px] tracking-widest uppercase font-bold shadow-lg"
+        className={`fixed top-0 left-0 flex items-center justify-center rounded-full pointer-events-none z-[2147483647] overflow-hidden bg-acid-green text-base-black font-display text-[10px] tracking-widest uppercase font-bold shadow-lg transition-opacity duration-150 ${
+          isOverInteractive ? 'opacity-0 scale-50' : 'opacity-100 scale-100'
+        }`}
         style={{
           x: springX,
           y: springY,
