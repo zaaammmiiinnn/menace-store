@@ -13,23 +13,23 @@ NEXT_PUBLIC_CLERK_SIGN_IN_URL = "/login"
 NEXT_PUBLIC_CLERK_SIGN_UP_URL = "/signup"
 NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL = "/account"
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL = "/account"
-ADMIN_EMAILS = "zamin@menace.store,admin@menace.store,zaminaskari.work@gmail.com,askarizamin110@gmail.com"
+ADMIN_EMAILS = "zamin@menance.store,admin@menance.store,zaminaskari.work@gmail.com,askarizamin110@gmail.com"
 
 # Cloudflare D1 Database Binding
 [[d1_databases]]
 binding = "DB"
-database_name = "menace-db"
+database_name = "menance-db"
 database_id = "your-d1-database-id"
 migrations_dir = "src/lib/db/migrations"
 
 # Cloudflare R2 Storage Bucket for Garment Imagery
 [[r2_buckets]]
 binding = "R2_BUCKET"
-bucket_name = "menace-assets"
+bucket_name = "menance-assets"
 
 # Cloudflare KV Namespace for 5-minute Dashboard Metric Caching
 [[kv_namespaces]]
-binding = "MENACE_KV"
+binding = "MENANCE_KV"
 id = "your-kv-namespace-id"
 
 # Cron Trigger: Daily Midnight UTC Stats Aggregation

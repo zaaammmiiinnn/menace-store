@@ -5,7 +5,7 @@ import { SignupForm } from '@/components/auth/SignupForm';
 
 export const metadata: Metadata = {
   title: 'Sign Up — Not For Everyone',
-  description: 'Create your Menace account. Early drop access, expedited checkout, and limited release notifications.',
+  description: 'Create your Menance account. Early drop access, expedited checkout, and limited release notifications.',
 };
 
 export default function SignupPage() {

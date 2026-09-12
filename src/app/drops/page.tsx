@@ -28,7 +28,7 @@ const DROPS: DropEvent[] = [
     status: "live",
     dateLabel: "NOW LIVE // OCTOBER 2026",
     skus: "6 WAFFLE SKUS",
-    description: "Our inaugural release. The Quiet, Loud, Midnight, Soft, Sunday, and Public Menace tees in custom 280+ GSM waffle knit.",
+    description: "Our inaugural release. The Quiet, Loud, Midnight, Soft, Sunday, and Public Menance tees in custom 280+ GSM waffle knit.",
   },
   {
     number: "DROP 002",

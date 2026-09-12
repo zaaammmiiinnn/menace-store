@@ -15,7 +15,7 @@ interface FAQItem {
 const faqs: FAQItem[] = [
   {
     category: "sizing",
-    q: "How oversized are Menace tees?",
+    q: "How oversized are Menance tees?",
     a: "Our silhouettes feature a true 90s drop-shoulder and wide boxy chest with high armholes. If you want the intended streetwear volume, buy your standard size. If you want a more tailored daily look, size down.",
   },
   {
@@ -26,7 +26,7 @@ const faqs: FAQItem[] = [
   {
     category: "sizing",
     q: "Do you cater to plus sizes?",
-    a: "Yes. All Menace releases are graded from XS to 4XL. Every single size maintains proportional boxiness rather than just getting longer.",
+    a: "Yes. All Menance releases are graded from XS to 4XL. Every single size maintains proportional boxiness rather than just getting longer.",
   },
   {
     category: "fabric",
@@ -192,7 +192,7 @@ export default function FAQPage() {
           </p>
           <div className="pt-2">
             <MagneticButton href="/contact" variant="secondary" size="md">
-              CONTACT MENACE TEAM
+              CONTACT MENANCE TEAM
             </MagneticButton>
           </div>
         </div>

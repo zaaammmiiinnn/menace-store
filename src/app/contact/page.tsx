@@ -152,8 +152,8 @@ export default function ContactPage() {
               <div className="space-y-4 font-mono text-xs">
                 <div className="p-4 rounded-xl bg-base-black border border-border space-y-1">
                   <span className="text-muted-grey uppercase block text-[10px]">Email Dispatch</span>
-                  <a href="mailto:dispatch@menace.store" className="font-display text-xl text-acid-green hover:underline">
-                    dispatch@menace.store
+                  <a href="mailto:dispatch@menance.store" className="font-display text-xl text-acid-green hover:underline">
+                    dispatch@menance.store
                   </a>
                   <p className="text-muted-grey text-[11px]">Primary support queue</p>
                 </div>
@@ -166,7 +166,7 @@ export default function ContactPage() {
                     rel="noopener noreferrer"
                     className="font-display text-xl text-off-white hover:text-acid-green transition-colors flex items-center gap-1"
                   >
-                    <span>@MENACE.STORE</span>
+                    <span>@MENANCE.STORE</span>
                     <ArrowUpRight size={16} />
                   </a>
                   <p className="text-muted-grey text-[11px]">Drop teasers &amp; fit checks</p>

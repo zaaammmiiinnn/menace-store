@@ -20,7 +20,7 @@ export async function getAdminUser(): Promise<AdminUser | null> {
   if (process.env.ADMIN_DEV_BYPASS === 'true' && process.env.NODE_ENV === 'development') {
     return {
       id: 'admin_dev_local',
-      email: 'zamin@menace.store',
+      email: 'zamin@menance.store',
       name: 'Zamin Askari (Admin)',
       role: 'admin',
     };
@@ -111,7 +111,7 @@ export async function logAuditAction(params: {
     const entry = {
       id: `aud_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       userId: user?.id || 'system',
-      userEmail: user?.email || 'system@menace.store',
+      userEmail: user?.email || 'system@menance.store',
       action: params.action,
       entity: params.entity,
       entityId: params.entityId || null,

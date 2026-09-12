@@ -225,7 +225,7 @@ export default function CheckoutPage() {
                     type="text"
                     name="address"
                     required
-                    placeholder="Flat 402, Menace Heights, Bandra West"
+                    placeholder="Flat 402, Menance Heights, Bandra West"
                     value={formData.address}
                     onChange={handleChange}
                     className="w-full bg-base-black border border-border focus:border-acid-green px-3 py-2 text-xs font-mono text-off-white rounded outline-none"

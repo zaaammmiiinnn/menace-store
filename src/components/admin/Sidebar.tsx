@@ -51,7 +51,7 @@ export function Sidebar({ userRole = 'admin', userName = 'Admin', userEmail = ''
         {/* Brand Header */}
         <div className="h-14 border-b border-[#1F1F1F] px-5 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="font-heading tracking-wider text-lg text-[#F5F1E8]">MENACE</span>
+            <span className="font-heading tracking-wider text-lg text-[#F5F1E8]">MENANCE</span>
             <span className="text-[10px] font-mono tracking-widest px-1.5 py-0.5 rounded bg-[#C6FF00]/10 text-[#C6FF00] border border-[#C6FF00]/20 uppercase">
               {userRole}
             </span>
@@ -104,7 +104,7 @@ export function Sidebar({ userRole = 'admin', userName = 'Admin', userEmail = ''
           <div className="flex items-center justify-between p-2 rounded bg-[#141414]">
             <div className="min-w-0 pr-2">
               <div className="text-[12px] font-semibold text-[#F5F1E8] truncate">{userName}</div>
-              <div className="text-[11px] text-[#8A8A8A] truncate font-mono">{userEmail || 'admin@menace.store'}</div>
+              <div className="text-[11px] text-[#8A8A8A] truncate font-mono">{userEmail || 'admin@menance.store'}</div>
             </div>
             <button
               onClick={() => signOut({ redirectUrl: '/login' })}

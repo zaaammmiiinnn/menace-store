@@ -140,7 +140,7 @@ export const useCartStore = create<CartState>()(
 
       applyPromoCode: (code: string) => {
         const normalized = code.trim().toUpperCase();
-        if (normalized === 'MENACE10' || normalized === 'NOTFOREVERYONE') {
+        if (normalized === 'MENANCE10' || normalized === 'MENACE10' || normalized === 'NOTFOREVERYONE') {
           set({ promoCode: normalized, discountPercent: 10 });
           return true;
         }

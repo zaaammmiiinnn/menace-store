@@ -2,7 +2,7 @@ import type { NavLink, FooterLinkGroup, DropConfig, AnnouncementMessage, SEOConf
 
 export const siteConfig = {
   brand: {
-    name: 'MENACE',
+    name: 'MENANCE',
     tagline: 'Not for everyone.',
     colors: {
       black: '#0A0A0A',
@@ -86,10 +86,10 @@ export const siteConfig = {
     { text: 'DROP 001 IS COMING. SIGN UP FOR EARLY ACCESS.', link: '/drops' }
   ] as AnnouncementMessage[],
   seo: {
-    title: 'MENACE | Not for everyone.',
+    title: 'MENANCE | Not for everyone.',
     description: 'The anti-brand for the unbothered. High quality blank and graphic apparel.',
     ogImage: '/images/og-image.jpg',
-    siteUrl: 'https://menace.store'
+    siteUrl: 'https://menance.store'
   } as SEOConfig,
   assets: {
     modelPath: '/models/tee.glb',

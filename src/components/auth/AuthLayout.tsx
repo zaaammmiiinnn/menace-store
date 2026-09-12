@@ -95,7 +95,7 @@ export function AuthLayout({
 
         <Link href="/" className="group flex items-center gap-2">
           <span className="font-display text-2xl tracking-widest text-off-white group-hover:text-acid-green transition-colors">
-            MENACE
+            MENANCE
           </span>
           <span className="text-[9px] font-mono tracking-widest text-muted-grey border border-muted-grey/30 px-1.5 py-0.5 rounded uppercase">
             AUTH
@@ -151,7 +151,7 @@ export function AuthLayout({
 
       {/* Bottom Footer Credits & Legal */}
       <footer className="relative z-10 w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 pt-6 border-t border-border/40 text-[10px] font-mono text-muted-grey uppercase tracking-widest">
-        <span>© MENACE {new Date().getFullYear()} // ALL RIGHTS RESERVED</span>
+        <span>© MENANCE {new Date().getFullYear()} // ALL RIGHTS RESERVED</span>
         <div className="flex items-center space-x-4">
           <Link href="/privacy" className="hover:text-acid-green transition-colors">
             PRIVACY

@@ -4,7 +4,7 @@ import { useUser, useAuth as useClerkAuthCore, useClerk } from '@clerk/nextjs';
 import { useState } from 'react';
 import type { AuthUser, AuthSession, OAuthProvider, SignInResult, SignUpResult, PasswordResetResult } from './types';
 
-// Map Clerk errors to Menace tone
+// Map Clerk errors to Menance tone
 export function mapClerkError(err: unknown): string {
   if (!err) return "SOMETHING'S OFF. TRY AGAIN.";
 
@@ -60,7 +60,7 @@ export function useClerkAuth() {
   const metadataRole = (clerkUser?.publicMetadata?.role as string) || null;
   const adminEmailsEnv = (
     process.env.NEXT_PUBLIC_ADMIN_EMAILS ||
-    'zamin@menace.store,admin@menace.store,zaminaskari.work@gmail.com,askarizamin110@gmail.com'
+    'zamin@menance.store,admin@menance.store,zamin@menace.store,admin@menace.store,zaminaskari.work@gmail.com,askarizamin110@gmail.com'
   )
     .split(',')
     .map((e) => e.trim().toLowerCase())
@@ -75,7 +75,7 @@ export function useClerkAuth() {
     email: clerkUser.primaryEmailAddress?.emailAddress || '',
     firstName: clerkUser.firstName,
     lastName: clerkUser.lastName,
-    fullName: clerkUser.fullName || `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 'MENACE MEMBER',
+    fullName: clerkUser.fullName || `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 'MENANCE MEMBER',
     imageUrl: clerkUser.imageUrl,
     role,
     isAdmin,

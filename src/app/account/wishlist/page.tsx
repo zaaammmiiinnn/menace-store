@@ -82,7 +82,7 @@ export default function AccountWishlistPage() {
                 <div className="p-5">
                   <div className="relative aspect-[4/3] rounded-xl bg-base-black border border-border/60 flex items-center justify-center overflow-hidden mb-4">
                     <span className="font-display text-4xl text-white/10 group-hover:text-acid-green/20 transition-colors uppercase select-none">
-                      MENACE
+                      MENANCE
                     </span>
                     <span className="absolute top-3 left-3 px-2 py-0.5 rounded text-[9px] font-mono uppercase tracking-widest bg-acid-green text-base-black font-bold">
                       {product.vibeName}

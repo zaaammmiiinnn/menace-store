@@ -391,8 +391,8 @@ export async function getR2UploadUrlAction(filename: string, filetype: string) {
   // Generate upload target URL (Cloudflare R2 compatible)
   const cleanName = filename.replace(/[^a-zA-Z0-9.-]/g, '_');
   const key = `products/${Date.now()}-${cleanName}`;
-  const bucket = process.env.R2_BUCKET_NAME || 'menace-assets';
-  const publicDomain = process.env.R2_PUBLIC_DOMAIN || 'https://assets.menace.store';
+  const bucket = process.env.R2_BUCKET_NAME || 'menance-assets';
+  const publicDomain = process.env.R2_PUBLIC_DOMAIN || 'https://assets.menance.store';
 
   return {
     uploadUrl: `/api/admin/upload-mock?key=${encodeURIComponent(key)}`,

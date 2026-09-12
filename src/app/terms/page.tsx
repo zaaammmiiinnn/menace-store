@@ -27,7 +27,7 @@ export default function TermsPage() {
     },
     {
       title: "6. INTELLECTUAL PROPERTY",
-      content: "The intellectual property rights in all software and content made available to you on or through this website remains the property of MENACE and are protected by copyright laws and treaties around the world."
+      content: "The intellectual property rights in all software and content made available to you on or through this website remains the property of MENANCE and are protected by copyright laws and treaties around the world."
     },
     {
       title: "7. LIMITATION OF LIABILITY",

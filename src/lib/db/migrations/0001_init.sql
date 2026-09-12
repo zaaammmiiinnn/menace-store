@@ -1,4 +1,4 @@
--- MENACE Store D1 Database Initial Migration
+-- MENANCE Store D1 Database Initial Migration
 
 -- Drops
 CREATE TABLE IF NOT EXISTS drops (
@@ -133,10 +133,10 @@ INSERT OR IGNORE INTO drops (id, name, launch_at, status, description) VALUES
 
 -- Initial Real Products
 INSERT OR IGNORE INTO products (id, slug, name, description, price_inr, price_usd, category, drop_id, status, created_at, updated_at) VALUES
-('prod_001', 'quiet-menace', 'The Quiet Menace Tee', 'No logo. No noise. Just the best damn tee you will ever own. Drop-shoulder, heavy weight, boxy fit.', 1299, 39, 'tees', 'drop_001', 'active', 1789200000000, 1789200000000),
-('prod_002', 'loud-menace', 'The Loud Menace Tee', 'Big print, zero apologies. Front and center graphic that makes a statement before you even open your mouth.', 1499, 45, 'tees', 'drop_001', 'active', 1789200000000, 1789200000000),
-('prod_003', 'midnight-menace', 'The Midnight Menace Tee', 'Blacked out everything. For those who operate after hours. Stealth logo hit, premium heavy cotton.', 1399, 42, 'tees', 'drop_001', 'active', 1789200000000, 1789200000000),
-('prod_004', 'acid-menace', 'The Acid Menace Tee', 'High contrast neon hit. Designed for low light, flash photography, and standing out in a crowd of clones.', 1499, 45, 'tees', 'drop_001', 'active', 1789200000000, 1789200000000),
+('prod_001', 'quiet-menace', 'The Quiet Menance Tee', 'No logo. No noise. Just the best damn tee you will ever own. Drop-shoulder, heavy weight, boxy fit.', 1299, 39, 'tees', 'drop_001', 'active', 1789200000000, 1789200000000),
+('prod_002', 'loud-menace', 'The Loud Menance Tee', 'Big print, zero apologies. Front and center graphic that makes a statement before you even open your mouth.', 1499, 45, 'tees', 'drop_001', 'active', 1789200000000, 1789200000000),
+('prod_003', 'midnight-menace', 'The Midnight Menance Tee', 'Blacked out everything. For those who operate after hours. Stealth logo hit, premium heavy cotton.', 1399, 42, 'tees', 'drop_001', 'active', 1789200000000, 1789200000000),
+('prod_004', 'acid-menace', 'The Acid Menance Tee', 'High contrast neon hit. Designed for low light, flash photography, and standing out in a crowd of clones.', 1499, 45, 'tees', 'drop_001', 'active', 1789200000000, 1789200000000),
 ('prod_005', 'raw-edge-boxy-tee', 'The Raw Edge Boxy Tee', 'Unfinished hems that roll naturally. The anti-polish tee for when you want to look like you did not try at all.', 1349, 40, 'tees', 'drop_001', 'active', 1789200000000, 1789200000000),
 ('prod_006', 'oversized-heavy-waffle', 'The Oversized Heavy Waffle Tee', 'Thermal texture, heavyweight drape. The centerpiece of Drop 001. Boxy cut built to last decades.', 1599, 49, 'tees', 'drop_001', 'active', 1789200000000, 1789200000000);
 
@@ -161,13 +161,13 @@ INSERT OR IGNORE INTO product_variants (id, product_id, size, color, sku, stock,
 
 -- Initial Discount Codes
 INSERT OR IGNORE INTO discount_codes (id, code, type, value, min_order, max_uses, uses, expires_at, active) VALUES
-('disc_001', 'MENACE10', 'percentage', 10, 1299, 500, 42, 1800000000000, 1),
+('disc_001', 'MENANCE10', 'percentage', 10, 1299, 500, 42, 1800000000000, 1),
 ('disc_002', 'VIP20', 'percentage', 20, 2500, 100, 18, 1800000000000, 1),
 ('disc_003', 'ACID500', 'fixed', 500, 3000, 50, 7, 1800000000000, 1);
 
 -- Initial Customers
 INSERT OR IGNORE INTO customers (id, clerk_user_id, email, name, created_at, total_spent) VALUES
-('cust_001', 'user_clerk_001', 'zamin@menace.store', 'Zamin Askari', 1789000000000, 5497),
+('cust_001', 'user_clerk_001', 'zamin@menance.store', 'Zamin Askari', 1789000000000, 5497),
 ('cust_002', 'user_clerk_002', 'alex.v@hyperpop.io', 'Alex Vance', 1789100000000, 2798),
 ('cust_003', 'user_clerk_003', 'kai.orbit@tokyo.net', 'Kai Takahashi', 1789150000000, 1599),
 ('cust_004', 'user_clerk_004', 'riya.sharma@mumbai.co', 'Riya Sharma', 1789180000000, 4198);
@@ -191,10 +191,10 @@ INSERT OR IGNORE INTO order_items (id, order_id, variant_id, quantity, price_at_
 
 -- Store Settings
 INSERT OR IGNORE INTO settings (key, value, updated_at) VALUES
-('store_name', 'MENACE', 1789200000000),
+('store_name', 'MENANCE', 1789200000000),
 ('tagline', 'Not for everyone.', 1789200000000),
 ('primary_currency', 'INR', 1789200000000),
 ('free_shipping_threshold', '2999', 1789200000000),
 ('standard_shipping_rate', '149', 1789200000000),
 ('gst_percentage', '18', 1789200000000),
-('staff_roles', '[{"email":"staff@menace.store","role":"staff","name":"Staff Member"}]', 1789200000000);
+('staff_roles', '[{"email":"staff@menance.store","role":"staff","name":"Staff Member"}]', 1789200000000);

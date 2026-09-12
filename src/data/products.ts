@@ -15,7 +15,7 @@ export const products: Product[] = [
   {
     id: 'prod_001',
     slug: 'quiet-menace',
-    name: 'The Quiet Menace Tee',
+    name: 'The Quiet Menance Tee',
     description: 'No logo. No noise. Just the best damn tee you will ever own. Drop-shoulder, heavy weight, boxy fit. Let the silhouette do the talking.',
     price: 1299,
     colorways: [
@@ -35,7 +35,7 @@ export const products: Product[] = [
   {
     id: 'prod_002',
     slug: 'loud-menace',
-    name: 'The Loud Menace Tee',
+    name: 'The Loud Menance Tee',
     description: 'Big print, zero apologies. Front and center graphic that makes a statement before you even open your mouth. You either get it or you don\'t.',
     price: 1499,
     colorways: [
@@ -55,7 +55,7 @@ export const products: Product[] = [
   {
     id: 'prod_003',
     slug: 'midnight-menace',
-    name: 'The Midnight Menace Tee',
+    name: 'The Midnight Menance Tee',
     description: 'Blacked out everything. For those who operate after hours. Stealth logo hit, premium heavy cotton.',
     price: 1399,
     colorways: [
@@ -75,7 +75,7 @@ export const products: Product[] = [
   {
     id: 'prod_004',
     slug: 'soft-menace',
-    name: 'The Soft Menace Tee',
+    name: 'The Soft Menance Tee',
     description: 'Heavyweight waffle texture. Soft on the skin, tough on the outside. Comfort without compromise.',
     price: 1599,
     colorways: [
@@ -95,7 +95,7 @@ export const products: Product[] = [
   {
     id: 'prod_005',
     slug: 'sunday-menace',
-    name: 'The Sunday Menace Tee',
+    name: 'The Sunday Menance Tee',
     description: 'Washed out, lived in. Feels like you\'ve owned it for years. The perfect tee for when you\'re doing absolutely nothing.',
     price: 1299,
     colorways: [
@@ -115,7 +115,7 @@ export const products: Product[] = [
   {
     id: 'prod_006',
     slug: 'public-menace',
-    name: 'The Public Menace Tee',
+    name: 'The Public Menance Tee',
     description: 'Not for the faint of heart. Disruptive graphics, acid washes, made to turn heads and cause a scene.',
     price: 1499,
     colorways: [
