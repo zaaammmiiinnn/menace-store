@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, Package, Heart, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Package, Heart, Settings, LogOut, Shield } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { playClickSound, playHoverSound } from '@/lib/sound';
 
@@ -43,6 +43,12 @@ export function AccountNav() {
             <span className="px-2 py-0.5 text-[9px] font-mono uppercase bg-acid-green text-base-black font-bold rounded">
               VIP TIER
             </span>
+            {user?.isAdmin && (
+              <span className="px-2 py-0.5 text-[9px] font-mono uppercase bg-red-500/20 text-red-400 border border-red-500/30 font-bold rounded flex items-center gap-1">
+                <Shield size={10} />
+                <span>ADMIN</span>
+              </span>
+            )}
           </div>
           <p className="font-mono text-xs text-muted-grey">
             {user?.email || 'member@menace.com'}
@@ -79,6 +85,20 @@ export function AccountNav() {
             );
           })}
         </div>
+
+        {/* Admin Cockpit Quick Link */}
+        {user?.isAdmin && (
+          <Link
+            href="/admin"
+            onClick={playClickSound}
+            onMouseEnter={playHoverSound}
+            className="px-3.5 py-1.5 rounded-xl bg-acid-green text-base-black font-mono text-xs uppercase font-bold tracking-wider flex items-center gap-1.5 shadow-[0_0_14px_rgba(198,255,0,0.3)] hover:bg-white transition-all"
+            title="Launch Admin Operations Cockpit"
+          >
+            <Shield size={13} className="text-base-black" />
+            <span>ADMIN COCKPIT</span>
+          </Link>
+        )}
 
         {/* Sign Out Button */}
         <button

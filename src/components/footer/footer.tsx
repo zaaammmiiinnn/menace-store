@@ -44,6 +44,7 @@ export function Footer() {
         { label: 'Manifesto', href: '/about#manifesto' },
         { label: 'Contact', href: '/contact' },
         { label: 'FAQ', href: '/faq' },
+        { label: 'Admin Portal', href: '/admin/login' },
       ],
     },
     {

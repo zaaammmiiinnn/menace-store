@@ -1,26 +1,39 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useSignIn } from '@/lib/auth';
 import { playClickSound, playHoverSound } from '@/lib/sound';
 
 interface OAuthButtonsProps {
+  redirectTarget?: string;
   onStart?: () => void;
+  onError?: (error: string) => void;
 }
 
-export function OAuthButtons({ onStart }: OAuthButtonsProps) {
+export function OAuthButtons({ redirectTarget, onStart, onError }: OAuthButtonsProps) {
+  const searchParams = useSearchParams();
   const { signInWithOAuth } = useSignIn();
   const [loadingProvider, setLoadingProvider] = useState<'google' | 'apple' | null>(null);
+
+  const destination = redirectTarget || searchParams.get('redirect') || '/account';
 
   const handleOAuth = async (provider: 'google' | 'apple') => {
     playClickSound();
     if (onStart) onStart();
     setLoadingProvider(provider);
+
     try {
-      await signInWithOAuth(provider);
-    } catch {
+      await signInWithOAuth(provider, destination);
+    } catch (err: any) {
       setLoadingProvider(null);
+      const msg = provider === 'apple'
+        ? 'Apple sign-in is not enabled. Please sign in with Google or Email.'
+        : err?.message || 'Failed to connect to Google. Please check your connection and try again.';
+      if (onError) {
+        onError(msg);
+      }
     }
   };
 

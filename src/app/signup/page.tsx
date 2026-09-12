@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 import { SignupForm } from '@/components/auth/SignupForm';
 
@@ -18,7 +19,9 @@ export default function SignupPage() {
         href: "/login",
       }}
     >
-      <SignupForm />
+      <Suspense fallback={<div className="font-mono text-xs text-muted-grey py-8 text-center animate-pulse">INITIALIZING...</div>}>
+        <SignupForm />
+      </Suspense>
     </AuthLayout>
   );
 }

@@ -69,7 +69,7 @@ export async function getAdminUser(): Promise<AdminUser | null> {
 export async function requireStaff(): Promise<AdminUser> {
   const adminUser = await getAdminUser();
   if (!adminUser) {
-    redirect('/login?redirect=/admin');
+    redirect('/admin/login');
   }
 
   if (adminUser.role !== 'staff' && adminUser.role !== 'admin') {
@@ -86,7 +86,7 @@ export async function requireStaff(): Promise<AdminUser> {
 export async function requireAdmin(): Promise<AdminUser> {
   const adminUser = await getAdminUser();
   if (!adminUser) {
-    redirect('/login?redirect=/admin');
+    redirect('/admin/login');
   }
 
   if (adminUser.role !== 'admin') {

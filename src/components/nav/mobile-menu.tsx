@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2, VolumeX, User } from 'lucide-react';
+import { Volume2, VolumeX, User, Shield } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { useUiStore } from '@/store/ui-store';
 import { useCartStore } from '@/store/cart-store';
@@ -16,7 +16,7 @@ export function MobileMenu() {
   const toggleSound = useUiStore((state) => state.toggleSound);
   const currency = useCartStore((state) => state.currency);
   const toggleCurrency = useCartStore((state) => state.toggleCurrency);
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   const links = siteConfig.navLinks || siteConfig.navigation || [];
 
@@ -63,6 +63,21 @@ export function MobileMenu() {
 
           {/* Bottom actions & settings */}
           <div className="pt-8 border-t border-border flex flex-col gap-4">
+            {/* Admin Cockpit Quick Link for Authorized Users */}
+            {user?.isAdmin && (
+              <Link
+                href="/admin"
+                onClick={handleLinkClick}
+                className="p-3.5 rounded-xl bg-acid-green text-base-black font-mono text-xs uppercase font-bold flex items-center justify-between shadow-[0_0_15px_rgba(198,255,0,0.3)] transition-transform active:scale-[0.98]"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Shield size={16} className="text-base-black" />
+                  <span>OPERATIONS ADMIN COCKPIT</span>
+                </div>
+                <span className="text-[10px]">OPEN →</span>
+              </Link>
+            )}
+
             {/* Account Quick Banner */}
             <Link
               href={isAuthenticated ? "/account" : "/login"}
@@ -81,6 +96,18 @@ export function MobileMenu() {
                 {isAuthenticated ? "DASHBOARD" : "GET IN"} →
               </span>
             </Link>
+
+            {/* Admin Portal link for unauthenticated users */}
+            {!isAuthenticated && (
+              <Link
+                href="/admin/login"
+                onClick={handleLinkClick}
+                className="text-center font-mono text-[11px] text-muted-grey hover:text-acid-green uppercase tracking-widest transition-colors py-1 flex items-center justify-center gap-1.5"
+              >
+                <Shield size={11} />
+                <span>STAFF & ADMIN LOGIN</span>
+              </Link>
+            )}
 
             <div className="grid grid-cols-2 gap-3">
               {/* Currency Button */}

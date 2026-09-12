@@ -169,7 +169,10 @@ export function SignupForm() {
         /* Main Signup Form */
         <>
           {/* OAuth Buttons */}
-          <OAuthButtons onStart={() => setFormError(null)} />
+          <OAuthButtons
+            onStart={() => setFormError(null)}
+            onError={(err) => triggerErrorShake(err)}
+          />
 
           {/* Divider */}
           <div className="relative flex items-center justify-center my-1">

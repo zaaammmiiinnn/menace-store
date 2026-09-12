@@ -3,14 +3,14 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Search, Heart, ShoppingBag, Menu, X, ArrowRight, Volume2, VolumeX, User } from 'lucide-react';
+import { Search, Heart, ShoppingBag, Menu, X, ArrowRight, Volume2, VolumeX, User, Shield } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { useCartStore } from '@/store/cart-store';
 import { useUiStore } from '@/store/ui-store';
 import { useWishlistStore } from '@/store/wishlist-store';
 import { useAuth } from '@/lib/auth';
 import { playClickSound, playSwitchSound, playHoverSound } from '@/lib/sound';
-import { SignInButton, SignUpButton, Show, UserButton } from '@clerk/nextjs';
+import { Show, UserButton } from '@clerk/nextjs';
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -29,7 +29,7 @@ export function Navbar() {
   const toggleSound = useUiStore((state) => state.toggleSound);
   const showToast = useUiStore((state) => state.showToast);
   const wishlistItems = useWishlistStore((state) => state.items);
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -203,27 +203,37 @@ export function Navbar() {
           {/* Clerk Auth Controls */}
           <div className="hidden sm:flex items-center gap-2">
             <Show when="signed-out">
-              <SignInButton mode="modal">
-                <button
-                  onClick={playClickSound}
-                  onMouseEnter={playHoverSound}
-                  className="text-[11px] font-mono tracking-widest text-off-white/80 hover:text-acid-green px-2 py-1 rounded transition-colors uppercase cursor-pointer"
-                >
-                  Sign In
-                </button>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <button
-                  onClick={playClickSound}
-                  onMouseEnter={playHoverSound}
-                  className="text-[11px] font-mono tracking-widest bg-acid-green/10 text-acid-green border border-acid-green/30 hover:border-acid-green px-2 py-1 rounded transition-colors uppercase cursor-pointer font-bold"
-                >
-                  Join
-                </button>
-              </SignUpButton>
+              <Link
+                href="/login"
+                onClick={playClickSound}
+                onMouseEnter={playHoverSound}
+                className="text-[11px] font-mono tracking-widest text-off-white/80 hover:text-acid-green px-2 py-1 rounded transition-colors uppercase cursor-pointer"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/signup"
+                onClick={playClickSound}
+                onMouseEnter={playHoverSound}
+                className="text-[11px] font-mono tracking-widest bg-acid-green/10 text-acid-green border border-acid-green/30 hover:border-acid-green px-2 py-1 rounded transition-colors uppercase cursor-pointer font-bold"
+              >
+                Join
+              </Link>
             </Show>
             <Show when="signed-in">
               <div className="flex items-center gap-2.5">
+                {user?.isAdmin && (
+                  <Link
+                    href="/admin"
+                    onClick={playClickSound}
+                    onMouseEnter={playHoverSound}
+                    className="flex items-center gap-1 text-[10px] font-mono tracking-wider bg-acid-green text-base-black px-2 py-1 rounded transition-all uppercase font-bold shadow-[0_0_12px_rgba(198,255,0,0.3)] hover:bg-white"
+                    title="Open Operations Admin Cockpit"
+                  >
+                    <Shield size={11} className="text-base-black" />
+                    <span>Admin</span>
+                  </Link>
+                )}
                 <Link
                   href="/account"
                   onClick={playClickSound}

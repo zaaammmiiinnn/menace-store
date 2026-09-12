@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Package, Heart, Award, ArrowRight, Clock, ShieldCheck, Sparkles } from 'lucide-react';
+import { Package, Heart, Award, ArrowRight, Clock, ShieldCheck, Sparkles, Shield } from 'lucide-react';
 import { AccountNav } from '@/components/account/AccountNav';
 import { useAuth } from '@/lib/auth';
 import { useWishlistStore } from '@/store/wishlist-store';
@@ -48,6 +48,38 @@ export default function AccountDashboardPage() {
       <div className="max-w-6xl mx-auto">
         {/* Navigation & Header */}
         <AccountNav />
+
+        {/* Admin Clearance Quick Banner */}
+        {user?.isAdmin && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 p-4 rounded-2xl bg-acid-green/10 border border-acid-green/40 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-[0_0_20px_rgba(198,255,0,0.15)]"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-acid-green text-base-black flex items-center justify-center font-bold flex-shrink-0 shadow-[0_0_10px_rgba(198,255,0,0.4)]">
+                <Shield size={20} />
+              </div>
+              <div>
+                <p className="font-display text-lg uppercase tracking-wider text-off-white">
+                  ADMINISTRATOR CLEARANCE RECOGNIZED
+                </p>
+                <p className="font-mono text-xs text-muted-grey uppercase">
+                  Full operations access for Menace catalog, drop schedules, inventory & orders.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/admin"
+              onClick={playClickSound}
+              onMouseEnter={playHoverSound}
+              className="py-2.5 px-4 rounded-xl bg-acid-green text-base-black font-mono text-xs uppercase tracking-wider font-bold hover:bg-white transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(198,255,0,0.3)] flex-shrink-0 cursor-pointer"
+            >
+              <span>LAUNCH COCKPIT</span>
+              <ArrowRight size={14} />
+            </Link>
+          </motion.div>
+        )}
 
         {/* Big Greeting */}
         <div className="mb-10">

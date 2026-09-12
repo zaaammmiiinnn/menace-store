@@ -6,17 +6,29 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, EyeOff, ArrowRight, Sparkles, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight, Sparkles, AlertCircle, Shield, User, ExternalLink } from 'lucide-react';
 import { loginSchema, magicLinkSchema, type LoginInput, type MagicLinkInput } from '@/lib/validation/auth';
 import { useSignIn } from '@/lib/auth';
 import { useUiStore } from '@/store/ui-store';
 import { playClickSound, playConfettiSound, playHoverSound } from '@/lib/sound';
 import { OAuthButtons } from './OAuthButtons';
 
-export function LoginForm() {
+interface LoginFormProps {
+  defaultAdminMode?: boolean;
+  forcedRedirect?: string;
+}
+
+export function LoginForm({ defaultAdminMode = false, forcedRedirect }: LoginFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTarget = searchParams.get('redirect') || '/account';
+
+  const rawRedirect = forcedRedirect || searchParams.get('redirect') || '/account';
+  const isQueryAdmin = defaultAdminMode || searchParams.get('mode') === 'admin' || rawRedirect.startsWith('/admin');
+  const [isAdminMode, setIsAdminMode] = useState(!!isQueryAdmin);
+
+  const redirectTarget = isAdminMode
+    ? (rawRedirect.startsWith('/admin') ? rawRedirect : '/admin')
+    : (rawRedirect.startsWith('/admin') ? '/account' : rawRedirect);
 
   const { signInWithPassword, signInWithMagicLink, isLoading } = useSignIn();
   const triggerConfetti = useUiStore((state) => state.triggerConfetti);
@@ -53,7 +65,7 @@ export function LoginForm() {
     if (res.success) {
       playConfettiSound();
       triggerConfetti();
-      showToast("YOU'RE IN.");
+      showToast(isAdminMode ? "COCKPIT AUTHENTICATED." : "YOU'RE IN.");
       router.push(redirectTarget);
     } else if (res.needsVerification) {
       router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
@@ -82,8 +94,79 @@ export function LoginForm() {
       transition={{ duration: 0.5 }}
       className="w-full flex flex-col gap-6"
     >
-      {/* OAuth Fast Connect */}
-      <OAuthButtons onStart={() => setFormError(null)} />
+      {/* Mode Selector Pill: Customer vs Admin Portal */}
+      <div className="grid grid-cols-2 p-1 rounded-xl bg-base-black/70 border border-border">
+        <button
+          type="button"
+          onClick={() => {
+            setIsAdminMode(false);
+            setFormError(null);
+            playClickSound();
+          }}
+          className={`py-2 px-3 rounded-lg text-xs font-mono uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            !isAdminMode
+              ? 'bg-surface text-off-white font-bold shadow-md border border-border/80'
+              : 'text-muted-grey hover:text-off-white'
+          }`}
+        >
+          <User size={13} className={!isAdminMode ? 'text-acid-green' : ''} />
+          <span>Customer</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setIsAdminMode(true);
+            setFormError(null);
+            playClickSound();
+          }}
+          className={`py-2 px-3 rounded-lg text-xs font-mono uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            isAdminMode
+              ? 'bg-acid-green text-base-black font-bold shadow-[0_0_12px_rgba(198,255,0,0.3)]'
+              : 'text-muted-grey hover:text-off-white'
+          }`}
+        >
+          <Shield size={13} className={isAdminMode ? 'text-base-black' : 'text-acid-green'} />
+          <span>Admin Portal</span>
+        </button>
+      </div>
+
+      {/* Admin Mode Informational Banner */}
+      {isAdminMode && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="p-3.5 rounded-xl bg-acid-green/10 border border-acid-green/30 text-off-white font-mono text-xs space-y-2"
+        >
+          <div className="flex items-center gap-1.5 text-acid-green font-bold uppercase tracking-wider text-[11px]">
+            <Shield size={13} />
+            <span>OPERATIONS COCKPIT ACCESS</span>
+          </div>
+          <p className="text-muted-grey text-[11px] leading-relaxed">
+            Authorized staff & admin credentials only. Authenticate with Google Workspace or your admin email.
+          </p>
+
+          {/* Dev Mode Instant Bypass Shortcut */}
+          <button
+            type="button"
+            onClick={() => {
+              playClickSound();
+              router.push('/admin');
+            }}
+            className="w-full mt-1.5 py-2 px-3 rounded-lg bg-surface border border-acid-green/40 hover:bg-acid-green hover:text-base-black text-acid-green font-mono text-[10px] uppercase tracking-widest font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+          >
+            <span>DEV MODE: INSTANT BYPASS TO /ADMIN</span>
+            <ExternalLink size={11} />
+          </button>
+        </motion.div>
+      )}
+
+      {/* OAuth Fast Connect (Passes dynamic redirect target and error callback) */}
+      <OAuthButtons
+        redirectTarget={redirectTarget}
+        onStart={() => setFormError(null)}
+        onError={(err) => triggerErrorShake(err)}
+      />
 
       {/* Divider */}
       <div className="relative flex items-center justify-center my-1">
@@ -133,12 +216,12 @@ export function LoginForm() {
         <form onSubmit={magicForm.handleSubmit(onMagicSubmit)} className="space-y-6">
           <div className="relative">
             <label className="block font-mono text-[10px] uppercase tracking-widest text-muted-grey mb-1">
-              EMAIL ADDRESS
+              {isAdminMode ? 'ADMIN EMAIL ADDRESS' : 'EMAIL ADDRESS'}
             </label>
             <div className="relative">
               <input
                 type="email"
-                placeholder="name@menace.com"
+                placeholder={isAdminMode ? 'admin@menace.store' : 'name@menace.com'}
                 {...magicForm.register('email')}
                 className="w-full bg-transparent border-b border-border py-2 text-off-white font-mono text-sm placeholder:text-muted-grey/40 focus:border-acid-green outline-none transition-colors"
               />
@@ -162,7 +245,7 @@ export function LoginForm() {
               </span>
             ) : (
               <>
-                <span>SEND MAGIC LINK</span>
+                <span>{isAdminMode ? 'SEND ADMIN LINK' : 'SEND MAGIC LINK'}</span>
                 <ArrowRight size={16} />
               </>
             )}
@@ -185,14 +268,14 @@ export function LoginForm() {
       ) : (
         /* Standard Email + Password Form */
         <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-5">
-          {/* Email Underline Field */}
+          {/* Email Field */}
           <div className="relative">
             <label className="block font-mono text-[10px] uppercase tracking-widest text-muted-grey mb-1">
-              EMAIL ADDRESS
+              {isAdminMode ? 'ADMIN EMAIL ADDRESS' : 'EMAIL ADDRESS'}
             </label>
             <input
               type="email"
-              placeholder="name@menace.com"
+              placeholder={isAdminMode ? 'admin@menace.store' : 'name@menace.com'}
               {...passwordForm.register('email')}
               className="w-full bg-transparent border-b border-border py-2 text-off-white font-mono text-sm placeholder:text-muted-grey/40 focus:border-acid-green outline-none transition-colors"
             />
@@ -203,7 +286,7 @@ export function LoginForm() {
             )}
           </div>
 
-          {/* Password Underline Field */}
+          {/* Password Field */}
           <div className="relative">
             <div className="flex justify-between items-center mb-1">
               <label className="font-mono text-[10px] uppercase tracking-widest text-muted-grey">
@@ -239,7 +322,7 @@ export function LoginForm() {
             )}
           </div>
 
-          {/* Remember Me Checkbox */}
+          {/* Remember Me & Passwordless Toggle */}
           <div className="flex items-center justify-between pt-1">
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
@@ -265,7 +348,7 @@ export function LoginForm() {
             </button>
           </div>
 
-          {/* Main Submit Button with Animated Wordmark Loader */}
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={isLoading}
@@ -283,7 +366,7 @@ export function LoginForm() {
               </div>
             ) : (
               <>
-                <span>ENTER STORE</span>
+                <span>{isAdminMode ? 'ENTER ADMIN COCKPIT' : 'ENTER STORE'}</span>
                 <ArrowRight size={18} />
               </>
             )}

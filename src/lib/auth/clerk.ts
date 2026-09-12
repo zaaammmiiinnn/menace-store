@@ -39,6 +39,20 @@ export function useClerkAuth() {
   const { userId, isSignedIn } = useClerkAuthCore();
   const clerk = useClerk();
 
+  const email = (clerkUser?.primaryEmailAddress?.emailAddress || '').toLowerCase();
+  const metadataRole = (clerkUser?.publicMetadata?.role as string) || null;
+  const adminEmailsEnv = (
+    process.env.NEXT_PUBLIC_ADMIN_EMAILS ||
+    'zamin@menace.store,admin@menace.store,zaminaskari.work@gmail.com,askarizamin110@gmail.com'
+  )
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  const isEmailAdmin = email ? adminEmailsEnv.includes(email) : false;
+  const devBypass = process.env.NEXT_PUBLIC_ADMIN_DEV_BYPASS === 'true';
+  const role = metadataRole || (isEmailAdmin ? 'admin' : 'customer');
+  const isAdmin = role === 'admin' || role === 'staff' || isEmailAdmin || devBypass;
+
   const user: AuthUser | null = clerkUser ? {
     id: clerkUser.id,
     email: clerkUser.primaryEmailAddress?.emailAddress || '',
@@ -46,6 +60,8 @@ export function useClerkAuth() {
     lastName: clerkUser.lastName,
     fullName: clerkUser.fullName || `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || 'MENACE MEMBER',
     imageUrl: clerkUser.imageUrl,
+    role,
+    isAdmin,
     createdAt: clerkUser.createdAt ? new Date(clerkUser.createdAt) : null,
   } : null;
 
@@ -102,26 +118,23 @@ export function useClerkSignIn() {
     }
   };
 
-  const signInWithOAuth = async (provider: OAuthProvider): Promise<void> => {
+  const signInWithOAuth = async (provider: OAuthProvider, redirectUrl?: string): Promise<void> => {
     if (!clerk.loaded) return;
     const strategy = provider === 'google' ? 'oauth_google' : 'oauth_apple';
+    const targetRedirect = redirectUrl && redirectUrl.startsWith('/') ? redirectUrl : '/account';
+
     try {
-      const clerkAny = clerk as unknown as { authenticateWithRedirect?: (opts: unknown) => Promise<void> };
-      if (typeof clerkAny.authenticateWithRedirect === 'function') {
-        await clerkAny.authenticateWithRedirect({
+      if (clerk.client?.signIn) {
+        await clerk.client.signIn.authenticateWithRedirect({
           strategy,
           redirectUrl: '/sso-callback',
-          redirectUrlComplete: '/account',
-        });
-      } else if (clerk.client?.signIn && typeof (clerk.client.signIn as unknown as { authenticateWithRedirect?: (opts: unknown) => Promise<void> }).authenticateWithRedirect === 'function') {
-        await (clerk.client.signIn as unknown as { authenticateWithRedirect: (opts: unknown) => Promise<void> }).authenticateWithRedirect({
-          strategy,
-          redirectUrl: '/sso-callback',
-          redirectUrlComplete: '/account',
+          redirectUrlComplete: targetRedirect,
+          continueSignUp: true,
         });
       }
     } catch (err) {
       console.error('OAuth redirect error:', err);
+      throw err;
     }
   };
 
@@ -266,8 +279,36 @@ export function useClerkSignUp() {
     }
   };
 
+  const signUpWithOAuth = async (provider: OAuthProvider, redirectUrl?: string): Promise<void> => {
+    if (!clerk.loaded) return;
+    const strategy = provider === 'google' ? 'oauth_google' : 'oauth_apple';
+    const targetRedirect = redirectUrl && redirectUrl.startsWith('/') ? redirectUrl : '/account';
+
+    try {
+      if (clerk.client?.signUp) {
+        await clerk.client.signUp.authenticateWithRedirect({
+          strategy,
+          redirectUrl: '/sso-callback',
+          redirectUrlComplete: targetRedirect,
+          continueSignUp: true,
+        });
+      } else if (clerk.client?.signIn) {
+        await clerk.client.signIn.authenticateWithRedirect({
+          strategy,
+          redirectUrl: '/sso-callback',
+          redirectUrlComplete: targetRedirect,
+          continueSignUp: true,
+        });
+      }
+    } catch (err) {
+      console.error('OAuth signup error:', err);
+      throw err;
+    }
+  };
+
   return {
     signUpWithPassword,
+    signUpWithOAuth,
     verifyEmailCode,
     resendVerificationCode,
     isLoading,

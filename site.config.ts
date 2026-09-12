@@ -46,7 +46,8 @@ export const siteConfig = {
       links: [
         { label: 'About Us', href: '/about' },
         { label: 'Careers', href: '/careers' },
-        { label: 'Stockists', href: '/stockists' }
+        { label: 'Stockists', href: '/stockists' },
+        { label: 'Admin Portal', href: '/admin/login' }
       ]
     },
     {

@@ -5,6 +5,10 @@ const isProtectedRoute = createRouteMatcher([
   '/account(.*)',
 ]);
 
+const isAdminLoginRoute = createRouteMatcher([
+  '/admin/login(.*)',
+]);
+
 const isAdminRoute = createRouteMatcher([
   '/admin(.*)',
 ]);
@@ -20,14 +24,22 @@ const clerkHandler = clerkMiddleware(async (auth, req) => {
   const session = await auth();
   const { userId } = session;
 
+  // If already authenticated and accessing /admin/login, redirect to /admin cockpit
+  if (isAdminLoginRoute(req)) {
+    if (userId) {
+      return NextResponse.redirect(new URL('/admin', req.url));
+    }
+    return NextResponse.next();
+  }
+
   // Protect /admin routes (Staff or Admin only)
-  if (isAdminRoute(req)) {
+  if (isAdminRoute(req) && !isAdminLoginRoute(req)) {
     if (process.env.ADMIN_DEV_BYPASS === 'true' && process.env.NODE_ENV === 'development') {
       return NextResponse.next();
     }
 
     if (!userId) {
-      const loginUrl = new URL('/login', req.url);
+      const loginUrl = new URL('/admin/login', req.url);
       loginUrl.searchParams.set('redirect', req.nextUrl.pathname);
       return NextResponse.redirect(loginUrl);
     }

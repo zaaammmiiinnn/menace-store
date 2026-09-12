@@ -164,6 +164,10 @@ export function AuthLayout({
           <Link href="/faq" className="hover:text-acid-green transition-colors">
             HELP
           </Link>
+          <span>•</span>
+          <Link href="/admin/login" className="hover:text-acid-green text-muted-grey/80 transition-colors">
+            STAFF PORTAL
+          </Link>
         </div>
       </footer>
     </div>

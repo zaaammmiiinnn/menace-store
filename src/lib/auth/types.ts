@@ -5,6 +5,8 @@ export interface AuthUser {
   lastName?: string | null;
   fullName?: string | null;
   imageUrl?: string | null;
+  role?: string | null;
+  isAdmin?: boolean;
   createdAt?: Date | string | null;
 }
 
@@ -43,7 +45,7 @@ export interface AuthAdapter {
   };
   useSignIn: () => {
     signInWithPassword: (email: string, password: string) => Promise<SignInResult>;
-    signInWithOAuth: (provider: OAuthProvider) => Promise<void>;
+    signInWithOAuth: (provider: OAuthProvider, redirectUrl?: string) => Promise<void>;
     signInWithMagicLink: (email: string) => Promise<SignInResult>;
     sendPasswordReset: (email: string) => Promise<PasswordResetResult>;
     resetPassword: (code: string, newPassword: string) => Promise<PasswordResetResult>;
@@ -51,6 +53,7 @@ export interface AuthAdapter {
   };
   useSignUp: () => {
     signUpWithPassword: (email: string, password: string, firstName: string) => Promise<SignUpResult>;
+    signUpWithOAuth: (provider: OAuthProvider, redirectUrl?: string) => Promise<void>;
     verifyEmailCode: (code: string) => Promise<SignUpResult>;
     resendVerificationCode: () => Promise<boolean>;
     isLoading: boolean;
