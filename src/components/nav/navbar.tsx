@@ -10,6 +10,7 @@ import { useUiStore } from '@/store/ui-store';
 import { useWishlistStore } from '@/store/wishlist-store';
 import { useAuth } from '@/lib/auth';
 import { playClickSound, playSwitchSound, playHoverSound } from '@/lib/sound';
+import { SignInButton, SignUpButton, Show, UserButton } from '@clerk/nextjs';
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -199,20 +200,48 @@ export function Navbar() {
             )}
           </Link>
 
-          {/* Account Link */}
-          <Link
-            href={isAuthenticated ? "/account" : "/login"}
-            onClick={playClickSound}
-            onMouseEnter={playHoverSound}
-            className="p-1.5 text-off-white/80 hover:text-acid-green transition-colors relative hidden sm:block"
-            aria-label={isAuthenticated ? "Account Dashboard" : "Sign In"}
-            title={isAuthenticated ? "Account Dashboard" : "Sign In"}
-          >
-            <User size={19} />
-            {mounted && isAuthenticated && (
-              <span className="absolute 0 top-0 right-0 flex h-2 w-2 rounded-full bg-acid-green" />
-            )}
-          </Link>
+          {/* Clerk Auth Controls */}
+          <div className="hidden sm:flex items-center gap-2">
+            <Show when="signed-out">
+              <SignInButton mode="modal">
+                <button
+                  onClick={playClickSound}
+                  onMouseEnter={playHoverSound}
+                  className="text-[11px] font-mono tracking-widest text-off-white/80 hover:text-acid-green px-2 py-1 rounded transition-colors uppercase cursor-pointer"
+                >
+                  Sign In
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button
+                  onClick={playClickSound}
+                  onMouseEnter={playHoverSound}
+                  className="text-[11px] font-mono tracking-widest bg-acid-green/10 text-acid-green border border-acid-green/30 hover:border-acid-green px-2 py-1 rounded transition-colors uppercase cursor-pointer font-bold"
+                >
+                  Join
+                </button>
+              </SignUpButton>
+            </Show>
+            <Show when="signed-in">
+              <div className="flex items-center gap-2.5">
+                <Link
+                  href="/account"
+                  onClick={playClickSound}
+                  onMouseEnter={playHoverSound}
+                  className="text-[11px] font-mono tracking-widest text-off-white/80 hover:text-acid-green transition-colors uppercase"
+                >
+                  Account
+                </Link>
+                <UserButton
+                  appearance={{
+                    elements: {
+                      userButtonAvatarBox: 'w-6 h-6 border border-acid-green/40 hover:border-acid-green transition-colors',
+                    },
+                  }}
+                />
+              </div>
+            </Show>
+          </div>
 
           {/* Cart Trigger */}
           <button
