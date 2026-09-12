@@ -34,6 +34,23 @@ export function mapClerkError(err: unknown): string {
   }
 }
 
+/**
+ * Helper to ensure Clerk client is loaded before invoking auth operations
+ */
+async function waitForClerk(clerk: any, timeoutMs = 3000): Promise<{ client: any; activeClerk: any } | null> {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const activeClerk = clerk || (typeof window !== 'undefined' ? (window as any).Clerk : null);
+    const client = activeClerk?.client;
+    if (client) {
+      return { client, activeClerk };
+    }
+    await new Promise((r) => setTimeout(r, 100));
+  }
+  const fallbackClerk = clerk || (typeof window !== 'undefined' ? (window as any).Clerk : null);
+  return fallbackClerk?.client ? { client: fallbackClerk.client, activeClerk: fallbackClerk } : null;
+}
+
 export function useClerkAuth() {
   const { user: clerkUser, isLoaded: userLoaded } = useUser();
   const { userId, isSignedIn } = useClerkAuthCore();
@@ -93,18 +110,23 @@ export function useClerkSignIn() {
   const [isLoading, setIsLoading] = useState(false);
 
   const signInWithPassword = async (email: string, password: string): Promise<SignInResult> => {
-    if (!clerk.loaded || !clerk.client) {
-      return { success: false, error: "Auth initializing. Try in a sec." };
-    }
     setIsLoading(true);
     try {
-      const result = await clerk.client.signIn.create({
+      const ready = await waitForClerk(clerk);
+      if (!ready?.client) {
+        return { success: false, error: "Auth initializing. Try in a sec." };
+      }
+      const { client, activeClerk } = ready;
+
+      const result = await client.signIn.create({
         identifier: email,
         password,
       });
 
       if (result.status === 'complete') {
-        await clerk.setActive({ session: result.createdSessionId });
+        if (activeClerk?.setActive) {
+          await activeClerk.setActive({ session: result.createdSessionId });
+        }
         return { success: true };
       } else if (result.status === 'needs_second_factor' || result.status === 'needs_first_factor') {
         return { success: false, needsVerification: true };
@@ -119,13 +141,22 @@ export function useClerkSignIn() {
   };
 
   const signInWithOAuth = async (provider: OAuthProvider, redirectUrl?: string): Promise<void> => {
-    if (!clerk.loaded) return;
+    const ready = await waitForClerk(clerk);
+    const client = ready?.client;
+    const activeClerk = ready?.activeClerk;
     const strategy = provider === 'google' ? 'oauth_google' : 'oauth_apple';
     const targetRedirect = redirectUrl && redirectUrl.startsWith('/') ? redirectUrl : '/account';
 
     try {
-      if (clerk.client?.signIn) {
-        await clerk.client.signIn.authenticateWithRedirect({
+      if (client?.signIn) {
+        await client.signIn.authenticateWithRedirect({
+          strategy,
+          redirectUrl: '/sso-callback',
+          redirectUrlComplete: targetRedirect,
+          continueSignUp: true,
+        });
+      } else if (activeClerk?.authenticateWithRedirect) {
+        await activeClerk.authenticateWithRedirect({
           strategy,
           redirectUrl: '/sso-callback',
           redirectUrlComplete: targetRedirect,
@@ -139,17 +170,20 @@ export function useClerkSignIn() {
   };
 
   const signInWithMagicLink = async (email: string): Promise<SignInResult> => {
-    if (!clerk.loaded || !clerk.client) {
-      return { success: false, error: "Auth initializing." };
-    }
     setIsLoading(true);
     try {
-      const signInAttempt = await clerk.client.signIn.create({
+      const ready = await waitForClerk(clerk);
+      if (!ready?.client) {
+        return { success: false, error: "Auth initializing." };
+      }
+      const { client } = ready;
+
+      const signInAttempt = await client.signIn.create({
         identifier: email,
       });
 
       const emailFactor = signInAttempt.supportedFirstFactors?.find(
-        (factor) => factor.strategy === 'email_link'
+        (factor: any) => factor.strategy === 'email_link'
       ) as { emailAddressId?: string } | undefined;
 
       const emailAddressId = emailFactor?.emailAddressId;
@@ -158,7 +192,7 @@ export function useClerkSignIn() {
         return { success: false, error: "No email address found for magic link." };
       }
 
-      await clerk.client.signIn.prepareFirstFactor({
+      await client.signIn.prepareFirstFactor({
         strategy: 'email_link',
         emailAddressId,
         redirectUrl: window.location.origin + '/account',
@@ -173,12 +207,15 @@ export function useClerkSignIn() {
   };
 
   const sendPasswordReset = async (email: string): Promise<PasswordResetResult> => {
-    if (!clerk.loaded || !clerk.client) {
-      return { success: false, error: "Auth initializing." };
-    }
     setIsLoading(true);
     try {
-      await (clerk.client.signIn.create as unknown as (params: { strategy: string; identifier: string }) => Promise<unknown>)({
+      const ready = await waitForClerk(clerk);
+      if (!ready?.client) {
+        return { success: false, error: "Auth initializing." };
+      }
+      const { client } = ready;
+
+      await (client.signIn.create as (params: { strategy: string; identifier: string }) => Promise<unknown>)({
         strategy: 'reset_password_email_code',
         identifier: email,
       });
@@ -191,19 +228,24 @@ export function useClerkSignIn() {
   };
 
   const resetPassword = async (code: string, newPassword: string): Promise<PasswordResetResult> => {
-    if (!clerk.loaded || !clerk.client) {
-      return { success: false, error: "Auth initializing." };
-    }
     setIsLoading(true);
     try {
-      const result = await clerk.client.signIn.attemptFirstFactor({
+      const ready = await waitForClerk(clerk);
+      if (!ready?.client) {
+        return { success: false, error: "Auth initializing." };
+      }
+      const { client, activeClerk } = ready;
+
+      const result = await client.signIn.attemptFirstFactor({
         strategy: 'reset_password_email_code',
         code,
         password: newPassword,
       });
 
       if (result.status === 'complete') {
-        await clerk.setActive({ session: result.createdSessionId });
+        if (activeClerk?.setActive) {
+          await activeClerk.setActive({ session: result.createdSessionId });
+        }
         return { success: true };
       }
       return { success: false, error: "Couldn't reset. Try requesting another code." };
@@ -229,18 +271,21 @@ export function useClerkSignUp() {
   const [isLoading, setIsLoading] = useState(false);
 
   const signUpWithPassword = async (email: string, password: string, firstName: string): Promise<SignUpResult> => {
-    if (!clerk.loaded || !clerk.client) {
-      return { success: false, error: "Auth initializing." };
-    }
     setIsLoading(true);
     try {
-      await clerk.client.signUp.create({
+      const ready = await waitForClerk(clerk);
+      if (!ready?.client) {
+        return { success: false, error: "Auth initializing." };
+      }
+      const { client } = ready;
+
+      await client.signUp.create({
         emailAddress: email,
         password,
         firstName,
       });
 
-      await clerk.client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+      await client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
       return { success: true, needsVerification: true };
     } catch (err) {
       return { success: false, error: mapClerkError(err) };
@@ -250,15 +295,20 @@ export function useClerkSignUp() {
   };
 
   const verifyEmailCode = async (code: string): Promise<SignUpResult> => {
-    if (!clerk.loaded || !clerk.client) {
-      return { success: false, error: "Auth initializing." };
-    }
     setIsLoading(true);
     try {
-      const result = await clerk.client.signUp.attemptEmailAddressVerification({ code });
+      const ready = await waitForClerk(clerk);
+      if (!ready?.client) {
+        return { success: false, error: "Auth initializing." };
+      }
+      const { client, activeClerk } = ready;
+
+      const result = await client.signUp.attemptEmailAddressVerification({ code });
 
       if (result.status === 'complete') {
-        await clerk.setActive({ session: result.createdSessionId });
+        if (activeClerk?.setActive) {
+          await activeClerk.setActive({ session: result.createdSessionId });
+        }
         return { success: true };
       }
       return { success: false, error: "Verification didn't finish. Check the code." };
@@ -270,9 +320,10 @@ export function useClerkSignUp() {
   };
 
   const resendVerificationCode = async (): Promise<boolean> => {
-    if (!clerk.loaded || !clerk.client) return false;
+    const ready = await waitForClerk(clerk);
+    if (!ready?.client) return false;
     try {
-      await clerk.client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+      await ready.client.signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
       return true;
     } catch {
       return false;
@@ -280,20 +331,29 @@ export function useClerkSignUp() {
   };
 
   const signUpWithOAuth = async (provider: OAuthProvider, redirectUrl?: string): Promise<void> => {
-    if (!clerk.loaded) return;
+    const ready = await waitForClerk(clerk);
+    const client = ready?.client;
+    const activeClerk = ready?.activeClerk;
     const strategy = provider === 'google' ? 'oauth_google' : 'oauth_apple';
     const targetRedirect = redirectUrl && redirectUrl.startsWith('/') ? redirectUrl : '/account';
 
     try {
-      if (clerk.client?.signUp) {
-        await clerk.client.signUp.authenticateWithRedirect({
+      if (client?.signUp) {
+        await client.signUp.authenticateWithRedirect({
           strategy,
           redirectUrl: '/sso-callback',
           redirectUrlComplete: targetRedirect,
           continueSignUp: true,
         });
-      } else if (clerk.client?.signIn) {
-        await clerk.client.signIn.authenticateWithRedirect({
+      } else if (client?.signIn) {
+        await client.signIn.authenticateWithRedirect({
+          strategy,
+          redirectUrl: '/sso-callback',
+          redirectUrlComplete: targetRedirect,
+          continueSignUp: true,
+        });
+      } else if (activeClerk?.authenticateWithRedirect) {
+        await activeClerk.authenticateWithRedirect({
           strategy,
           redirectUrl: '/sso-callback',
           redirectUrlComplete: targetRedirect,
