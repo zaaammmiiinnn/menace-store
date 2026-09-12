@@ -17,7 +17,7 @@ import {
   ShieldAlert,
   ChevronRight,
 } from 'lucide-react';
-import { useClerk } from '@clerk/nextjs';
+import { useAuth } from '@/lib/auth';
 
 interface SidebarProps {
   userRole?: string;
@@ -27,7 +27,11 @@ interface SidebarProps {
 
 export function Sidebar({ userRole = 'admin', userName = 'Admin', userEmail = '' }: SidebarProps) {
   const pathname = usePathname();
-  const { signOut } = useClerk();
+  const { user: clientUser, signOut } = useAuth();
+
+  const effectiveRole = clientUser?.role || userRole;
+  const effectiveName = clientUser?.fullName || userName;
+  const effectiveEmail = clientUser?.email || userEmail || 'admin@menance.store';
 
   const navItems = [
     { label: 'Dashboard', href: '/admin', icon: LayoutDashboard, shortcut: 'G+D', staff: true },
@@ -53,7 +57,7 @@ export function Sidebar({ userRole = 'admin', userName = 'Admin', userEmail = ''
           <div className="flex items-center gap-2">
             <span className="font-heading tracking-wider text-lg text-[#F5F1E8]">MENANCE</span>
             <span className="text-[10px] font-mono tracking-widest px-1.5 py-0.5 rounded bg-[#C6FF00]/10 text-[#C6FF00] border border-[#C6FF00]/20 uppercase">
-              {userRole}
+              {effectiveRole}
             </span>
           </div>
           <Link
@@ -103,12 +107,13 @@ export function Sidebar({ userRole = 'admin', userName = 'Admin', userEmail = ''
         <div className="p-3 border-t border-[#1F1F1F]">
           <div className="flex items-center justify-between p-2 rounded bg-[#141414]">
             <div className="min-w-0 pr-2">
-              <div className="text-[12px] font-semibold text-[#F5F1E8] truncate">{userName}</div>
-              <div className="text-[11px] text-[#8A8A8A] truncate font-mono">{userEmail || 'admin@menance.store'}</div>
+              <div className="text-[12px] font-semibold text-[#F5F1E8] truncate">{effectiveName}</div>
+              <div className="text-[11px] text-[#8A8A8A] truncate font-mono">{effectiveEmail}</div>
             </div>
             <button
-              onClick={() => signOut({ redirectUrl: '/login' })}
-              className="text-[11px] text-[#8A8A8A] hover:text-red-400 font-mono transition-colors p-1"
+              type="button"
+              onClick={() => signOut()}
+              className="text-[11px] text-[#8A8A8A] hover:text-red-400 font-mono transition-colors p-1 cursor-pointer"
               title="Sign out of admin"
             >
               Exit
