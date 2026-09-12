@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Anton, Inter } from "next/font/google";
 import "./globals.css";
+import { ClerkProvider } from "@clerk/nextjs";
 import { siteConfig } from "@/config/site";
 import { AppShell } from "@/components/app-shell";
 
@@ -86,7 +87,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-full flex flex-col bg-base-black text-off-white font-body">
-        <AppShell>{children}</AppShell>
+        <ClerkProvider
+          publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || 'pk_test_bWVuYWNlLXN0b3JlLmNsZXJrLmFjY291bnRzLmRldiQ'}
+          appearance={{
+            variables: {
+              colorPrimary: '#C6FF00',
+              colorBackground: '#0A0A0A',
+              borderRadius: '0.5rem',
+              fontFamily: 'var(--font-inter), sans-serif',
+            },
+          }}
+        >
+          <AppShell>{children}</AppShell>
+        </ClerkProvider>
       </body>
     </html>
   );

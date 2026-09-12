@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Search, Heart, ShoppingBag, Menu, X, ArrowRight, Volume2, VolumeX } from 'lucide-react';
+import { Search, Heart, ShoppingBag, Menu, X, ArrowRight, Volume2, VolumeX, User } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { useCartStore } from '@/store/cart-store';
 import { useUiStore } from '@/store/ui-store';
 import { useWishlistStore } from '@/store/wishlist-store';
+import { useAuth } from '@/lib/auth';
 import { playClickSound, playSwitchSound, playHoverSound } from '@/lib/sound';
 
 export function Navbar() {
@@ -27,6 +28,7 @@ export function Navbar() {
   const toggleSound = useUiStore((state) => state.toggleSound);
   const showToast = useUiStore((state) => state.showToast);
   const wishlistItems = useWishlistStore((state) => state.items);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -193,6 +195,21 @@ export function Navbar() {
           >
             <Heart size={19} />
             {mounted && wishlistItems.length > 0 && (
+              <span className="absolute 0 top-0 right-0 flex h-2 w-2 rounded-full bg-acid-green" />
+            )}
+          </Link>
+
+          {/* Account Link */}
+          <Link
+            href={isAuthenticated ? "/account" : "/login"}
+            onClick={playClickSound}
+            onMouseEnter={playHoverSound}
+            className="p-1.5 text-off-white/80 hover:text-acid-green transition-colors relative hidden sm:block"
+            aria-label={isAuthenticated ? "Account Dashboard" : "Sign In"}
+            title={isAuthenticated ? "Account Dashboard" : "Sign In"}
+          >
+            <User size={19} />
+            {mounted && isAuthenticated && (
               <span className="absolute 0 top-0 right-0 flex h-2 w-2 rounded-full bg-acid-green" />
             )}
           </Link>

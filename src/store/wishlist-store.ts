@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware';
 interface WishlistState {
   items: string[];
   toggleWishlist: (productId: string) => void;
+  removeFromWishlist: (productId: string) => void;
   isWishlisted: (productId: string) => boolean;
   clearWishlist: () => void;
 }
@@ -20,6 +21,10 @@ export const useWishlistStore = create<WishlistState>()(
         } else {
           set({ items: [...currentItems, productId] });
         }
+      },
+
+      removeFromWishlist: (productId) => {
+        set({ items: get().items.filter((id) => id !== productId) });
       },
 
       isWishlisted: (productId) => {

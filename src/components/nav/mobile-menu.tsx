@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX, User } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { useUiStore } from '@/store/ui-store';
 import { useCartStore } from '@/store/cart-store';
+import { useAuth } from '@/lib/auth';
 import { playClickSound, playSwitchSound } from '@/lib/sound';
 
 export function MobileMenu() {
@@ -15,6 +16,7 @@ export function MobileMenu() {
   const toggleSound = useUiStore((state) => state.toggleSound);
   const currency = useCartStore((state) => state.currency);
   const toggleCurrency = useCartStore((state) => state.toggleCurrency);
+  const { isAuthenticated } = useAuth();
 
   const links = siteConfig.navLinks || siteConfig.navigation || [];
 
@@ -60,7 +62,26 @@ export function MobileMenu() {
           </nav>
 
           {/* Bottom actions & settings */}
-          <div className="pt-8 border-t border-border flex flex-col gap-5">
+          <div className="pt-8 border-t border-border flex flex-col gap-4">
+            {/* Account Quick Banner */}
+            <Link
+              href={isAuthenticated ? "/account" : "/login"}
+              onClick={handleLinkClick}
+              className="p-3.5 rounded-xl bg-surface border border-border hover:border-acid-green flex items-center justify-between transition-colors"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-full bg-base-black border border-acid-green/60 flex items-center justify-center text-acid-green">
+                  <User size={14} />
+                </div>
+                <span className="font-mono text-xs uppercase text-off-white font-bold">
+                  {isAuthenticated ? "YOUR ACCOUNT" : "MEMBER SIGN IN"}
+                </span>
+              </div>
+              <span className="font-mono text-[10px] text-acid-green uppercase">
+                {isAuthenticated ? "DASHBOARD" : "GET IN"} →
+              </span>
+            </Link>
+
             <div className="grid grid-cols-2 gap-3">
               {/* Currency Button */}
               <button
