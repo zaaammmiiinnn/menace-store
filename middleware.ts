@@ -12,12 +12,7 @@ const isAuthRoute = createRouteMatcher([
   '/reset-password(.*)',
 ]);
 
-export default clerkMiddleware(async (auth, req) => {
-  // If Clerk publishable key is not yet set in production, bypass cleanly to prevent build crash
-  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.includes('replace_')) {
-    return NextResponse.next();
-  }
-
+const clerkHandler = clerkMiddleware(async (auth, req) => {
   const { userId } = await auth();
 
   // Unauthenticated users attempting to access protected /account routes
@@ -36,6 +31,28 @@ export default clerkMiddleware(async (auth, req) => {
 
   return NextResponse.next();
 });
+
+export default function middleware(req: any, event: any) {
+  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  const secretKey = process.env.CLERK_SECRET_KEY;
+
+  // If Clerk keys are not configured in the Cloudflare environment yet, pass through cleanly
+  // This prevents unhandled 500 crashes while environment variables are being added in Cloudflare
+  if (
+    !publishableKey ||
+    publishableKey.includes('replace_') ||
+    !secretKey ||
+    secretKey.includes('replace_')
+  ) {
+    return NextResponse.next();
+  }
+
+  try {
+    return clerkHandler(req, event);
+  } catch {
+    return NextResponse.next();
+  }
+}
 
 export const config = {
   matcher: [
