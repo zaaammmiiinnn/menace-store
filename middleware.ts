@@ -10,12 +10,13 @@ export function middleware(req: NextRequest) {
     pathname.startsWith('/api') ||
     pathname.startsWith('/__clerk') ||
     pathname.includes('.') ||
-    pathname === '/admin/login' ||
-    pathname === '/login' ||
-    pathname === '/signup' ||
-    pathname === '/forgot-password' ||
-    pathname === '/reset-password' ||
-    pathname === '/sso-callback' ||
+    pathname.startsWith('/admin/login') ||
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/signup') ||
+    pathname.startsWith('/forgot-password') ||
+    pathname.startsWith('/reset-password') ||
+    pathname.startsWith('/sso-callback') ||
+    pathname.startsWith('/verify-email') ||
     pathname === '/' ||
     pathname.startsWith('/shop') ||
     pathname.startsWith('/about') ||
