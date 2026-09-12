@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Search, Heart, ShoppingBag, Menu, X, ArrowRight } from 'lucide-react';
+import { Search, Heart, ShoppingBag, Menu, X, ArrowRight, Volume2, VolumeX } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { useCartStore } from '@/store/cart-store';
 import { useUiStore } from '@/store/ui-store';
 import { useWishlistStore } from '@/store/wishlist-store';
+import { playClickSound, playSwitchSound, playHoverSound } from '@/lib/sound';
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -22,6 +23,9 @@ export function Navbar() {
 
   const isMenuOpen = useUiStore((state) => state.isMenuOpen);
   const setIsMenuOpen = useUiStore((state) => state.setIsMenuOpen);
+  const soundEnabled = useUiStore((state) => state.soundEnabled);
+  const toggleSound = useUiStore((state) => state.toggleSound);
+  const showToast = useUiStore((state) => state.showToast);
   const wishlistItems = useWishlistStore((state) => state.items);
 
   useEffect(() => {
@@ -76,11 +80,53 @@ export function Navbar() {
           ))}
         </nav>
 
-        {/* Right actions: Search, Currency Toggle, Wishlist, Cart, Mobile Menu */}
-        <div className="flex items-center space-x-3 md:space-x-5 relative z-50">
+        {/* Right actions: Sound Toggle, Currency Toggle, Search, Wishlist, Cart, Mobile Menu */}
+        <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 relative z-50">
+          {/* Sound Toggle */}
+          <button
+            onClick={() => {
+              toggleSound();
+              if (!soundEnabled) {
+                setTimeout(() => playSwitchSound(), 50);
+                showToast('AUDIO ON — SFX ACTIVE');
+              } else {
+                showToast('AUDIO MUTED');
+              }
+            }}
+            onMouseEnter={playHoverSound}
+            className={`flex items-center gap-1.5 text-xs font-mono px-2 py-1 rounded border transition-all cursor-pointer ${
+              soundEnabled
+                ? 'bg-acid-green/10 border-acid-green text-acid-green shadow-[0_0_10px_rgba(198,255,0,0.2)]'
+                : 'bg-surface border-border text-muted-grey hover:border-off-white/40 hover:text-off-white'
+            }`}
+            title={soundEnabled ? 'Mute SFX' : 'Enable SFX'}
+            aria-label="Toggle sound effects"
+          >
+            {soundEnabled ? (
+              <>
+                <Volume2 size={13} className="text-acid-green animate-pulse" />
+                <span className="text-[10px] tracking-wider font-bold">SFX</span>
+                <span className="flex items-center gap-0.5 h-2.5">
+                  <span className="w-0.5 h-2 bg-acid-green animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-0.5 h-3 bg-acid-green animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-0.5 h-1.5 bg-acid-green animate-bounce" style={{ animationDelay: '300ms' }} />
+                </span>
+              </>
+            ) : (
+              <>
+                <VolumeX size={13} />
+                <span className="text-[10px] tracking-wider font-medium">SFX</span>
+              </>
+            )}
+          </button>
+
           {/* Currency Toggle */}
           <button
-            onClick={toggleCurrency}
+            onClick={() => {
+              toggleCurrency();
+              playSwitchSound();
+            }}
+            onMouseEnter={playHoverSound}
             className="flex items-center gap-1 text-xs font-mono px-2 py-1 rounded bg-surface border border-border hover:border-acid-green text-off-white transition-all cursor-pointer"
             title={`Switch to ${currency === 'INR' ? 'USD' : 'INR'}`}
             aria-label="Toggle currency"
@@ -93,7 +139,11 @@ export function Navbar() {
           {/* Search Trigger */}
           <div className="relative">
             <button
-              onClick={() => setSearchOpen(!searchOpen)}
+              onClick={() => {
+                setSearchOpen(!searchOpen);
+                playClickSound();
+              }}
+              onMouseEnter={playHoverSound}
               className="p-1.5 text-off-white/80 hover:text-acid-green transition-colors cursor-pointer"
               aria-label="Search store"
             >
@@ -109,6 +159,7 @@ export function Navbar() {
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
+                    playClickSound();
                     if (searchQuery.trim()) {
                       window.location.href = `/shop?q=${encodeURIComponent(searchQuery.trim())}`;
                     }
@@ -148,7 +199,11 @@ export function Navbar() {
 
           {/* Cart Trigger */}
           <button
-            onClick={openCart}
+            onClick={() => {
+              openCart();
+              playClickSound();
+            }}
+            onMouseEnter={playHoverSound}
             className="p-1.5 text-off-white/80 hover:text-acid-green transition-colors relative cursor-pointer"
             aria-label="Open Cart"
           >
@@ -169,7 +224,11 @@ export function Navbar() {
           {/* Mobile Menu Button */}
           <button
             className="lg:hidden p-1.5 text-off-white/80 hover:text-acid-green transition-colors cursor-pointer"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            onClick={() => {
+              setIsMenuOpen(!isMenuOpen);
+              playClickSound();
+            }}
+            onMouseEnter={playHoverSound}
             aria-label="Toggle mobile menu"
           >
             {isMenuOpen ? <X size={22} /> : <Menu size={22} />}

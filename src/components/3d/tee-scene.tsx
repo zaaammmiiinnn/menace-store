@@ -3,8 +3,10 @@
 import React, { Suspense, useEffect, useState, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, ContactShadows, AdaptiveDpr, Html, PerformanceMonitor } from '@react-three/drei';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import TeeModel from './tee-model';
 import TeeFallback from './tee-fallback';
+import { playClickSound, playSwitchSound } from '@/lib/sound';
 
 export interface TeeSceneProps {
   color?: string;
@@ -46,6 +48,8 @@ export function TeeScene({
   const [interacting, setInteracting] = useState(false);
   const [hintVisible, setHintVisible] = useState(showHint);
   const [enableShadows, setEnableShadows] = useState(false);
+  const [autoRotate, setAutoRotate] = useState(true);
+  const controlsRef = useRef<OrbitControlsImpl>(null);
   const idleTimeoutRef = useRef<NodeJS.Timeout>(null);
 
   useEffect(() => {
@@ -69,6 +73,18 @@ export function TeeScene({
     idleTimeoutRef.current = setTimeout(() => {
       setInteracting(false);
     }, 5000); // Resume auto-rotate after 5 seconds idle
+  };
+
+  const handleReset = () => {
+    if (controlsRef.current) {
+      controlsRef.current.reset();
+      playClickSound();
+    }
+  };
+
+  const toggleAutoRotate = () => {
+    setAutoRotate((prev) => !prev);
+    playSwitchSound();
   };
 
   useEffect(() => {
@@ -119,11 +135,12 @@ export function TeeScene({
 
             {interactive && (
               <OrbitControls
+                ref={controlsRef}
                 enableZoom={true}
                 minDistance={2.5}
                 maxDistance={6}
                 enablePan={false}
-                autoRotate={!interacting}
+                autoRotate={autoRotate && !interacting}
                 autoRotateSpeed={0.5}
                 onStart={handleInteractionStart}
                 onEnd={handleInteractionEnd}
@@ -136,14 +153,37 @@ export function TeeScene({
           </Suspense>
         </Canvas>
 
-        {/* 360 Degree Indicator */}
+        {/* 360 Degree Indicator & Controls */}
         {interactive && (
-          <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-base-black/60 border border-white/15 backdrop-blur-md pointer-events-none select-none">
-            <span className="w-1.5 h-1.5 rounded-full bg-acid-green animate-pulse" />
-            <span className="font-mono text-[10px] font-bold tracking-widest text-off-white uppercase">
-              360° INTERACTIVE
-            </span>
-          </div>
+          <>
+            <div className="absolute top-4 right-4 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-base-black/60 border border-white/15 backdrop-blur-md pointer-events-none select-none">
+              <span className="w-1.5 h-1.5 rounded-full bg-acid-green animate-pulse" />
+              <span className="font-mono text-[10px] font-bold tracking-widest text-off-white uppercase">
+                360° INTERACTIVE
+              </span>
+            </div>
+
+            {/* Studio Control Dock (Bottom Right) */}
+            <div className="absolute bottom-4 right-4 z-20 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleAutoRotate}
+                className="px-2.5 py-1 text-[10px] font-mono rounded bg-base-black/80 hover:bg-base-black border border-white/15 text-off-white hover:text-acid-green transition-all backdrop-blur-md cursor-pointer flex items-center gap-1.5 shadow-lg"
+                title={autoRotate ? 'Pause 3D rotation' : 'Resume auto rotation'}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${autoRotate ? 'bg-acid-green animate-pulse' : 'bg-muted-grey'}`} />
+                <span>{autoRotate ? 'SPIN' : 'PAUSED'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="px-2.5 py-1 text-[10px] font-mono rounded bg-base-black/80 hover:bg-base-black border border-white/15 text-off-white hover:text-acid-green transition-all backdrop-blur-md cursor-pointer shadow-lg"
+                title="Reset camera perspective"
+              >
+                RESET
+              </button>
+            </div>
+          </>
         )}
 
         {/* DRAG TO SPIN Hint Overlay */}

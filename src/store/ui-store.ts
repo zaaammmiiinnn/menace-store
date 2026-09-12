@@ -13,6 +13,7 @@ export interface UiState {
   activeSize: string;
   isConfettiActive: boolean;
   toastMessage: string | null;
+  soundEnabled: boolean;
   setLoading: (isLoading: boolean) => void;
   setMenuOpen: (isMenuOpen: boolean) => void;
   setIsMenuOpen: (isMenuOpen: boolean) => void;
@@ -25,6 +26,8 @@ export interface UiState {
   triggerConfetti: () => void;
   showToast: (message: string) => void;
   hideToast: () => void;
+  toggleSound: () => void;
+  setSoundEnabled: (enabled: boolean) => void;
 }
 
 export const useUiStore = create<UiState>((set) => ({
@@ -38,6 +41,7 @@ export const useUiStore = create<UiState>((set) => ({
   activeSize: '',
   isConfettiActive: false,
   toastMessage: null,
+  soundEnabled: false,
 
   setLoading: (isLoading) => set({ isLoading }),
   setMenuOpen: (isMenuOpen) => set({ isMenuOpen }),
@@ -57,6 +61,8 @@ export const useUiStore = create<UiState>((set) => ({
     setTimeout(() => set({ toastMessage: null }), 3500);
   },
   hideToast: () => set({ toastMessage: null }),
+  toggleSound: () => set((state) => ({ soundEnabled: !state.soundEnabled })),
+  setSoundEnabled: (soundEnabled) => set({ soundEnabled }),
 }));
 
 export const useUIStore = useUiStore;

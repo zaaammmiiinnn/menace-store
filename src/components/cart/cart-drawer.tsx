@@ -7,6 +7,7 @@ import { X, Trash2, Plus, Minus, Tag, Check, ArrowRight } from 'lucide-react';
 import { useCartStore, FREE_SHIPPING_THRESHOLD_INR } from '@/store/cart-store';
 import { useUiStore } from '@/store/ui-store';
 import { MagneticButton } from '@/components/ui/magnetic-button';
+import { playClickSound, playAddCartSound, playConfettiSound } from '@/lib/sound';
 
 export function CartDrawer() {
   const {
@@ -27,6 +28,7 @@ export function CartDrawer() {
   } = useCartStore();
 
   const showToast = useUiStore((state) => state.showToast);
+  const triggerConfetti = useUiStore((state) => state.triggerConfetti);
   const shouldReduceMotion = useReducedMotion();
 
   const [inputCode, setInputCode] = useState('');
@@ -48,12 +50,15 @@ export function CartDrawer() {
     if (!inputCode.trim()) return;
     const success = applyPromoCode(inputCode.trim());
     if (success) {
+      playConfettiSound();
+      triggerConfetti();
       showToast(`Promo ${inputCode.toUpperCase()} applied!`);
       setInputCode('');
       setPromoError(false);
     } else {
+      playClickSound();
       setPromoError(true);
-      showToast('Invalid promo code. Try MENACE10');
+      showToast('Invalid promo code. Try MENACE10 or VIP20');
     }
   };
 
@@ -219,7 +224,10 @@ export function CartDrawer() {
                           <div className="flex items-center justify-between mt-3">
                             <div className="flex items-center border border-border rounded bg-base-black">
                               <button
-                                onClick={() => updateQuantity(item.product.id, item.color, item.size, item.quantity - 1)}
+                                onClick={() => {
+                                  updateQuantity(item.product.id, item.color, item.size, item.quantity - 1);
+                                  playClickSound();
+                                }}
                                 className="p-1.5 text-muted-grey hover:text-acid-green transition-colors cursor-pointer"
                                 aria-label="Decrease quantity"
                               >
@@ -229,7 +237,10 @@ export function CartDrawer() {
                                 {item.quantity}
                               </span>
                               <button
-                                onClick={() => updateQuantity(item.product.id, item.color, item.size, item.quantity + 1)}
+                                onClick={() => {
+                                  updateQuantity(item.product.id, item.color, item.size, item.quantity + 1);
+                                  playAddCartSound();
+                                }}
                                 className="p-1.5 text-muted-grey hover:text-acid-green transition-colors cursor-pointer"
                                 aria-label="Increase quantity"
                               >
@@ -238,7 +249,10 @@ export function CartDrawer() {
                             </div>
 
                             <button
-                              onClick={() => removeItem(item.product.id, item.color, item.size)}
+                              onClick={() => {
+                                removeItem(item.product.id, item.color, item.size);
+                                playClickSound();
+                              }}
                               className="p-1.5 text-muted-grey hover:text-red-400 transition-colors cursor-pointer"
                               aria-label="Remove item"
                             >

@@ -2,17 +2,29 @@
 
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Volume2, VolumeX } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { useUiStore } from '@/store/ui-store';
 import { useCartStore } from '@/store/cart-store';
+import { playClickSound, playSwitchSound } from '@/lib/sound';
 
 export function MobileMenu() {
   const isMenuOpen = useUiStore((state) => state.isMenuOpen);
   const setIsMenuOpen = useUiStore((state) => state.setIsMenuOpen);
+  const soundEnabled = useUiStore((state) => state.soundEnabled);
+  const toggleSound = useUiStore((state) => state.toggleSound);
   const currency = useCartStore((state) => state.currency);
   const toggleCurrency = useCartStore((state) => state.toggleCurrency);
 
   const links = siteConfig.navLinks || siteConfig.navigation || [];
+
+  const handleLinkClick = () => {
+    playClickSound();
+    if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+      try { navigator.vibrate(12); } catch {}
+    }
+    setIsMenuOpen(false);
+  };
 
   return (
     <AnimatePresence>
@@ -35,7 +47,7 @@ export function MobileMenu() {
               >
                 <Link
                   href={link.href}
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={handleLinkClick}
                   className="font-display text-4xl sm:text-5xl uppercase tracking-wider text-off-white hover:text-acid-green transition-colors flex items-center justify-between group"
                 >
                   <span>{link.label || link.title}</span>
@@ -47,18 +59,46 @@ export function MobileMenu() {
             ))}
           </nav>
 
-          {/* Bottom actions & socials */}
-          <div className="pt-8 border-t border-border flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-mono text-muted-grey uppercase tracking-widest">
-                Currency
-              </span>
+          {/* Bottom actions & settings */}
+          <div className="pt-8 border-t border-border flex flex-col gap-5">
+            <div className="grid grid-cols-2 gap-3">
+              {/* Currency Button */}
               <button
-                onClick={toggleCurrency}
-                className="px-3 py-1.5 rounded bg-surface border border-border text-xs font-mono text-off-white hover:border-acid-green flex items-center gap-2"
+                onClick={() => {
+                  toggleCurrency();
+                  playSwitchSound();
+                  if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+                    try { navigator.vibrate(10); } catch {}
+                  }
+                }}
+                className="px-3 py-2.5 rounded bg-surface border border-border text-xs font-mono text-off-white hover:border-acid-green flex items-center justify-between"
               >
-                <span>{currency === 'INR' ? '₹ INR (India)' : '$ USD (Global)'}</span>
-                <span className="text-acid-green text-[10px]">TAP TO CHANGE</span>
+                <span className="text-muted-grey">CURRENCY</span>
+                <span className="text-acid-green font-bold">{currency === 'INR' ? '₹ INR' : '$ USD'}</span>
+              </button>
+
+              {/* Sound FX Toggle */}
+              <button
+                onClick={() => {
+                  toggleSound();
+                  if (!soundEnabled) {
+                    setTimeout(() => playSwitchSound(), 50);
+                  }
+                  if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+                    try { navigator.vibrate(10); } catch {}
+                  }
+                }}
+                className={`px-3 py-2.5 rounded border text-xs font-mono flex items-center justify-between transition-colors ${
+                  soundEnabled
+                    ? 'bg-acid-green/10 border-acid-green text-acid-green'
+                    : 'bg-surface border-border text-muted-grey'
+                }`}
+              >
+                <span className="flex items-center gap-1.5">
+                  {soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
+                  <span>SFX</span>
+                </span>
+                <span className="font-bold">{soundEnabled ? 'ON' : 'OFF'}</span>
               </button>
             </div>
 

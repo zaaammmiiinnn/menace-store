@@ -11,6 +11,7 @@ import { useUiStore } from "@/store/ui-store";
 import { useWishlistStore } from "@/store/wishlist-store";
 import { ProductCard } from "@/components/ui/product-card";
 import { MagneticButton } from "@/components/ui/magnetic-button";
+import { playClickSound, playAddCartSound, playConfettiSound, playHoverSound } from "@/lib/sound";
 import { 
   Heart, 
   Share2, 
@@ -51,7 +52,12 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
 
   const handleAddToCart = () => {
     addToCart(product, selectedColor.name, selectedSize.value);
+    playAddCartSound();
+    playConfettiSound();
     triggerConfetti();
+    if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+      try { navigator.vibrate([15, 30, 20]); } catch {}
+    }
     setAddedAnimation(true);
     showToast(`Added ${product.name} (${selectedColor.name}, ${selectedSize.value}) to bag`);
     setTimeout(() => setAddedAnimation(false), 2000);
@@ -191,7 +197,11 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
                 {product.colorways.map((colorway) => (
                   <button
                     key={colorway.name}
-                    onClick={() => setSelectedColor(colorway)}
+                    onClick={() => {
+                      setSelectedColor(colorway);
+                      playClickSound();
+                    }}
+                    onMouseEnter={playHoverSound}
                     className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition-all cursor-pointer ${
                       selectedColor.name === colorway.name
                         ? 'border-acid-green bg-surface ring-1 ring-acid-green/40 shadow-lg'
@@ -230,7 +240,11 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
                 {product.sizes.map((size) => (
                   <button
                     key={size.value}
-                    onClick={() => setSelectedSize(size)}
+                    onClick={() => {
+                      setSelectedSize(size);
+                      playClickSound();
+                    }}
+                    onMouseEnter={playHoverSound}
                     className={`py-3 rounded-lg font-mono text-xs uppercase font-bold transition-all cursor-pointer border ${
                       selectedSize.value === size.value
                         ? 'bg-acid-green text-base-black border-acid-green shadow-[0_0_15px_rgba(198,255,0,0.3)]'

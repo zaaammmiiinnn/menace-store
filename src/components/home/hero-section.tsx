@@ -8,6 +8,7 @@ import { MagneticButton } from "@/components/ui/magnetic-button";
 import { getTimeRemaining } from "@/lib/utils";
 import { siteConfig } from "@/config/site";
 import { ArrowDown, Sparkles } from "lucide-react";
+import { playClickSound, playHoverSound } from "@/lib/sound";
 
 const HERO_SWATCHES = [
   { name: 'Bone', hex: '#F5F1E8' },
@@ -53,6 +54,7 @@ export function HeroSection() {
   const handleSizeChange = (sizeObj: typeof SIZES[0]) => {
     setActiveSize(sizeObj.label);
     setActiveScale(sizeObj.scale);
+    playClickSound();
   };
 
   const tagline = "NOT FOR EVERYONE.";
@@ -98,7 +100,11 @@ export function HeroSection() {
           {HERO_SWATCHES.map((swatch) => (
             <button
               key={swatch.name}
-              onClick={() => setActiveColor(swatch.hex)}
+              onClick={() => {
+                setActiveColor(swatch.hex);
+                playClickSound();
+              }}
+              onMouseEnter={playHoverSound}
               className={`w-5 h-5 md:w-6 md:h-6 rounded-full transition-transform cursor-pointer border ${
                 activeColor === swatch.hex
                   ? 'scale-125 border-acid-green ring-2 ring-acid-green/40'
@@ -120,6 +126,7 @@ export function HeroSection() {
             <button
               key={s.label}
               onClick={() => handleSizeChange(s)}
+              onMouseEnter={playHoverSound}
               className={`text-[10px] font-mono px-2 py-1 rounded transition-colors cursor-pointer ${
                 activeSize === s.label
                   ? 'bg-acid-green text-base-black font-bold'
