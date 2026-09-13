@@ -211,6 +211,13 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
           </span>
         </div>
 
+        {/* Product Description Snippet */}
+        {product.description && (
+          <p className="text-[11px] text-muted-grey line-clamp-2 leading-relaxed font-sans">
+            {product.description}
+          </p>
+        )}
+
         {/* Colorway Swatches */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
