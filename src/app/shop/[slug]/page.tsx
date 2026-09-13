@@ -49,6 +49,8 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
   const [selectedSize, setSelectedSize] = useState(product.sizes[2] || product.sizes[0]); // default M
   const [addedAnimation, setAddedAnimation] = useState(false);
   const [openAccordion, setOpenAccordion] = useState<string | null>('fit');
+  const [viewerMode, setViewerMode] = useState<'3d' | 'photo'>('3d');
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const handleAddToCart = () => {
     addToCart(product, selectedColor.name, selectedSize.value);
@@ -79,9 +81,9 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
           <span className="text-off-white font-bold">{product.name}</span>
         </div>
 
-        {/* Product Hero Grid (Left: 3D Tee Viewer, Right: Buy Box) */}
+        {/* Product Hero Grid (Left: 3D Tee Viewer / Studio Photos, Right: Buy Box) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
-          {/* Left Column: Full 3D Interactive Tee Viewer */}
+          {/* Left Column: Full 3D Interactive Tee Viewer & Photos */}
           <div className="lg:col-span-7 flex flex-col gap-4">
             <div className="relative w-full aspect-[4/5] sm:aspect-square md:aspect-[4/3] lg:aspect-square rounded-2xl bg-surface border border-border/80 overflow-hidden shadow-2xl">
               {/* Dynamic background radial glow based on selected color */}
@@ -92,13 +94,50 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
                 }}
               />
 
-              {/* 3D Scene */}
-              <TeeScene
-                color={selectedColor.hex}
-                scale={selectedSize.scale}
-                interactive={true}
-                productName={product.name}
-              />
+              {viewerMode === '3d' ? (
+                /* 3D Spinning Scene */
+                <TeeScene
+                  color={selectedColor.hex}
+                  scale={selectedSize.scale}
+                  interactive={true}
+                  productName={product.name}
+                />
+              ) : (
+                /* High-Definition Studio Editorial Photo */
+                <div className="w-full h-full flex items-center justify-center p-2 select-none overflow-hidden">
+                  <img
+                    src={product.images[selectedImageIndex] || product.images[0]}
+                    alt={product.name}
+                    className="w-full h-full object-cover object-center rounded-xl shadow-2xl transition-all duration-500"
+                  />
+                </div>
+              )}
+
+              {/* View Switcher Controls (Top Right) */}
+              <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 p-1 rounded-xl bg-base-black/80 border border-white/10 backdrop-blur-md">
+                <button
+                  type="button"
+                  onClick={() => setViewerMode('3d')}
+                  className={`px-3 py-1 rounded-lg text-[10px] font-mono font-bold tracking-wider uppercase transition-colors cursor-pointer ${
+                    viewerMode === '3d'
+                      ? 'bg-acid-green text-base-black'
+                      : 'text-muted-grey hover:text-off-white'
+                  }`}
+                >
+                  3D SPIN
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewerMode('photo')}
+                  className={`px-3 py-1 rounded-lg text-[10px] font-mono font-bold tracking-wider uppercase transition-colors cursor-pointer ${
+                    viewerMode === 'photo'
+                      ? 'bg-acid-green text-base-black'
+                      : 'text-muted-grey hover:text-off-white'
+                  }`}
+                >
+                  STUDIO PHOTO
+                </button>
+              </div>
 
               {/* Top floating badges */}
               <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
@@ -115,9 +154,29 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
               {/* Fabric Detail Hit */}
               <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2 px-3 py-1.5 rounded-full bg-base-black/70 border border-white/10 backdrop-blur-md text-[11px] font-mono text-muted-grey">
                 <Layers size={13} className="text-acid-green" />
-                <span>HEAVYWEIGHT WAFFLE WEAVE</span>
+                <span>{viewerMode === '3d' ? 'INTERACTIVE 3D SPINNING TEE' : 'STUDIO EDITORIAL LOOKBOOK'}</span>
               </div>
             </div>
+
+            {/* Thumbnail selector when in Studio Photo mode */}
+            {viewerMode === 'photo' && product.images && product.images.length > 1 && (
+              <div className="flex items-center gap-3">
+                {product.images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setSelectedImageIndex(idx)}
+                    className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
+                      selectedImageIndex === idx
+                        ? 'border-acid-green shadow-[0_0_10px_rgba(198,255,0,0.3)]'
+                        : 'border-border/80 opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={img} alt={`Thumb ${idx + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Micro Feature Callouts */}
             <div className="grid grid-cols-3 gap-3">

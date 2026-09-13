@@ -27,6 +27,7 @@ export interface Product {
   isNew: boolean;
   vibeName: string;
   vibe?: string;
+  status?: 'draft' | 'active' | 'archived';
 }
 
 export interface CartItem {
