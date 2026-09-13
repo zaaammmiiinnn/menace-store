@@ -99,7 +99,7 @@ export function TeeScene({
         fallback={<TeeFallback productName={productName} color={color} />}
       >
         <Canvas
-          camera={{ position: [0, 0, 4], fov: 35 }}
+          camera={{ position: [0, 0, 4.3], fov: 35 }}
           dpr={dpr}
           gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
           shadows={enableShadows}

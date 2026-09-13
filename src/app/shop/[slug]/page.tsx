@@ -49,7 +49,7 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
   const [selectedSize, setSelectedSize] = useState(product.sizes[2] || product.sizes[0]); // default M
   const [addedAnimation, setAddedAnimation] = useState(false);
   const [openAccordion, setOpenAccordion] = useState<string | null>('fit');
-  const [viewerMode, setViewerMode] = useState<'3d' | 'photo'>('3d');
+  const [viewerMode, setViewerMode] = useState<'3d' | 'photo'>('photo');
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const handleAddToCart = () => {
