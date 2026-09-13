@@ -19,6 +19,7 @@ interface LookItem {
   price: number;
   colorName: string;
   colorHex: string;
+  image: string;
   hotspots: { x: number; y: number; label: string; item: string }[];
 }
 
@@ -31,10 +32,11 @@ const LOOKS: LookItem[] = [
     slug: "quiet-menace",
     productName: "The Quiet Menance Tee",
     price: 1299,
-    colorName: "Bone",
-    colorHex: "#E8E0D0",
+    colorName: "Pitch Black",
+    colorHex: "#0A0A0A",
+    image: "/images/products/quiet-menace-1.jpg",
     hotspots: [
-      { x: 50, y: 45, label: "280 GSM Waffle Knit", item: "The Quiet Menance Tee" },
+      { x: 50, y: 45, label: "280 GSM Combed Cotton", item: "The Quiet Menance Tee" },
       { x: 52, y: 28, label: "1.25\" High-Density Rib Collar", item: "Neckline Detail" },
     ],
   },
@@ -48,6 +50,7 @@ const LOOKS: LookItem[] = [
     price: 1499,
     colorName: "Acid Green",
     colorHex: "#C6FF00",
+    image: "/images/products/loud-menace-1.jpg",
     hotspots: [
       { x: 48, y: 48, label: "Screenprinted Front Hit", item: "The Loud Menance Tee" },
       { x: 65, y: 55, label: "Oversized Elbow-Length Sleeve", item: "Sleeve Cut" },
@@ -63,6 +66,7 @@ const LOOKS: LookItem[] = [
     price: 1399,
     colorName: "Pitch Black",
     colorHex: "#000000",
+    image: "/images/products/midnight-menace-1.jpg",
     hotspots: [
       { x: 50, y: 42, label: "Stealth Tone-on-Tone Dye", item: "The Midnight Menance Tee" },
       { x: 45, y: 65, label: "Seamless Side Venting", item: "Boxy Hem" },
@@ -74,12 +78,46 @@ const LOOKS: LookItem[] = [
     subtitle: "ENZYME WASHED",
     tagline: "LIVED-IN COMFORT FOR DOING ABSOLUTELY NOTHING.",
     slug: "sunday-menace",
-    productName: "The Sunday Menance Tee",
+    productName: "The Raw Edge Boxy Tee",
     price: 1299,
-    colorName: "Washed Black",
-    colorHex: "#1A1A1A",
+    colorName: "Cement Grey",
+    colorHex: "#B5B5B5",
+    image: "/images/products/raw-edge-boxy-1.jpg",
     hotspots: [
-      { x: 50, y: 44, label: "Vintage Pre-Shrunk Finish", item: "The Sunday Menance Tee" },
+      { x: 50, y: 44, label: "Raw Edge Roll Hem", item: "The Raw Edge Tee" },
+      { x: 52, y: 28, label: "Vintage Pre-Shrunk Finish", item: "Collar Detail" },
+    ],
+  },
+  {
+    id: 5,
+    title: "THE HEAVY WAFFLE",
+    subtitle: "HONEYCOMB WEAVE",
+    tagline: "300 GSM THERMAL WAFFLE KNIT. ARCHITECTURAL DRAPE THAT NEVER COLLAPSES.",
+    slug: "soft-menace",
+    productName: "The Oversized Heavy Waffle Tee",
+    price: 1599,
+    colorName: "Bone Cream",
+    colorHex: "#E8E0D0",
+    image: "/images/products/heavy-waffle-1.jpg",
+    hotspots: [
+      { x: 50, y: 42, label: "300 GSM Thermal Honeycomb Waffle Weave", item: "The Heavy Waffle Tee" },
+      { x: 55, y: 60, label: "Relaxed Boxy Cropped Cut", item: "Waist Hem" },
+    ],
+  },
+  {
+    id: 6,
+    title: "CYBERNETIC ACID",
+    subtitle: "LUMINESCENT PROTOCOL",
+    tagline: "HIGH-VISIBILITY ACID GREEN ENGINEERED FOR FLASH PHOTOGRAPHY.",
+    slug: "public-menace",
+    productName: "The Acid Menace Tee",
+    price: 1499,
+    colorName: "Acid Green",
+    colorHex: "#C6FF00",
+    image: "/images/products/acid-menace-1.jpg",
+    hotspots: [
+      { x: 50, y: 45, label: "High-Visibility Cyber Typography", item: "The Acid Menace Tee" },
+      { x: 62, y: 35, label: "Sealed Contrast Seams", item: "Shoulder Construction" },
     ],
   },
 ];
@@ -129,6 +167,21 @@ function LookSection({ look }: { look: LookItem }) {
             backgroundSize: '24px 24px',
           }}
         />
+      </motion.div>
+
+      {/* High-Resolution Editorial Streetwear Lookbook Photo Backdrop */}
+      <motion.div 
+        style={{ y }}
+        className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none opacity-30 md:opacity-45 select-none"
+      >
+        <div className="relative w-80 sm:w-96 md:w-[480px] aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl border border-white/10">
+          <img
+            src={look.image}
+            alt={look.productName}
+            className="w-full h-full object-cover object-center brightness-90"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-base-black via-base-black/40 to-base-black/10" />
+        </div>
       </motion.div>
 
       {/* Interactive Hotspot Pins */}

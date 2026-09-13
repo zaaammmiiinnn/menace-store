@@ -36,6 +36,16 @@ export default function TeeFallback({
   color = '#F5F1E8',
   images = [],
 }: TeeFallbackProps) {
+  const resolvedImages = images.length > 0
+    ? images
+    : (productName.toLowerCase().includes('waffle')
+        ? ['/images/products/heavy-waffle-1.jpg', '/images/products/heavy-waffle-2.jpg']
+        : productName.toLowerCase().includes('loud')
+        ? ['/images/products/loud-menace-1.jpg', '/images/products/loud-menace-2.jpg']
+        : productName.toLowerCase().includes('acid')
+        ? ['/images/products/acid-menace-1.jpg', '/images/products/acid-menace-2.jpg']
+        : ['/images/products/quiet-menace-1.jpg', '/images/products/quiet-menace-2.jpg']);
+
   const [[page, direction], setPage] = useState([0, 0]);
   const [isReducedMotion, setIsReducedMotion] = useState(false);
 
@@ -47,8 +57,8 @@ export default function TeeFallback({
     return () => mediaQuery.removeEventListener('change', listener);
   }, []);
 
-  const hasImages = images && images.length > 0;
-  const slideCount = hasImages ? images.length : 3;
+  const hasImages = resolvedImages && resolvedImages.length > 0;
+  const slideCount = hasImages ? resolvedImages.length : 3;
 
   const paginate = (newDirection: number) => {
     setPage([page + newDirection, newDirection]);
@@ -87,9 +97,9 @@ export default function TeeFallback({
         >
           {hasImages ? (
             <img
-              src={images[currentIndex]}
+              src={resolvedImages[currentIndex]}
               alt={`${productName} view ${currentIndex + 1}`}
-              className="w-full h-full object-contain pointer-events-none"
+              className="w-full h-full object-contain pointer-events-none rounded-xl"
             />
           ) : (
             <div

@@ -142,7 +142,11 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
               {/* Top floating badges */}
               <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
                 <span className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-widest bg-acid-green text-base-black font-bold rounded">
-                  280 GSM WAFFLE
+                  {product.tags.includes('waffle')
+                    ? '300 GSM THERMAL WAFFLE'
+                    : product.tags.includes('raw-edge')
+                    ? '260 GSM RAW EDGE BOXY'
+                    : '280 GSM HEAVYWEIGHT'}
                 </span>
                 {product.isBestSeller && (
                   <span className="px-2.5 py-1 text-[10px] font-mono uppercase tracking-widest bg-off-white/15 text-off-white border border-white/20 rounded backdrop-blur-md">
@@ -382,7 +386,13 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
                   onClick={() => setOpenAccordion(openAccordion === 'fabric' ? null : 'fabric')}
                   className="w-full py-3.5 flex justify-between items-center text-left font-display uppercase text-sm tracking-wider text-off-white cursor-pointer"
                 >
-                  <span>280 GSM WAFFLE SPECS &amp; CARE</span>
+                  <span>
+                    {product.tags.includes('waffle')
+                      ? '300 GSM THERMAL WAFFLE SPECS & CARE'
+                      : product.tags.includes('raw-edge')
+                      ? '260 GSM VINTAGE JERSEY SPECS & CARE'
+                      : '280 GSM COMBED COTTON SPECS & CARE'}
+                  </span>
                   <ChevronDown
                     size={16}
                     className={`transition-transform duration-300 ${openAccordion === 'fabric' ? 'rotate-180' : ''}`}
@@ -396,8 +406,14 @@ export default function ProductDetailPage({ params }: ProductPageProps) {
                       exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden pb-4 text-xs font-sans text-muted-grey space-y-2 leading-relaxed"
                     >
-                      <p>• 100% Combed Heavy Cotton with micro thermal honeycomb weave.</p>
-                      <p>• Reactive garment dye with silicone soft wash finish.</p>
+                      <p>
+                        {product.tags.includes('waffle')
+                          ? '• 300 GSM 100% Combed Cotton with micro thermal honeycomb waffle weave that traps airflow and holds structured drape.'
+                          : product.tags.includes('raw-edge')
+                          ? '• 260 GSM open-end vintage jersey with deliberate raw-cut hems that roll organically with each wash.'
+                          : '• 280 GSM Luxury Combed Heavyweight Cotton with high-density architectural drape and zero sheer.'}
+                      </p>
+                      <p>• Reactive garment dye with silicone soft wash finish for permanent color fastness.</p>
                       <p>• Machine wash cold with like colors. Hang dry or tumble dry low.</p>
                     </motion.div>
                   )}

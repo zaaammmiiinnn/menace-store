@@ -860,14 +860,23 @@ export default function CheckoutPage() {
             ) : (
               <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
                 {items.map((item) => (
-                  <div key={item.id} className="flex justify-between items-start gap-3 py-1.5 border-b border-[#1f1f1f]">
-                    <div className="flex-1">
-                      <span className="font-display text-xs uppercase text-[#F5F1E8] line-clamp-1 block">
-                        {item.product.name}
-                      </span>
-                      <span className="text-[10px] font-mono text-[#8A8A8A] uppercase">
-                        {item.color} / Size {item.size} × {item.quantity}
-                      </span>
+                  <div key={item.id} className="flex justify-between items-center gap-3 py-2 border-b border-[#1f1f1f]">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      {item.product.images && item.product.images[0] && (
+                        <img
+                          src={item.product.images[0]}
+                          alt={item.product.name}
+                          className="w-11 h-11 object-cover rounded-lg border border-[#262626] shrink-0 bg-base-black"
+                        />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <span className="font-display text-xs uppercase text-[#F5F1E8] line-clamp-1 block">
+                          {item.product.name}
+                        </span>
+                        <span className="text-[10px] font-mono text-[#8A8A8A] uppercase">
+                          {item.color} / Size {item.size} × {item.quantity}
+                        </span>
+                      </div>
                     </div>
                     <span className="font-mono text-xs font-bold text-[#F5F1E8] whitespace-nowrap">
                       {getFormattedPrice(item.product.price * item.quantity)}

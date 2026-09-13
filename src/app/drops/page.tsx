@@ -9,6 +9,7 @@ import { SplitFlap } from "@/components/ui/split-flap";
 import { MagneticButton } from "@/components/ui/magnetic-button";
 import { useUiStore } from "@/store/ui-store";
 import { Bell, Lock, Calendar, Check, Flame, ArrowRight } from "lucide-react";
+import { products } from "@/data/products";
 
 interface DropEvent {
   number: string;
@@ -151,6 +152,49 @@ export default function DropsPage() {
                 <ArrowRight size={16} />
               </MagneticButton>
             </Link>
+          </div>
+
+          {/* 6 Drop 001 Tees Visual Lookbook Gallery */}
+          <div className="pt-6 border-t border-border/60">
+            <div className="flex items-center justify-between mb-4">
+              <span className="font-mono text-xs text-acid-green uppercase tracking-widest font-bold">
+                DROP 001 LINEUP // 6 CORE SILHOUETTES
+              </span>
+              <span className="font-mono text-[10px] text-muted-grey uppercase">
+                280–300 GSM ARCHITECTURE
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              {products.map((p) => (
+                <Link
+                  key={p.id}
+                  href={`/shop/${p.slug}`}
+                  className="group rounded-xl overflow-hidden bg-base-black border border-border/80 hover:border-acid-green/60 transition-all flex flex-col"
+                >
+                  <div className="aspect-[4/5] relative overflow-hidden bg-surface">
+                    <img
+                      src={p.images[0]}
+                      alt={p.name}
+                      className="w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-500"
+                    />
+                    {p.tags.includes('waffle') && (
+                      <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded text-[8px] font-mono uppercase tracking-widest bg-acid-green text-base-black font-bold">
+                        WAFFLE
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-2.5 flex flex-col justify-between flex-1 gap-1">
+                    <span className="font-display text-xs uppercase text-off-white line-clamp-1 group-hover:text-acid-green transition-colors">
+                      {p.name}
+                    </span>
+                    <span className="font-mono text-[11px] font-bold text-acid-green">
+                      ₹{p.price.toLocaleString()}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
 

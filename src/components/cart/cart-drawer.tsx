@@ -179,20 +179,30 @@ export function CartDrawer() {
                         key={item.id}
                         className="flex gap-4 p-3 rounded-lg bg-surface border border-border/80 relative group"
                       >
-                        {/* Mini Tee Visual Block */}
-                        <div
-                          className="h-20 w-16 shrink-0 rounded flex items-center justify-center relative overflow-hidden border border-white/10"
-                          style={{ backgroundColor: colorway?.hex || '#1A1A1A' }}
-                        >
-                          <span 
-                            className="font-display text-[9px] tracking-widest uppercase z-10"
-                            style={{
-                              color: colorway?.hex === '#0A0A0A' || colorway?.hex === '#1A1A1A' ? '#F5F1E8' : '#0A0A0A'
-                            }}
+                        {/* Mini Tee Visual Thumbnail */}
+                        {item.product.images && item.product.images[0] ? (
+                          <div className="h-20 w-16 shrink-0 rounded overflow-hidden border border-white/10 bg-base-black">
+                            <img
+                              src={item.product.images[0]}
+                              alt={item.product.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div
+                            className="h-20 w-16 shrink-0 rounded flex items-center justify-center relative overflow-hidden border border-white/10"
+                            style={{ backgroundColor: colorway?.hex || '#1A1A1A' }}
                           >
-                            MENANCE
-                          </span>
-                        </div>
+                            <span 
+                              className="font-display text-[9px] tracking-widest uppercase z-10"
+                              style={{
+                                color: colorway?.hex === '#0A0A0A' || colorway?.hex === '#1A1A1A' ? '#F5F1E8' : '#0A0A0A'
+                              }}
+                            >
+                              MENANCE
+                            </span>
+                          </div>
+                        )}
 
                         {/* Item Details */}
                         <div className="flex flex-1 flex-col justify-between">

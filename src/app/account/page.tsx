@@ -26,7 +26,7 @@ export default function AccountDashboardPage() {
       date: 'SEPTEMBER 04, 2026',
       status: 'DELIVERED',
       items: [
-        { name: 'QUIET MENANCE OVERSIZED TEE', color: 'Bone', size: 'L', price: 2499 },
+        { name: 'QUIET MENANCE OVERSIZED TEE', color: 'Bone', size: 'L', price: 2499, image: '/images/products/quiet-menace-1.jpg' },
       ],
       total: 2499,
       tracking: 'BLUEDART // 489218491',
@@ -36,7 +36,7 @@ export default function AccountDashboardPage() {
       date: 'AUGUST 18, 2026',
       status: 'DELIVERED',
       items: [
-        { name: 'ACID TRIP WAFFLE TEE', color: 'Acid Green', size: 'XL', price: 2699 },
+        { name: 'ACID TRIP WAFFLE TEE', color: 'Acid Green', size: 'XL', price: 2699, image: '/images/products/heavy-waffle-1.jpg' },
       ],
       total: 2699,
       tracking: 'DELHIVERY // 729184012',
@@ -179,13 +179,22 @@ export default function AccountDashboardPage() {
                   </div>
 
                   <div className="border-t border-border/40 pt-3 flex items-center justify-between">
-                    <div>
-                      <p className="font-display text-sm uppercase text-off-white tracking-wide">
-                        {order.items[0].name}
-                      </p>
-                      <p className="font-mono text-xs text-muted-grey mt-0.5">
-                        {order.items[0].color} • Size {order.items[0].size}
-                      </p>
+                    <div className="flex items-center gap-3">
+                      {order.items[0].image && (
+                        <img
+                          src={order.items[0].image}
+                          alt={order.items[0].name}
+                          className="w-11 h-11 rounded-lg object-cover border border-border shrink-0 bg-base-black"
+                        />
+                      )}
+                      <div>
+                        <p className="font-display text-sm uppercase text-off-white tracking-wide">
+                          {order.items[0].name}
+                        </p>
+                        <p className="font-mono text-xs text-muted-grey mt-0.5">
+                          {order.items[0].color} • Size {order.items[0].size}
+                        </p>
+                      </div>
                     </div>
                     <span className="font-mono text-sm font-bold text-off-white">
                       {getFormattedPrice(order.total)}
@@ -245,17 +254,26 @@ export default function AccountDashboardPage() {
                   <Link
                     key={item.id}
                     href={`/shop/${item.slug}`}
-                    className="p-4 rounded-xl bg-surface border border-border/80 hover:border-acid-green/50 transition-all flex items-center justify-between group"
+                    className="p-3 rounded-xl bg-surface border border-border/80 hover:border-acid-green/50 transition-all flex items-center justify-between group"
                   >
-                    <div>
-                      <p className="font-display text-sm uppercase text-off-white group-hover:text-acid-green transition-colors">
-                        {item.name}
-                      </p>
-                      <p className="font-mono text-xs text-muted-grey mt-0.5">
-                        {item.vibeName} // 280 GSM
-                      </p>
+                    <div className="flex items-center gap-3">
+                      {item.images && item.images[0] && (
+                        <img
+                          src={item.images[0]}
+                          alt={item.name}
+                          className="w-10 h-10 rounded-lg object-cover border border-white/10 shrink-0 bg-base-black"
+                        />
+                      )}
+                      <div>
+                        <p className="font-display text-sm uppercase text-off-white group-hover:text-acid-green transition-colors line-clamp-1">
+                          {item.name}
+                        </p>
+                        <p className="font-mono text-xs text-muted-grey mt-0.5">
+                          {item.vibeName} // {item.tags.includes('waffle') ? '300 GSM WAFFLE' : '280 GSM'}
+                        </p>
+                      </div>
                     </div>
-                    <span className="font-mono text-xs font-bold text-acid-green">
+                    <span className="font-mono text-xs font-bold text-acid-green whitespace-nowrap">
                       {getFormattedPrice(item.price)}
                     </span>
                   </Link>

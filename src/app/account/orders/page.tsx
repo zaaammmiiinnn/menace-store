@@ -30,6 +30,7 @@ export default function AccountOrdersPage() {
           price: 2499,
           quantity: 1,
           sku: 'MNC-TEE-001-BNE-L',
+          image: '/images/products/quiet-menace-1.jpg',
         },
       ],
     },
@@ -46,12 +47,13 @@ export default function AccountOrdersPage() {
       items: [
         {
           name: 'ACID TRIP WAFFLE TEE',
-          slug: 'acid-trip',
+          slug: 'soft-menace',
           color: 'Acid Green',
           size: 'XL',
           price: 2699,
           quantity: 1,
           sku: 'MNC-TEE-002-ACD-XL',
+          image: '/images/products/heavy-waffle-1.jpg',
         },
       ],
     },
@@ -110,9 +112,17 @@ export default function AccountOrdersPage() {
                     className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-border/40 last:border-b-0 last:pb-0"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-xl bg-base-black border border-border flex items-center justify-center font-display text-lg text-acid-green uppercase">
-                        280g
-                      </div>
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-16 h-16 rounded-xl object-cover border border-border shrink-0 bg-base-black"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 rounded-xl bg-base-black border border-border flex items-center justify-center font-display text-lg text-acid-green uppercase shrink-0">
+                          280g
+                        </div>
+                      )}
                       <div>
                         <Link
                           href={`/shop/${item.slug}`}

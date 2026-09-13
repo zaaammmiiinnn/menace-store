@@ -80,16 +80,26 @@ export default function AccountWishlistPage() {
                 className="rounded-2xl bg-surface border border-border hover:border-acid-green/40 transition-all flex flex-col justify-between overflow-hidden group shadow-lg"
               >
                 <div className="p-5">
-                  <div className="relative aspect-[4/3] rounded-xl bg-base-black border border-border/60 flex items-center justify-center overflow-hidden mb-4">
-                    <span className="font-display text-4xl text-white/10 group-hover:text-acid-green/20 transition-colors uppercase select-none">
-                      MENANCE
-                    </span>
-                    <span className="absolute top-3 left-3 px-2 py-0.5 rounded text-[9px] font-mono uppercase tracking-widest bg-acid-green text-base-black font-bold">
+                  <div className="relative aspect-[4/3] rounded-xl bg-base-black border border-border/60 overflow-hidden mb-4">
+                    {product.images && product.images[0] ? (
+                      <img
+                        src={product.images[0]}
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="font-display text-4xl text-white/10 uppercase select-none">
+                          MENANCE
+                        </span>
+                      </div>
+                    )}
+                    <span className="absolute top-3 left-3 px-2 py-0.5 rounded text-[9px] font-mono uppercase tracking-widest bg-acid-green text-base-black font-bold z-10">
                       {product.vibeName}
                     </span>
                     <button
                       onClick={() => handleRemove(product.id, product.name)}
-                      className="absolute top-3 right-3 p-1.5 rounded-full bg-base-black/80 hover:bg-red-500 text-muted-grey hover:text-white transition-colors cursor-pointer"
+                      className="absolute top-3 right-3 p-1.5 rounded-full bg-base-black/80 hover:bg-red-500 text-muted-grey hover:text-white transition-colors cursor-pointer z-10"
                       title="Remove from wishlist"
                     >
                       <Trash2 size={13} />
@@ -110,7 +120,7 @@ export default function AccountWishlistPage() {
                       {getFormattedPrice(product.price)}
                     </span>
                     <span className="font-mono text-[10px] text-muted-grey uppercase">
-                      280 GSM WAFFLE
+                      {product.tags.includes('waffle') ? '300 GSM WAFFLE' : '280 GSM HEAVYWEIGHT'}
                     </span>
                   </div>
                 </div>

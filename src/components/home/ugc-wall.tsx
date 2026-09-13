@@ -12,15 +12,16 @@ interface UGCPost {
   platform: "instagram" | "tiktok";
   likes: string;
   colorHex: string;
+  image: string;
 }
 
 const UGC_POSTS: UGCPost[] = [
-  { id: 1, handle: "@yash.archive", tagline: "Drop shoulder is insane", type: "image", platform: "instagram", likes: "2.4k", colorHex: "#1A1A1A" },
-  { id: 2, handle: "@priya_fits", tagline: "Boxy fit that actually fits", type: "video", platform: "tiktok", likes: "14.2k", colorHex: "#C6FF00" },
-  { id: 3, handle: "@devon_noise", tagline: "280 GSM waffle weight test", type: "image", platform: "instagram", likes: "1.8k", colorHex: "#000000" },
-  { id: 4, handle: "@kabir.99", tagline: "Unbothered rotation", type: "video", platform: "tiktok", likes: "8.9k", colorHex: "#E8E0D0" },
-  { id: 5, handle: "@ananya.core", tagline: "Collar will never bacon", type: "image", platform: "instagram", likes: "4.1k", colorHex: "#333333" },
-  { id: 6, handle: "@zayn.fits", tagline: "Acid Green statement piece", type: "video", platform: "tiktok", likes: "21k", colorHex: "#1F2800" },
+  { id: 1, handle: "@yash.archive", tagline: "Drop shoulder is insane", type: "image", platform: "instagram", likes: "2.4k", colorHex: "#1A1A1A", image: "/images/products/quiet-menace-1.jpg" },
+  { id: 2, handle: "@priya_fits", tagline: "Boxy fit that actually fits", type: "video", platform: "tiktok", likes: "14.2k", colorHex: "#C6FF00", image: "/images/products/loud-menace-1.jpg" },
+  { id: 3, handle: "@devon_noise", tagline: "300 GSM thermal waffle weight test", type: "image", platform: "instagram", likes: "1.8k", colorHex: "#E8E0D0", image: "/images/products/heavy-waffle-1.jpg" },
+  { id: 4, handle: "@kabir.99", tagline: "Unbothered raw-edge rotation", type: "video", platform: "tiktok", likes: "8.9k", colorHex: "#B5B5B5", image: "/images/products/raw-edge-boxy-1.jpg" },
+  { id: 5, handle: "@ananya.core", tagline: "Collar will never bacon", type: "image", platform: "instagram", likes: "4.1k", colorHex: "#333333", image: "/images/products/midnight-menace-1.jpg" },
+  { id: 6, handle: "@zayn.fits", tagline: "Acid Green statement piece", type: "video", platform: "tiktok", likes: "21k", colorHex: "#1F2800", image: "/images/products/acid-menace-1.jpg" },
 ];
 
 export function UgcWall() {
@@ -81,31 +82,15 @@ export function UgcWall() {
             onMouseLeave={() => setActiveItem(null)}
             className="aspect-[3/4] relative group rounded-2xl overflow-hidden bg-surface border border-border/80 cursor-pointer shadow-xl"
           >
-            {/* Background Graphic Box representing UGC fit content */}
-            <div 
-              className="absolute inset-0 transition-transform duration-700 group-hover:scale-105"
-              style={{
-                background: `linear-gradient(145deg, ${post.colorHex} 0%, #0A0A0A 100%)`,
-              }}
-            >
-              {/* Noise texture */}
-              <div 
-                className="absolute inset-0 opacity-20 mix-blend-overlay"
-                style={{
-                  backgroundImage: `radial-gradient(#ffffff 1px, transparent 1px)`,
-                  backgroundSize: '12px 12px',
-                }}
+            {/* Real Product Lookbook Photo */}
+            <div className="absolute inset-0 select-none overflow-hidden">
+              <img
+                src={post.image}
+                alt={post.tagline}
+                className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700 ease-out brightness-90 group-hover:brightness-100"
               />
-              
-              {/* Large graphic mock silhouette representation */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center select-none">
-                <span className="font-display text-2xl md:text-3xl text-off-white/40 uppercase tracking-widest">
-                  DROP 001
-                </span>
-                <span className="font-mono text-[10px] text-muted-grey uppercase mt-1">
-                  {post.tagline}
-                </span>
-              </div>
+              {/* Subtle gradient overlay to keep tags and text readable */}
+              <div className="absolute inset-0 bg-gradient-to-t from-base-black via-base-black/20 to-transparent opacity-85 group-hover:opacity-65 transition-opacity" />
             </div>
 
             {/* Top platform tag */}

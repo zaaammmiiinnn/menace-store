@@ -134,16 +134,57 @@ export default function AboutPage() {
 
           <div className="space-y-4">
             <h2 className="font-display text-4xl sm:text-6xl uppercase text-off-white leading-none">
-              THE 280 GSM WAFFLE SPECIFICATION
+              THE 280–300 GSM WAFFLE SPECIFICATION
             </h2>
             <p className="font-sans text-sm sm:text-base text-muted-grey max-w-2xl leading-relaxed">
               Why waffle knit? Standard jersey clings and shows sweat. Our micro thermal honeycomb weave traps airflow, creates natural structured drape, and holds an architectural boxy silhouette that never collapses against your body.
             </p>
           </div>
 
+          {/* Real Waffle Knit & Oversized Silhouette Visual Showcase */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+            <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-border/80 group">
+              <img
+                src="/images/products/heavy-waffle-1.jpg"
+                alt="Heavy Waffle Knit Honeycomb Weave"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-base-black/90 via-base-black/20 to-transparent flex flex-col justify-end p-6">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-acid-green font-bold">
+                  TEXTURE MATRIX
+                </span>
+                <p className="font-display text-xl uppercase text-off-white">
+                  300 GSM THERMAL HONEYCOMB WAFFLE
+                </p>
+                <p className="text-xs font-mono text-muted-grey">
+                  Micro-air pocket insulation with zero distortion.
+                </p>
+              </div>
+            </div>
+
+            <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-border/80 group">
+              <img
+                src="/images/products/heavy-waffle-2.jpg"
+                alt="Oversized Boxy Silhouette Cut"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-base-black/90 via-base-black/20 to-transparent flex flex-col justify-end p-6">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-acid-green font-bold">
+                  PATTERN ARCHITECTURE
+                </span>
+                <p className="font-display text-xl uppercase text-off-white">
+                  DROP-SHOULDER OVERSIZED BOXY FIT
+                </p>
+                <p className="text-xs font-mono text-muted-grey">
+                  Cut wide and relaxed with 1.25&quot; high-density collar ribbing.
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-border">
             <div className="p-4 rounded-xl bg-base-black border border-border text-center">
-              <span className="font-display text-2xl sm:text-3xl text-acid-green block">280+</span>
+              <span className="font-display text-2xl sm:text-3xl text-acid-green block">280–300</span>
               <span className="font-mono text-[10px] text-muted-grey uppercase tracking-widest">GSM Weight</span>
             </div>
             <div className="p-4 rounded-xl bg-base-black border border-border text-center">

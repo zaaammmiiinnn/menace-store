@@ -76,7 +76,7 @@ export function HeroSection() {
       >
         <span className="w-2 h-2 rounded-full bg-acid-green animate-pulse" />
         <span className="font-mono text-[11px] tracking-widest text-off-white uppercase">
-          DROP 001 // 280 GSM WAFFLE KNIT
+          DROP 001 // 280–300 GSM OVERSIZED &amp; WAFFLE KNIT
         </span>
       </motion.div>
 

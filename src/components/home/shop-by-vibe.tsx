@@ -17,6 +17,7 @@ const vibes = [
     accent: "#E8E0D0",
     gradient: "from-[#1F1F1F] to-[#0A0A0A]",
     skuCount: "2 STYLES",
+    image: "/images/products/quiet-menace-1.jpg",
   },
   {
     id: "loud",
@@ -27,6 +28,7 @@ const vibes = [
     accent: "#C6FF00",
     gradient: "from-[#1A2600] to-[#0A0A0A]",
     skuCount: "2 STYLES",
+    image: "/images/products/loud-menace-1.jpg",
   },
   {
     id: "midnight",
@@ -37,6 +39,7 @@ const vibes = [
     accent: "#333333",
     gradient: "from-[#141414] to-[#0A0A0A]",
     skuCount: "1 STYLE",
+    image: "/images/products/midnight-menace-1.jpg",
   },
   {
     id: "sunday",
@@ -47,6 +50,7 @@ const vibes = [
     accent: "#8A8A8A",
     gradient: "from-[#22252A] to-[#0A0A0A]",
     skuCount: "1 STYLE",
+    image: "/images/products/raw-edge-boxy-1.jpg",
   },
 ];
 
@@ -86,9 +90,19 @@ export function ShopByVibe() {
                   <div
                     className={`absolute inset-0 [backface-visibility:hidden] rounded-2xl bg-gradient-to-br ${vibe.gradient} border border-border/80 p-8 flex flex-col justify-between overflow-hidden shadow-2xl group-hover:border-acid-green/40 transition-colors`}
                   >
+                    {/* Real Product Backdrop Photo */}
+                    <div className="absolute inset-0 select-none overflow-hidden">
+                      <img
+                        src={vibe.image}
+                        alt={vibe.name}
+                        className="w-full h-full object-cover object-center group-hover:scale-108 transition-transform duration-700 brightness-50 contrast-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-base-black via-base-black/60 to-base-black/30" />
+                    </div>
+
                     {/* Background noise grid */}
                     <div 
-                      className="absolute inset-0 opacity-15 pointer-events-none"
+                      className="absolute inset-0 opacity-15 pointer-events-none z-0"
                       style={{
                         backgroundImage: `radial-gradient(${vibe.accent} 1px, transparent 1px)`,
                         backgroundSize: '16px 16px',
