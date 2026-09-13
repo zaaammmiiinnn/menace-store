@@ -2,18 +2,73 @@
 
 import { revalidatePath } from 'next/cache';
 import { requireAdmin, requireStaff, logAuditAction } from './auth';
-import { getLocalStore } from '@/lib/db';
+import { getLocalStore, getD1Database } from '@/lib/db';
 import { productSchema, discountCodeSchema, storeSettingsSchema } from '@/lib/validation/admin';
+import { upsertDynamicProduct, deleteDynamicProduct } from '@/data/products';
 
 // --- PRODUCTS ---
 export async function createProductAction(data: any) {
   await requireAdmin();
   const parsed = productSchema.parse(data);
-  const store = getLocalStore();
-
   const id = `prod_${Date.now()}`;
   const now = Date.now();
 
+  const d1 = getD1Database();
+  if (d1) {
+    try {
+      await d1.prepare(
+        `INSERT INTO products (id, slug, name, description, price_inr, price_usd, category, drop_id, status, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(
+        id,
+        parsed.slug,
+        parsed.name,
+        parsed.description,
+        parsed.priceInr,
+        parsed.priceUsd,
+        parsed.category,
+        parsed.dropId || 'drop_001',
+        parsed.status,
+        now,
+        now
+      ).run();
+
+      for (let index = 0; index < parsed.variants.length; index++) {
+        const v = parsed.variants[index];
+        await d1.prepare(
+          `INSERT INTO product_variants (id, product_id, size, color, sku, stock, price_override, image_url)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+        ).bind(
+          `var_${id}_${index}`,
+          id,
+          v.size,
+          v.color,
+          v.sku,
+          v.stock,
+          v.priceOverride || null,
+          v.imageUrl || null
+        ).run();
+      }
+
+      for (let index = 0; index < parsed.images.length; index++) {
+        const url = parsed.images[index];
+        await d1.prepare(
+          `INSERT INTO product_images (id, product_id, url, alt, sort_order)
+           VALUES (?, ?, ?, ?, ?)`
+        ).bind(
+          `img_${id}_${index}`,
+          id,
+          url,
+          `${parsed.name} Image ${index + 1}`,
+          index
+        ).run();
+      }
+    } catch (d1Err) {
+      console.error('[D1 createProductAction Error]:', d1Err);
+    }
+  }
+
+  const store = getLocalStore();
   const newProduct = {
     id,
     slug: parsed.slug,
@@ -30,7 +85,6 @@ export async function createProductAction(data: any) {
 
   store.getTable('products').unshift(newProduct);
 
-  // Add variants
   parsed.variants.forEach((v, index) => {
     store.getTable('product_variants').push({
       id: `var_${id}_${index}`,
@@ -44,7 +98,6 @@ export async function createProductAction(data: any) {
     });
   });
 
-  // Add images
   parsed.images.forEach((url, index) => {
     store.getTable('product_images').push({
       id: `img_${id}_${index}`,
@@ -53,6 +106,17 @@ export async function createProductAction(data: any) {
       alt: `${parsed.name} Image ${index + 1}`,
       sort_order: index,
     });
+  });
+
+  upsertDynamicProduct({
+    id,
+    slug: parsed.slug,
+    name: parsed.name,
+    description: parsed.description,
+    price: parsed.priceInr,
+    images: parsed.images,
+    category: parsed.category,
+    status: parsed.status,
   });
 
   await logAuditAction({
@@ -64,36 +128,92 @@ export async function createProductAction(data: any) {
 
   revalidatePath('/admin');
   revalidatePath('/admin/products');
+  revalidatePath(`/admin/products/${id}`);
   revalidatePath('/shop');
 
-  return { success: true, id };
+  return { success: true, id, slug: parsed.slug };
 }
 
 export async function updateProductAction(id: string, data: any) {
   await requireAdmin();
   const parsed = productSchema.parse(data);
+  const now = Date.now();
+
+  const d1 = getD1Database();
+  if (d1) {
+    try {
+      await d1.prepare(
+        `UPDATE products SET slug = ?, name = ?, description = ?, price_inr = ?, price_usd = ?, category = ?, drop_id = ?, status = ?, updated_at = ?
+         WHERE id = ?`
+      ).bind(
+        parsed.slug,
+        parsed.name,
+        parsed.description,
+        parsed.priceInr,
+        parsed.priceUsd,
+        parsed.category,
+        parsed.dropId || 'drop_001',
+        parsed.status,
+        now,
+        id
+      ).run();
+
+      await d1.prepare('DELETE FROM product_variants WHERE product_id = ?').bind(id).run();
+      for (let idx = 0; idx < parsed.variants.length; idx++) {
+        const v = parsed.variants[idx];
+        await d1.prepare(
+          `INSERT INTO product_variants (id, product_id, size, color, sku, stock, price_override, image_url)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+        ).bind(
+          v.id || `var_${id}_${idx}`,
+          id,
+          v.size,
+          v.color,
+          v.sku,
+          v.stock,
+          v.priceOverride || null,
+          v.imageUrl || null
+        ).run();
+      }
+
+      await d1.prepare('DELETE FROM product_images WHERE product_id = ?').bind(id).run();
+      for (let idx = 0; idx < parsed.images.length; idx++) {
+        const url = parsed.images[idx];
+        await d1.prepare(
+          `INSERT INTO product_images (id, product_id, url, alt, sort_order)
+           VALUES (?, ?, ?, ?, ?)`
+        ).bind(
+          `img_${id}_${idx}`,
+          id,
+          url,
+          `${parsed.name} Image ${idx + 1}`,
+          idx
+        ).run();
+      }
+    } catch (d1Err) {
+      console.error('[D1 updateProductAction Error]:', d1Err);
+    }
+  }
+
   const store = getLocalStore();
   const products = store.getTable('products');
   const index = products.findIndex((p: any) => p.id === id);
 
-  if (index === -1) {
-    throw new Error('Product not found.');
+  if (index !== -1) {
+    products[index] = {
+      ...products[index],
+      slug: parsed.slug,
+      name: parsed.name,
+      description: parsed.description,
+      price_inr: parsed.priceInr,
+      price_usd: parsed.priceUsd,
+      category: parsed.category,
+      drop_id: parsed.dropId || 'drop_001',
+      status: parsed.status,
+      updated_at: now,
+    };
   }
 
-  products[index] = {
-    ...products[index],
-    slug: parsed.slug,
-    name: parsed.name,
-    description: parsed.description,
-    price_inr: parsed.priceInr,
-    price_usd: parsed.priceUsd,
-    category: parsed.category,
-    drop_id: parsed.dropId || 'drop_001',
-    status: parsed.status,
-    updated_at: Date.now(),
-  };
-
-  // Replace variants
   const variantsTable = store.getTable('product_variants');
   const filteredVariants = variantsTable.filter((v: any) => v.product_id !== id);
   parsed.variants.forEach((v, idx) => {
@@ -110,6 +230,17 @@ export async function updateProductAction(id: string, data: any) {
   });
   store.getTable('product_variants').length = 0;
   store.getTable('product_variants').push(...filteredVariants);
+
+  upsertDynamicProduct({
+    id,
+    slug: parsed.slug,
+    name: parsed.name,
+    description: parsed.description,
+    price: parsed.priceInr,
+    images: parsed.images,
+    category: parsed.category,
+    status: parsed.status,
+  });
 
   await logAuditAction({
     action: 'UPDATE_PRODUCT',
@@ -128,23 +259,30 @@ export async function updateProductAction(id: string, data: any) {
 
 export async function deleteProductAction(id: string) {
   await requireAdmin();
-  const store = getLocalStore();
-  const products = store.getTable('products');
-  const prod = products.find((p: any) => p.id === id);
-
-  if (!prod) {
-    throw new Error('Product not found.');
+  const d1 = getD1Database();
+  if (d1) {
+    try {
+      await d1.prepare('DELETE FROM products WHERE id = ?').bind(id).run();
+      await d1.prepare('DELETE FROM product_variants WHERE product_id = ?').bind(id).run();
+      await d1.prepare('DELETE FROM product_images WHERE product_id = ?').bind(id).run();
+    } catch (d1Err) {
+      console.error('[D1 deleteProductAction Error]:', d1Err);
+    }
   }
 
+  const store = getLocalStore();
+  const products = store.getTable('products');
   const filtered = products.filter((p: any) => p.id !== id);
   products.length = 0;
   products.push(...filtered);
+
+  deleteDynamicProduct(id);
 
   await logAuditAction({
     action: 'DELETE_PRODUCT',
     entity: 'products',
     entityId: id,
-    details: `Deleted product "${prod.name}" (${prod.slug}).`,
+    details: `Deleted product ID "${id}".`,
   });
 
   revalidatePath('/admin');

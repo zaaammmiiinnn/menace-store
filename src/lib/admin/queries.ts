@@ -1,4 +1,4 @@
-import { getLocalStore } from '@/lib/db';
+import { getLocalStore, getD1Database } from '@/lib/db';
 
 export interface DashboardStats {
   revenueToday: number;
@@ -34,12 +34,34 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   const cached = getCached<DashboardStats>(cacheKey);
   if (cached) return cached;
 
-  const store = getLocalStore();
-  const orders = store.getTable('orders');
-  const variants = store.getTable('product_variants');
-  const products = store.getTable('products');
-  const orderItems = store.getTable('order_items');
-  const customers = store.getTable('customers');
+  let orders: any[] = [];
+  let variants: any[] = [];
+  let products: any[] = [];
+  let customers: any[] = [];
+
+  const d1 = getD1Database();
+  if (d1) {
+    try {
+      const ordersRes = await d1.prepare('SELECT * FROM orders ORDER BY created_at DESC').all();
+      orders = ordersRes?.results || [];
+      const variantsRes = await d1.prepare('SELECT * FROM product_variants').all();
+      variants = variantsRes?.results || [];
+      const productsRes = await d1.prepare('SELECT * FROM products').all();
+      products = productsRes?.results || [];
+      const customersRes = await d1.prepare('SELECT * FROM customers').all();
+      customers = customersRes?.results || [];
+    } catch (e) {
+      console.error('[D1 getDashboardStats Error]:', e);
+    }
+  }
+
+  if (orders.length === 0 && products.length === 0) {
+    const store = getLocalStore();
+    orders = store.getTable('orders');
+    variants = store.getTable('product_variants');
+    products = store.getTable('products');
+    customers = store.getTable('customers');
+  }
 
   // Revenue & orders calculations
   const totalRevenue = orders.reduce((sum: number, o: any) => sum + (o.total_inr || 0), 0);
@@ -115,6 +137,36 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 }
 
 export async function getProducts() {
+  const d1 = getD1Database();
+  if (d1) {
+    try {
+      const productsRes = await d1.prepare('SELECT * FROM products ORDER BY created_at DESC').all();
+      const products = productsRes?.results;
+      if (products && products.length > 0) {
+        const variantsRes = await d1.prepare('SELECT * FROM product_variants').all();
+        const variants = variantsRes?.results || [];
+        const dropsRes = await d1.prepare('SELECT * FROM drops').all();
+        const drops = dropsRes?.results || [];
+
+        return products.map((p: any) => {
+          const productVariants = variants.filter((v: any) => v.product_id === p.id);
+          const totalStock = productVariants.reduce((sum: number, v: any) => sum + (v.stock || 0), 0);
+          const drop = drops.find((d: any) => d.id === p.drop_id);
+
+          return {
+            ...p,
+            variantsCount: productVariants.length,
+            totalStock,
+            dropName: drop?.name || 'Drop 001',
+            variants: productVariants,
+          };
+        });
+      }
+    } catch (e) {
+      console.error('[D1 getProducts Error]:', e);
+    }
+  }
+
   const store = getLocalStore();
   const products = store.getTable('products');
   const variants = store.getTable('product_variants');
@@ -136,12 +188,33 @@ export async function getProducts() {
 }
 
 export async function getProductById(id: string) {
+  const d1 = getD1Database();
+  if (d1) {
+    try {
+      const product = await d1.prepare('SELECT * FROM products WHERE id = ? OR slug = ?').bind(id, id).first();
+      if (product) {
+        const variantsRes = await d1.prepare('SELECT * FROM product_variants WHERE product_id = ?').bind(product.id).all();
+        const imagesRes = await d1.prepare('SELECT * FROM product_images WHERE product_id = ? ORDER BY sort_order ASC').bind(product.id).all();
+        const drop = product.drop_id ? await d1.prepare('SELECT * FROM drops WHERE id = ?').bind(product.drop_id).first() : null;
+
+        return {
+          ...product,
+          variants: variantsRes?.results || [],
+          images: imagesRes?.results || [],
+          drop,
+        };
+      }
+    } catch (e) {
+      console.error('[D1 getProductById Error]:', e);
+    }
+  }
+
   const store = getLocalStore();
-  const product = store.getTable('products').find((p: any) => p.id === id);
+  const product = store.getTable('products').find((p: any) => p.id === id || p.slug === id);
   if (!product) return null;
 
-  const variants = store.getTable('product_variants').filter((v: any) => v.product_id === id);
-  const images = store.getTable('product_images').filter((img: any) => img.product_id === id);
+  const variants = store.getTable('product_variants').filter((v: any) => v.product_id === product.id);
+  const images = store.getTable('product_images').filter((img: any) => img.product_id === product.id);
   const drop = store.getTable('drops').find((d: any) => d.id === product.drop_id);
 
   return {

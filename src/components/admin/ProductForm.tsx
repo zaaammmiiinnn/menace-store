@@ -101,10 +101,13 @@ export function ProductForm({ initialData, isEditing = false }: ProductFormProps
       if (isEditing) {
         await updateProductAction(initialData.id, payload);
         toast.success('Product updated successfully.');
+        router.push('/admin/products');
+        router.refresh();
       } else {
         const res = await createProductAction(payload);
-        toast.success('Product created.');
-        router.push(`/admin/products/${res.id}`);
+        toast.success('Product published successfully!');
+        router.push('/admin/products');
+        router.refresh();
       }
     } catch (err: any) {
       toast.error(err.message || 'Error saving product.');

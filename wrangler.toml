@@ -15,22 +15,12 @@ NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL = "/account"
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL = "/account"
 ADMIN_EMAILS = "zamin@menance.store,admin@menance.store,zamin@menace.store,admin@menace.store,zaminaskari.work@gmail.com,askarizamin110@gmail.com"
 
-# --- Optional Cloudflare Resource Bindings ---
-# Uncomment and insert your real Cloudflare IDs once created in the dashboard:
+[[d1_databases]]
+binding = "DB"
+database_name = "menace-db"
+database_id = "5208d6ac-b7b7-41d2-bcd6-2a7a4962c8b0"
+migrations_dir = "src/lib/db/migrations"
 
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "menance-db"
-# database_id = "<your-real-d1-id>"
-# migrations_dir = "src/lib/db/migrations"
-
-# [[r2_buckets]]
-# binding = "R2_BUCKET"
-# bucket_name = "menance-assets"
-
-# [[kv_namespaces]]
-# binding = "MENANCE_KV"
-# id = "<your-real-kv-id>"
-
-# [triggers]
-# crons = ["0 0 * * *"]
+[[kv_namespaces]]
+binding = "MENANCE_KV"
+id = "ab2dd890e2774b26a4b088482abeceef"
