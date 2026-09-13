@@ -75,67 +75,6 @@ const TeeModel = forwardRef<THREE.Group, TeeModelProps>(
       setIsInteracting(false);
     };
 
-    // Sculpted continuous oversized drop-shoulder tee geometry
-    const teeGeometry = useMemo(() => {
-      const shape = new THREE.Shape();
-      
-      // Bottom hem center
-      shape.moveTo(0, -1.25);
-      
-      // Right bottom hem
-      shape.lineTo(0.95, -1.25);
-      
-      // Right side seam up to underarm (boxy streetwear drape)
-      shape.quadraticCurveTo(1.02, -0.3, 1.02, 0.25);
-      
-      // Underarm curve transitioning to sleeve bottom
-      shape.quadraticCurveTo(1.15, 0.22, 1.62, -0.15);
-      
-      // Sleeve cuff (elbow length, slightly angled)
-      shape.lineTo(1.82, 0.28);
-      
-      // Sleeve top curve sloping up to dropped shoulder seam
-      shape.quadraticCurveTo(1.42, 0.72, 1.12, 0.92);
-      
-      // Right shoulder slope to neckline
-      shape.quadraticCurveTo(0.65, 1.08, 0.38, 1.1);
-      
-      // Crew neckline scoop (curving down smoothly)
-      shape.quadraticCurveTo(0, 0.82, -0.38, 1.1);
-      
-      // Left shoulder slope to dropped shoulder
-      shape.quadraticCurveTo(-0.65, 1.08, -1.12, 0.92);
-      
-      // Left sleeve top curve
-      shape.quadraticCurveTo(-1.42, 0.72, -1.82, 0.28);
-      
-      // Left sleeve cuff
-      shape.lineTo(-1.62, -0.15);
-      
-      // Left underarm curve transitioning to side seam
-      shape.quadraticCurveTo(-1.15, 0.22, -1.02, 0.25);
-      
-      // Left side seam down to bottom hem
-      shape.quadraticCurveTo(-1.02, -0.3, -0.95, -1.25);
-      
-      // Left bottom hem to center
-      shape.lineTo(0, -1.25);
-
-      const extrudeSettings = {
-        depth: 0.3,
-        bevelEnabled: true,
-        bevelSegments: 5,
-        steps: 1,
-        bevelSize: 0.07,
-        bevelThickness: 0.07,
-      };
-
-      const geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-      geom.center();
-      geom.computeVertexNormals();
-      return geom;
-    }, []);
-
     return (
       <group
         ref={groupRef}
@@ -143,15 +82,49 @@ const TeeModel = forwardRef<THREE.Group, TeeModelProps>(
         onPointerUp={handlePointerUp}
         onPointerOut={handlePointerUp}
       >
-        {/* Continuous Sculpted Streetwear Tee */}
-        <mesh geometry={teeGeometry}>
+        {/* Torso */}
+        <mesh position={[0, -0.2, 0]}>
+          <boxGeometry args={[1.6, 2.4, 0.4]} />
           <meshStandardMaterial
             ref={materialRef}
             color={color}
-            roughness={0.75}
-            metalness={0.02}
+            roughness={0.8}
+            metalness={0.0}
             normalMap={waffleNormalMap}
-            normalScale={new THREE.Vector2(0.4, 0.4)}
+            normalScale={new THREE.Vector2(0.5, 0.5)}
+          />
+        </mesh>
+
+        {/* Left Sleeve */}
+        <mesh position={[-1.0, 0.6, 0]} rotation={[0, 0, 0.5]}>
+          <boxGeometry args={[0.7, 1.0, 0.35]} />
+          <meshStandardMaterial
+            color={color}
+            roughness={0.8}
+            metalness={0.0}
+            normalMap={waffleNormalMap}
+          />
+        </mesh>
+
+        {/* Right Sleeve */}
+        <mesh position={[1.0, 0.6, 0]} rotation={[0, 0, -0.5]}>
+          <boxGeometry args={[0.7, 1.0, 0.35]} />
+          <meshStandardMaterial
+            color={color}
+            roughness={0.8}
+            metalness={0.0}
+            normalMap={waffleNormalMap}
+          />
+        </mesh>
+
+        {/* Collar */}
+        <mesh position={[0, 1.05, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.4, 0.08, 16, 32]} />
+          <meshStandardMaterial
+            color={color}
+            roughness={0.9}
+            metalness={0.0}
+            normalMap={waffleNormalMap}
           />
         </mesh>
       </group>

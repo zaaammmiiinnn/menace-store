@@ -61,10 +61,6 @@ function ShopContent() {
 
   return (
     <div className="min-h-screen bg-base-black text-off-white pt-24 pb-28 px-4 md:px-8 relative overflow-hidden">
-      {/* Idle 3D Tee rotating in the top-right corner */}
-      <div className="absolute top-20 right-4 md:right-12 w-48 h-48 md:w-64 md:h-64 pointer-events-none opacity-40 hidden lg:block select-none z-0">
-        <TeeScene color="#C6FF00" scale={0.75} interactive={false} showHint={false} />
-      </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Breadcrumb & Subheading */}
