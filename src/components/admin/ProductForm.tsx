@@ -196,7 +196,7 @@ export function ProductForm({ initialData, isEditing = false }: ProductFormProps
               <textarea
                 rows={4}
                 {...register('description')}
-                placeholder="Deadpan product description matching Menance tone..."
+                placeholder="Deadpan product description matching Menace tone..."
                 className="w-full bg-[#141414] border border-[#292929] rounded px-3 py-2 text-[13px] text-[#F5F1E8] focus:outline-none focus:border-[#C6FF00]/50 leading-relaxed"
               />
               {errors.description && <p className="text-red-400 text-[11px] font-mono mt-1">{errors.description.message}</p>}

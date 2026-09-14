@@ -10,7 +10,7 @@ const SIZES = [
   { size: "XS", scale: 0.85, chestCm: "54", lengthCm: "70", chestIn: "21.2", lengthIn: "27.5", rec: "Recommended for 5'2\" - 5'6\" (Slim fit)" },
   { size: "S", scale: 0.90, chestCm: "56", lengthCm: "72", chestIn: "22.0", lengthIn: "28.3", rec: "Recommended for 5'5\" - 5'8\" (Relaxed)" },
   { size: "M", scale: 0.95, chestCm: "58", lengthCm: "74", chestIn: "22.8", lengthIn: "29.1", rec: "Recommended for 5'8\" - 5'11\" (True Boxy)" },
-  { size: "L", scale: 1.00, chestCm: "60", lengthCm: "76", chestIn: "23.6", lengthIn: "30.0", rec: "Recommended for 5'10\" - 6'1\" (Core Menance Fit)" },
+  { size: "L", scale: 1.00, chestCm: "60", lengthCm: "76", chestIn: "23.6", lengthIn: "30.0", rec: "Recommended for 5'10\" - 6'1\" (Core Menace Fit)" },
   { size: "XL", scale: 1.06, chestCm: "62", lengthCm: "78", chestIn: "24.4", lengthIn: "30.7", rec: "Recommended for 6'0\" - 6'3\" (Heavy Drop)" },
   { size: "2XL", scale: 1.11, chestCm: "64", lengthCm: "80", chestIn: "25.2", lengthIn: "31.5", rec: "Recommended for 6'2\"+ or Max Volume" },
   { size: "3XL", scale: 1.15, chestCm: "66", lengthCm: "82", chestIn: "26.0", lengthIn: "32.2", rec: "Ultra Baggy Heavy Drape" },
@@ -52,7 +52,7 @@ export default function SizeGuidePage() {
               color="#C6FF00"
               scale={currentSize.scale}
               interactive={true}
-              productName="Menance Sizing Silhouette"
+              productName="Menace Sizing Silhouette"
             />
             <div className="absolute top-4 left-4 z-10 font-mono text-xs text-acid-green bg-base-black/80 px-2.5 py-1 rounded border border-acid-green/30">
               SCALE: {(currentSize.scale * 100).toFixed(0)}%

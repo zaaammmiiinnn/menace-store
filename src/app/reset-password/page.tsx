@@ -4,8 +4,8 @@ import { AuthLayout } from '@/components/auth/AuthLayout';
 import { ResetPasswordForm } from '@/components/auth/ResetPasswordForm';
 
 export const metadata: Metadata = {
-  title: 'Reset Password — Menance',
-  description: 'Set a new password for your Menance account.',
+  title: 'Reset Password — Menace',
+  description: 'Set a new password for your Menace account.',
 };
 
 export default function ResetPasswordPage() {

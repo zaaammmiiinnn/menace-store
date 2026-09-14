@@ -23,7 +23,7 @@ export default function AccountOrdersPage() {
       paymentMethod: 'UPI // GPay Verified',
       items: [
         {
-          name: 'QUIET MENANCE OVERSIZED TEE',
+          name: 'QUIET MENACE OVERSIZED TEE',
           slug: 'quiet-menace',
           color: 'Bone',
           size: 'L',

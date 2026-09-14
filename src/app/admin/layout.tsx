@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'MENANCE Admin Operations',
-  description: 'Operations cockpit for MENANCE Apparel.',
+  title: 'MENACE Admin Operations',
+  description: 'Operations cockpit for MENACE Apparel.',
 };
 
 export default function AdminRootLayout({

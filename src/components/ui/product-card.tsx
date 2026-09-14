@@ -125,7 +125,7 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
                     backgroundColor: primaryColorHex === '#0A0A0A' || primaryColorHex === '#1A1A1A' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' 
                   }}
                 >
-                  {product.vibeName || 'MENANCE'}
+                  {product.vibeName || 'MENACE'}
                 </span>
                 <span className="text-[9px] font-mono tracking-widest text-muted-grey mt-1">
                   280 GSM WAFFLE

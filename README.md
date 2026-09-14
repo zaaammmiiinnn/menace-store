@@ -1,6 +1,6 @@
-# MENANCE — Not for everyone.
+# MENACE — Not for everyone.
 
-> A fully animated, 3D-first, entertainment-driven ecommerce storefront for Gen Z streetwear brand **MENANCE**. Built with Next.js 16 (App Router), React 19, TypeScript, React Three Fiber, Drei, Tailwind CSS v4, Framer Motion, GSAP, Lenis, and Zustand.
+> A fully animated, 3D-first, entertainment-driven ecommerce storefront for Gen Z streetwear brand **MENACE**. Built with Next.js 16 (App Router), React 19, TypeScript, React Three Fiber, Drei, Tailwind CSS v4, Framer Motion, GSAP, Lenis, and Zustand.
 
 ---
 
@@ -46,7 +46,7 @@
 9. **`/contact`** — Deadpan contact interface with character counter and vibe selector.
 10. **`/lookbook`** — Parallax runway gallery with interactive hotspot pins and quick-add popups.
 11. **`/drops`** — Split-flap countdown clock for Drop 001 and VIP notification modal.
-12. **`/privacy`** — Privacy policy in Menance deadpan typography.
+12. **`/privacy`** — Privacy policy in Menace deadpan typography.
 13. **`/terms`** — Terms of service.
 
 ### Authentication & Member Portal (Clerk + Cloudflare Edge)
@@ -69,7 +69,7 @@ The storefront uses a provider-agnostic adapter under `src/lib/auth/` backed pri
 ```
 src/lib/auth/
 ├── types.ts    # Standardized AuthUser, AuthSession, AuthAdapter interfaces
-├── clerk.ts    # Clerk implementation with Menance deadpan error mapping
+├── clerk.ts    # Clerk implementation with Menace deadpan error mapping
 └── index.ts    # Primary unified hooks (useAuth, useSignIn, useSignUp)
 ```
 
@@ -114,4 +114,4 @@ npm run build
 
 ## 📦 License
 
-All rights reserved © MENANCE 2026.
+All rights reserved © MENACE 2026.

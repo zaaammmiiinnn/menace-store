@@ -10,7 +10,7 @@ import { ArrowUpRight } from "lucide-react";
 const vibes = [
   {
     id: "quiet",
-    name: "Quiet Menance",
+    name: "Quiet Menace",
     slug: "quiet",
     tagline: "NO LOGO. ZERO APOLOGIES.",
     description: "Subtle disrespect. Blank heavyweight waffle knit for when your silhouette speaks louder than any graphic.",
@@ -21,7 +21,7 @@ const vibes = [
   },
   {
     id: "loud",
-    name: "Loud Menance",
+    name: "Loud Menace",
     slug: "loud",
     tagline: "ACID GREEN & STATEMENT GRAPHICS.",
     description: "Bold oversized prints engineered to cause an immediate scene. You either get it or you don't.",
@@ -32,7 +32,7 @@ const vibes = [
   },
   {
     id: "midnight",
-    name: "Midnight Menance",
+    name: "Midnight Menace",
     slug: "midnight",
     tagline: "OPERATE AFTER HOURS.",
     description: "Stealth blackout colorways. Tone-on-tone matte hits and pitch black fabric designed for nocturnal routines.",
@@ -43,7 +43,7 @@ const vibes = [
   },
   {
     id: "sunday",
-    name: "Sunday Menance",
+    name: "Sunday Menace",
     slug: "sunday",
     tagline: "DO NOT DISTURB ACTIVATED.",
     description: "Vintage enzyme-washed tees that feel broken-in from day one. Made for doing absolutely nothing with supreme confidence.",

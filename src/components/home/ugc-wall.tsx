@@ -59,10 +59,10 @@ export function UgcWall() {
           COMMUNITY FIELD TESTS
         </span>
         <h2 className="font-display text-4xl sm:text-6xl md:text-7xl text-off-white uppercase tracking-tight">
-          MENANCE IN THE WILD
+          MENACE IN THE WILD
         </h2>
         <p className="font-mono text-xs text-muted-grey uppercase tracking-widest mt-2 max-w-md">
-          Real fits. Unfiltered drapes. Tag @MENANCE on TikTok or Instagram to enter the wall.
+          Real fits. Unfiltered drapes. Tag @MENACE on TikTok or Instagram to enter the wall.
         </p>
       </div>
 

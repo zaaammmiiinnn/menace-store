@@ -27,7 +27,7 @@ export function SettingsForm({ initialSettings, auditLogs }: SettingsFormProps) 
 
   const { register, handleSubmit } = useForm({
     defaultValues: {
-      storeName: initialSettings.storeName || 'MENANCE',
+      storeName: initialSettings.storeName || 'MENACE',
       tagline: initialSettings.tagline || 'Not for everyone.',
       primaryCurrency: initialSettings.primaryCurrency || 'INR',
       freeShippingThreshold: initialSettings.freeShippingThreshold || 2999,
@@ -219,7 +219,7 @@ export function SettingsForm({ initialSettings, auditLogs }: SettingsFormProps) 
               type="email"
               value={newStaffEmail}
               onChange={(e) => setNewStaffEmail(e.target.value)}
-              placeholder="staff@menance.store"
+              placeholder="staff@menace.store"
               className="w-full bg-[#141414] border border-[#262626] rounded px-3 py-1.5 text-[12px] text-[#F5F1E8] focus:outline-none"
             />
           </div>

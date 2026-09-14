@@ -10,7 +10,7 @@ type AnalyticsEvent =
 
 export function trackEvent(event: AnalyticsEvent): void {
   if (process.env.NODE_ENV === 'development') {
-    console.log(`[MENANCE Analytics] Event: ${event.name}`, event.properties);
+    console.log(`[MENACE Analytics] Event: ${event.name}`, event.properties);
   }
   // In production, send to GA4, Meta Pixel, TikTok Pixel
 }
@@ -21,7 +21,7 @@ export function trackPageView(path: string, title: string): void {
 
 export function initAnalytics(): void {
   if (process.env.NODE_ENV === 'development') {
-    console.log('[MENANCE Analytics] Initialized stub analytics');
+    console.log('[MENACE Analytics] Initialized stub analytics');
   }
   // Initialize third party trackers here based on siteConfig keys
 }

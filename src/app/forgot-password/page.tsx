@@ -3,8 +3,8 @@ import { AuthLayout } from '@/components/auth/AuthLayout';
 import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm';
 
 export const metadata: Metadata = {
-  title: 'Forgot Password — Menance',
-  description: 'Recover access to your Menance storefront account.',
+  title: 'Forgot Password — Menace',
+  description: 'Recover access to your Menace storefront account.',
 };
 
 export default function ForgotPasswordPage() {

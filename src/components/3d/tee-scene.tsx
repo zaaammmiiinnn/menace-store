@@ -41,7 +41,7 @@ export function TeeScene({
   interactive = true,
   className = '',
   showHint = true,
-  productName = 'Menance Tee',
+  productName = 'Menace Tee',
   onInteraction,
 }: TeeSceneProps) {
   const [dpr, setDpr] = useState<[number, number]>([1, 2]);

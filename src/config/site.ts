@@ -1,4 +1,6 @@
-import { siteConfig as rawSiteConfig } from "@/../site.config";
+import { siteConfig as rawSiteConfig, TEE_MODEL_PATH } from "@/../site.config";
+
+export { TEE_MODEL_PATH };
 
 export const siteConfig = {
   ...rawSiteConfig,

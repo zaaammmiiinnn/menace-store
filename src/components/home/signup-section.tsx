@@ -36,7 +36,7 @@ export function SignupSection() {
         transition={{ duration: 0.7 }}
       >
         <h2 className="font-anton text-6xl md:text-8xl text-off-white uppercase mb-4">
-          JOIN THE MENANCE
+          JOIN THE MENACE
         </h2>
         <p className="font-inter text-muted-grey text-lg md:text-xl mb-12">
           First access to drops. No spam. Unsubscribe whenever.

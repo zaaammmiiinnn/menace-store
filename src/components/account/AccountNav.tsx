@@ -38,7 +38,7 @@ export function AccountNav() {
         <div>
           <div className="flex items-center gap-2">
             <h2 className="font-display text-xl uppercase tracking-wider text-off-white">
-              {user?.fullName || 'MENANCE MEMBER'}
+              {user?.fullName || 'MENACE MEMBER'}
             </h2>
             <span className="px-2 py-0.5 text-[9px] font-mono uppercase bg-acid-green text-base-black font-bold rounded">
               VIP TIER
@@ -105,7 +105,7 @@ export function AccountNav() {
           onClick={handleSignOut}
           onMouseEnter={playHoverSound}
           className="px-3 py-1.5 rounded-xl bg-surface border border-border hover:border-red-500/50 hover:text-red-400 text-xs font-mono uppercase tracking-wider text-muted-grey flex items-center gap-1.5 transition-colors cursor-pointer ml-auto md:ml-2"
-          title="Sign out of Menance"
+          title="Sign out of Menace"
         >
           <LogOut size={13} />
           <span className="hidden sm:inline">SIGN OUT</span>

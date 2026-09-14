@@ -22,7 +22,7 @@ export default function SSOCallbackPage() {
             SYNCHRONIZING SESSION
           </p>
           <p className="font-mono text-xs text-muted-grey uppercase tracking-widest">
-            AUTHENTICATING WITH GOOGLE // MENANCE DROP 001
+            AUTHENTICATING WITH GOOGLE // MENACE DROP 001
           </p>
         </div>
 

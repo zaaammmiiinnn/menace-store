@@ -90,7 +90,7 @@ export default function AccountWishlistPage() {
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <span className="font-display text-4xl text-white/10 uppercase select-none">
-                          MENANCE
+                          MENACE
                         </span>
                       </div>
                     )}

@@ -20,7 +20,7 @@ export async function getAdminUser(): Promise<AdminUser | null> {
   if (process.env.ADMIN_DEV_BYPASS === 'true' && process.env.NODE_ENV === 'development') {
     return {
       id: 'admin_dev_local',
-      email: 'zamin@menance.store',
+      email: 'zamin@menace.store',
       name: 'Zamin Askari (Admin)',
       role: 'admin',
     };
@@ -34,7 +34,7 @@ export async function getAdminUser(): Promise<AdminUser | null> {
     const adminEmailsEnv = (
       process.env.ADMIN_EMAILS ||
       process.env.NEXT_PUBLIC_ADMIN_EMAILS ||
-      'zamin@menance.store,admin@menance.store,zamin@menace.store,admin@menace.store,zaminaskari.work@gmail.com,askarizamin110@gmail.com'
+      'zamin@menace.store,admin@menace.store,zamin@menace.store,admin@menace.store,zaminaskari.work@gmail.com,askarizamin110@gmail.com'
     )
       .split(',')
       .map((e) => e.trim().toLowerCase())
@@ -83,7 +83,7 @@ export async function requireStaff(): Promise<AdminUser> {
   // Return placeholder admin so Server Components render smoothly, and AdminAuthGuard validates on client.
   return {
     id: 'staff_authenticated',
-    email: 'admin@menance.store',
+    email: 'admin@menace.store',
     name: 'Authorized Staff',
     role: 'admin',
   };
@@ -103,7 +103,7 @@ export async function requireAdmin(): Promise<AdminUser> {
 
   return {
     id: 'admin_authenticated',
-    email: 'admin@menance.store',
+    email: 'admin@menace.store',
     name: 'Administrator',
     role: 'admin',
   };
@@ -123,7 +123,7 @@ export async function logAuditAction(params: {
     const entry = {
       id: `aud_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       userId: user?.id || 'system',
-      userEmail: user?.email || 'system@menance.store',
+      userEmail: user?.email || 'system@menace.store',
       action: params.action,
       entity: params.entity,
       entityId: params.entityId || null,

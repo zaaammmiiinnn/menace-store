@@ -53,13 +53,13 @@ export function Navbar() {
       <div className="flex items-center justify-between px-4 md:px-8 max-w-7xl mx-auto">
         {/* Brand Wordmark */}
         <div className="flex items-center">
-          <Link href="/" className="relative z-50 group flex items-center gap-2" aria-label="Menance Home">
+          <Link href="/" className="relative z-50 group flex items-center gap-2" aria-label="Menace Home">
             <motion.span
               className="font-display text-2xl md:text-3xl tracking-widest text-off-white group-hover:text-acid-green transition-colors"
               animate={{ scale: [1, 1.02, 1] }}
               transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
             >
-              MENANCE
+              MENACE
             </motion.span>
             <span className="hidden sm:inline-block text-[10px] font-mono tracking-widest text-muted-grey border border-muted-grey/30 px-1.5 py-0.5 rounded uppercase">
               DROP 001

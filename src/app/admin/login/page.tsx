@@ -59,7 +59,7 @@ export default function AdminLoginPage() {
               ADMIN LOGIN.
             </h1>
             <p className="font-mono text-xs text-muted-grey uppercase tracking-widest">
-              MENANCE OPERATIONS COCKPIT // AUTHORIZED ACCESS
+              MENACE OPERATIONS COCKPIT // AUTHORIZED ACCESS
             </p>
           </div>
 
@@ -125,7 +125,7 @@ export default function AdminLoginPage() {
 
       {/* Footer */}
       <footer className="relative z-10 w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 pt-6 border-t border-border/40 text-[10px] font-mono text-muted-grey uppercase tracking-widest">
-        <span>© MENANCE {new Date().getFullYear()} // INTERNAL ADMIN PORTAL</span>
+        <span>© MENACE {new Date().getFullYear()} // INTERNAL ADMIN PORTAL</span>
         <span className="text-muted-grey/60">STAFF & ADMIN ROLE RESTRICTED</span>
       </footer>
     </div>
