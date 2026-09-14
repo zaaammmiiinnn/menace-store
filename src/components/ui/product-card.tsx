@@ -98,53 +98,28 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
               }}
             />
 
-            {/* Graphic Silhouette Display */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 select-none">
-              {/* Graphic Mockup Tee Render */}
-              <div 
-                className="relative w-40 h-48 rounded-lg flex flex-col items-center justify-center transition-transform duration-500 group-hover:scale-105 shadow-2xl"
-                style={{
-                  backgroundColor: primaryColorHex,
-                  boxShadow: `0 20px 40px -15px ${primaryColorHex}40`,
-                }}
-              >
-                {/* Waffle Knit texture simulation */}
-                <div 
-                  className="absolute inset-0 opacity-25 mix-blend-overlay rounded-lg"
-                  style={{
-                    backgroundImage: `radial-gradient(#ffffff 1px, transparent 1px)`,
-                    backgroundSize: '8px 8px',
-                  }}
-                />
-                
-                {/* Brand label hit */}
-                <span 
-                  className="font-display text-xs tracking-widest uppercase z-10 px-2 py-0.5 rounded"
-                  style={{ 
-                    color: primaryColorHex === '#0A0A0A' || primaryColorHex === '#1A1A1A' ? '#F5F1E8' : '#0A0A0A',
-                    backgroundColor: primaryColorHex === '#0A0A0A' || primaryColorHex === '#1A1A1A' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' 
-                  }}
-                >
-                  {product.vibeName || 'MENACE'}
-                </span>
-                <span className="text-[9px] font-mono tracking-widest text-muted-grey mt-1">
-                  280 GSM WAFFLE
-                </span>
-              </div>
+            {/* Real Garment Photo Display */}
+            <div className="absolute inset-0 flex items-center justify-center p-6 select-none overflow-hidden">
+              <img
+                src={isHovered && product.images?.[1] ? product.images[1] : (product.images?.[0] || '/images/products/raw-edge-boxy-1.jpg')}
+                alt={product.name}
+                className="w-full h-full object-contain object-center transition-transform duration-500 group-hover:scale-105 drop-shadow-[0_15px_25px_rgba(0,0,0,0.8)]"
+              />
+            </div>
 
-              {/* Tag / Badge */}
-              <div className="absolute top-3 left-3 flex gap-1.5 z-10">
-                {product.isNew && (
-                  <span className="px-2 py-0.5 text-[10px] font-display uppercase tracking-wider bg-acid-green text-base-black rounded">
-                    NEW
-                  </span>
-                )}
-                {product.isBestSeller && (
-                  <span className="px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider bg-off-white/10 text-off-white border border-off-white/20 rounded">
-                    TOP SKU
-                  </span>
-                )}
-              </div>
+            {/* Tag / Badge */}
+            <div className="absolute top-3 left-3 flex gap-1.5 z-10">
+              {product.isNew && (
+                <span className="px-2 py-0.5 text-[10px] font-display uppercase tracking-wider bg-acid-green text-base-black rounded">
+                  NEW
+                </span>
+              )}
+              {product.isBestSeller && (
+                <span className="px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider bg-off-white/10 text-off-white border border-off-white/20 rounded">
+                  TOP SKU
+                </span>
+              )}
+            </div>
 
               {/* Wishlist Heart Icon */}
               <button
@@ -159,7 +134,6 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
               >
                 <Heart size={14} className={isWishlisted ? 'fill-acid-green text-acid-green' : ''} />
               </button>
-            </div>
 
             {/* Quick Add Tray on Hover */}
             <motion.div

@@ -11,6 +11,7 @@ import { ArrowDown, Sparkles } from "lucide-react";
 import { playClickSound, playHoverSound } from "@/lib/sound";
 
 const HERO_SWATCHES = [
+  { name: 'Vintage Mocha', hex: '#423129' },
   { name: 'Bone', hex: '#F5F1E8' },
   { name: 'Acid Green', hex: '#C6FF00' },
   { name: 'Base Black', hex: '#0A0A0A' },
@@ -29,7 +30,7 @@ const SIZES = [
 
 export function HeroSection() {
   const [timeLeft, setTimeLeft] = useState({ days: 28, hours: 14, minutes: 35, seconds: 20 });
-  const [activeColor, setActiveColor] = useState('#F5F1E8');
+  const [activeColor, setActiveColor] = useState('#423129');
   const [activeSize, setActiveSize] = useState('L');
   const [activeScale, setActiveScale] = useState(1.0);
 

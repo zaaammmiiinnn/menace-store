@@ -12,7 +12,7 @@ export interface TeeMaterialConfig {
  * Default material settings for the garment
  */
 export const defaultTeeMaterialConfig: TeeMaterialConfig = {
-  color: '#F5F1E8',
+  color: '#423129',
   roughness: 0.8,
   metalness: 0.0,
   normalScale: 0.5,
