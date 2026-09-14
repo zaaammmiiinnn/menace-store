@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-/* MENACE Design System            */
+/* MENANCE Design System            */
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
 @theme inline {
@@ -313,7 +313,7 @@ html.lenis, html.lenis body {
 /* Utility Classes                  */
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
-.text-gradient-menace {
+.text-gradient-menance {
   background: linear-gradient(135deg, #C6FF00 0%, #F5F1E8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

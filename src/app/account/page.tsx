@@ -26,7 +26,7 @@ export default function AccountDashboardPage() {
       date: 'SEPTEMBER 04, 2026',
       status: 'DELIVERED',
       items: [
-        { name: 'QUIET MENACE OVERSIZED TEE', color: 'Bone', size: 'L', price: 2499, image: '/images/products/quiet-menace-1.jpg' },
+        { name: 'QUIET MENANCE OVERSIZED TEE', color: 'Bone', size: 'L', price: 2499, image: '/images/products/quiet-menance-1.jpg' },
       ],
       total: 2499,
       tracking: 'BLUEDART // 489218491',
@@ -65,7 +65,7 @@ export default function AccountDashboardPage() {
                   ADMINISTRATOR CLEARANCE RECOGNIZED
                 </p>
                 <p className="font-mono text-xs text-muted-grey uppercase">
-                  Full operations access for Menace catalog, drop schedules, inventory & orders.
+                  Full operations access for Menance catalog, drop schedules, inventory & orders.
                 </p>
               </div>
             </div>
@@ -293,7 +293,7 @@ export default function AccountDashboardPage() {
                 HOODIES & THERMAL PANTS
               </h3>
               <p className="font-mono text-xs text-muted-grey leading-relaxed mb-4">
-                As an active Menace member, your account is queued 2 hours ahead of public release.
+                As an active Menance member, your account is queued 2 hours ahead of public release.
               </p>
               <div className="flex items-center gap-2 text-[10px] font-mono uppercase text-acid-green font-bold">
                 <ShieldCheck size={14} />

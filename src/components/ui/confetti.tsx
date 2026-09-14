@@ -24,7 +24,7 @@ interface Particle {
 }
 
 const COLORS = ['#C6FF00', '#F5F1E8', '#0A0A0A', '#8A8A8A'];
-const STICKERS = ['MENACE', 'NOT FOR EVERYONE', 'DROP 001', '★', '⚡'];
+const STICKERS = ['MENANCE', 'NOT FOR EVERYONE', 'DROP 001', '★', '⚡'];
 
 export function Confetti({ trigger: propTrigger, onComplete }: ConfettiProps = {}) {
   const storeTrigger = useUiStore((state) => state.isConfettiActive);

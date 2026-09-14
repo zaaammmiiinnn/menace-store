@@ -80,7 +80,7 @@ export function ForgotPasswordForm() {
           </label>
           <input
             type="email"
-            placeholder="name@menace.com"
+            placeholder="name@menance.com"
             {...register('email')}
             className="w-full bg-transparent border-b border-border py-2 text-off-white font-mono text-sm placeholder:text-muted-grey/40 focus:border-acid-green outline-none transition-colors"
           />

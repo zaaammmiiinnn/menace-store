@@ -238,7 +238,7 @@ export function DiscountsManager({ discounts: initialDiscounts }: DiscountsManag
         data={discounts}
         searchPlaceholder="Search discount codes..."
         emptyMessage="No promo codes created yet."
-        exportFileName="menace-discount-codes.csv"
+        exportFileName="menance-discount-codes.csv"
       />
 
       {/* Create Code Modal */}

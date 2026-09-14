@@ -36,7 +36,7 @@ export function ProductForm({ initialData, isEditing = false }: ProductFormProps
   ];
 
   const defaultImages: string[] = initialData?.images?.map((i: any) => i.url) || [
-    '/images/products/quiet-menace-1.jpg',
+    '/images/products/quiet-menance-1.jpg',
   ];
 
   const [images, setImages] = useState<string[]>(defaultImages);
@@ -183,7 +183,7 @@ export function ProductForm({ initialData, isEditing = false }: ProductFormProps
                 <input
                   type="text"
                   {...register('slug')}
-                  placeholder="quiet-menace"
+                  placeholder="quiet-menance"
                   className="flex-1 bg-[#141414] border border-[#292929] rounded-r px-3 py-2 text-[13px] text-[#C6FF00] font-mono focus:outline-none focus:border-[#C6FF00]/50"
                 />
               </div>
@@ -196,7 +196,7 @@ export function ProductForm({ initialData, isEditing = false }: ProductFormProps
               <textarea
                 rows={4}
                 {...register('description')}
-                placeholder="Deadpan product description matching Menace tone..."
+                placeholder="Deadpan product description matching Menance tone..."
                 className="w-full bg-[#141414] border border-[#292929] rounded px-3 py-2 text-[13px] text-[#F5F1E8] focus:outline-none focus:border-[#C6FF00]/50 leading-relaxed"
               />
               {errors.description && <p className="text-red-400 text-[11px] font-mono mt-1">{errors.description.message}</p>}

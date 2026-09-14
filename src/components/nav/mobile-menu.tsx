@@ -151,7 +151,7 @@ export function MobileMenu() {
             </div>
 
             <div className="flex items-center justify-between text-xs font-mono text-muted-grey">
-              <span className="text-off-white">MENACE APPAREL</span>
+              <span className="text-off-white">MENANCE APPAREL</span>
               <span>DROP 001 // UNISEX</span>
             </div>
 

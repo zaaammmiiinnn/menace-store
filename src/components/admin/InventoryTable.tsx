@@ -144,7 +144,7 @@ export function InventoryTable({ variants: initialVariants }: InventoryTableProp
       data={data}
       searchPlaceholder="Search inventory by SKU, silhouette name, or color..."
       emptyMessage="No variant inventory logged."
-      exportFileName="menace-inventory.csv"
+      exportFileName="menance-inventory.csv"
     />
   );
 }

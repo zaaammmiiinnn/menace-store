@@ -58,7 +58,7 @@ export function CartDrawer() {
     } else {
       playClickSound();
       setPromoError(true);
-      showToast('Invalid promo code. Try MENACE10 or VIP20');
+      showToast('Invalid promo code. Try MENANCE10 or VIP20');
     }
   };
 
@@ -199,7 +199,7 @@ export function CartDrawer() {
                                 color: colorway?.hex === '#0A0A0A' || colorway?.hex === '#1A1A1A' ? '#F5F1E8' : '#0A0A0A'
                               }}
                             >
-                              MENACE
+                              MENANCE
                             </span>
                           </div>
                         )}
@@ -286,7 +286,7 @@ export function CartDrawer() {
                     <Tag size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-grey" />
                     <input
                       type="text"
-                      placeholder="Promo Code (e.g. MENACE10)"
+                      placeholder="Promo Code (e.g. MENANCE10)"
                       value={inputCode}
                       onChange={(e) => {
                         setInputCode(e.target.value);

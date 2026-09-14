@@ -66,7 +66,7 @@ export function SignupForm() {
     } else if (res.success) {
       playConfettiSound();
       triggerConfetti();
-      showToast("WELCOME TO MENACE.");
+      showToast("WELCOME TO MENANCE.");
       router.push('/account');
     } else {
       triggerErrorShake(res.error || "SOMETHING'S OFF. TRY AGAIN.");
@@ -206,7 +206,7 @@ export function SignupForm() {
               </label>
               <input
                 type="email"
-                placeholder="name@menace.com"
+                placeholder="name@menance.com"
                 {...register('email')}
                 className="w-full bg-transparent border-b border-border py-2 text-off-white font-mono text-sm placeholder:text-muted-grey/40 focus:border-acid-green outline-none transition-colors"
               />
@@ -286,7 +286,7 @@ export function SignupForm() {
                   className="w-3.5 h-3.5 mt-0.5 accent-acid-green rounded border border-border bg-surface cursor-pointer"
                 />
                 <span className="font-mono text-[11px] text-muted-grey leading-tight">
-                  I agree to the Menace Terms of Service & Privacy Policy. No junk emails ever.
+                  I agree to the Menance Terms of Service & Privacy Policy. No junk emails ever.
                 </span>
               </label>
               {errors.acceptTerms && (

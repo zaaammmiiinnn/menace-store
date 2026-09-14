@@ -140,7 +140,7 @@ export const useCartStore = create<CartState>()(
 
       applyPromoCode: (code: string) => {
         const normalized = code.trim().toUpperCase();
-        if (normalized === 'MENACE10' || normalized === 'MENACE10' || normalized === 'NOTFOREVERYONE') {
+        if (normalized === 'MENANCE10' || normalized === 'MENANCE10' || normalized === 'NOTFOREVERYONE') {
           set({ promoCode: normalized, discountPercent: 10 });
           return true;
         }
@@ -183,7 +183,7 @@ export const useCartStore = create<CartState>()(
       },
     }),
     {
-      name: 'menace-cart-storage',
+      name: 'menance-cart-storage',
       partialize: (state) => ({
         items: state.items,
         currency: state.currency,

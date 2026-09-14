@@ -16,12 +16,12 @@ interface UGCPost {
 }
 
 const UGC_POSTS: UGCPost[] = [
-  { id: 1, handle: "@yash.archive", tagline: "Drop shoulder is insane", type: "image", platform: "instagram", likes: "2.4k", colorHex: "#1A1A1A", image: "/images/products/quiet-menace-1.jpg" },
-  { id: 2, handle: "@priya_fits", tagline: "Boxy fit that actually fits", type: "video", platform: "tiktok", likes: "14.2k", colorHex: "#C6FF00", image: "/images/products/loud-menace-1.jpg" },
+  { id: 1, handle: "@yash.archive", tagline: "Drop shoulder is insane", type: "image", platform: "instagram", likes: "2.4k", colorHex: "#1A1A1A", image: "/images/products/quiet-menance-1.jpg" },
+  { id: 2, handle: "@priya_fits", tagline: "Boxy fit that actually fits", type: "video", platform: "tiktok", likes: "14.2k", colorHex: "#C6FF00", image: "/images/products/loud-menance-1.jpg" },
   { id: 3, handle: "@devon_noise", tagline: "300 GSM thermal waffle weight test", type: "image", platform: "instagram", likes: "1.8k", colorHex: "#E8E0D0", image: "/images/products/heavy-waffle-1.jpg" },
   { id: 4, handle: "@kabir.99", tagline: "Unbothered raw-edge rotation", type: "video", platform: "tiktok", likes: "8.9k", colorHex: "#B5B5B5", image: "/images/products/raw-edge-boxy-1.jpg" },
-  { id: 5, handle: "@ananya.core", tagline: "Collar will never bacon", type: "image", platform: "instagram", likes: "4.1k", colorHex: "#333333", image: "/images/products/midnight-menace-1.jpg" },
-  { id: 6, handle: "@zayn.fits", tagline: "Acid Green statement piece", type: "video", platform: "tiktok", likes: "21k", colorHex: "#1F2800", image: "/images/products/acid-menace-1.jpg" },
+  { id: 5, handle: "@ananya.core", tagline: "Collar will never bacon", type: "image", platform: "instagram", likes: "4.1k", colorHex: "#333333", image: "/images/products/midnight-menance-1.jpg" },
+  { id: 6, handle: "@zayn.fits", tagline: "Acid Green statement piece", type: "video", platform: "tiktok", likes: "21k", colorHex: "#1F2800", image: "/images/products/acid-menance-1.jpg" },
 ];
 
 export function UgcWall() {
@@ -59,10 +59,10 @@ export function UgcWall() {
           COMMUNITY FIELD TESTS
         </span>
         <h2 className="font-display text-4xl sm:text-6xl md:text-7xl text-off-white uppercase tracking-tight">
-          MENACE IN THE WILD
+          MENANCE IN THE WILD
         </h2>
         <p className="font-mono text-xs text-muted-grey uppercase tracking-widest mt-2 max-w-md">
-          Real fits. Unfiltered drapes. Tag @MENACE on TikTok or Instagram to enter the wall.
+          Real fits. Unfiltered drapes. Tag @MENANCE on TikTok or Instagram to enter the wall.
         </p>
       </div>
 

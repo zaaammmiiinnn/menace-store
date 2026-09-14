@@ -21,7 +21,7 @@ export default function AboutPage() {
     {
       number: "03",
       title: "FABRIC FIRST. ALWAYS.",
-      desc: "Most hype brands print garbage graphics on paper-thin 160 GSM blanks. Every Menace tee is custom-knit from 280+ GSM combed cotton with a high-density thermal waffle weave that retains structure for years.",
+      desc: "Most hype brands print garbage graphics on paper-thin 160 GSM blanks. Every Menance tee is custom-knit from 280+ GSM combed cotton with a high-density thermal waffle weave that retains structure for years.",
     },
     {
       number: "04",
@@ -67,7 +67,7 @@ export default function AboutPage() {
           >
             <span className="w-2 h-2 rounded-full bg-acid-green animate-pulse" />
             <span className="text-xs font-mono tracking-widest uppercase text-off-white">
-              ABOUT MENACE APPAREL
+              ABOUT MENANCE APPAREL
             </span>
           </motion.div>
 

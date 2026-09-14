@@ -14,7 +14,7 @@ export default function AccountSettingsPage() {
 
   const [firstName, setFirstName] = useState(user?.firstName || 'Zamin');
   const [lastName, setLastName] = useState(user?.lastName || 'Askari');
-  const [email] = useState(user?.email || 'zamin@menace.com');
+  const [email] = useState(user?.email || 'zamin@menance.com');
   const [phone, setPhone] = useState('+91 98765 43210');
 
   // Address state

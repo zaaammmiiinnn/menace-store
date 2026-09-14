@@ -89,7 +89,7 @@ export function CustomersTable({ customers }: CustomersTableProps) {
       data={customers}
       searchPlaceholder="Search customers by name, email..."
       emptyMessage="No customers on file."
-      exportFileName="menace-customers.csv"
+      exportFileName="menance-customers.csv"
     />
   );
 }

@@ -25,7 +25,7 @@ export function Footer() {
     showToast('You are on the list. Stay unbothered.');
   };
 
-  const brandLetters = "MENACE".split("");
+  const brandLetters = "MENANCE".split("");
 
   const footerGroups = siteConfig.footerGroups || [
     {
@@ -198,7 +198,7 @@ export function Footer() {
 
           {/* Tagline / Copyright */}
           <div className="text-center tracking-widest uppercase">
-            &copy; 2026 MENACE APPAREL. NOT FOR EVERYONE.
+            &copy; 2026 MENANCE APPAREL. NOT FOR EVERYONE.
           </div>
 
           {/* Payment Badges */}

@@ -49,8 +49,8 @@ const PINCODE_MAP: Record<string, { city: string; state: string }> = {
   '70': { city: 'Kolkata', state: 'West Bengal' },
 };
 
-const MERCHANT_UPI_ID = 'menace@okhdfcbank';
-const MERCHANT_NAME = 'MENACE APPAREL';
+const MERCHANT_UPI_ID = 'menance@okhdfcbank';
+const MERCHANT_NAME = 'MENANCE APPAREL';
 
 export default function CheckoutPage() {
   const {
@@ -97,7 +97,7 @@ export default function CheckoutPage() {
   // Dynamic UPI payment URL
   const upiPayUrl = `upi://pay?pa=${MERCHANT_UPI_ID}&pn=${encodeURIComponent(
     MERCHANT_NAME
-  )}&am=${finalTotal}&cu=INR&tn=${encodeURIComponent('MENACE Apparel Order')}`;
+  )}&am=${finalTotal}&cu=INR&tn=${encodeURIComponent('MENANCE Apparel Order')}`;
 
   // Handle PIN code auto-completion for Indian cities
   const handlePincodeChange = (pincode: string) => {
@@ -142,7 +142,7 @@ export default function CheckoutPage() {
     if (!promoInput.trim()) return;
     const success = applyPromoCode(promoInput.trim());
     if (!success) {
-      setPromoError('Invalid code. Try MENACE10 or VIP20');
+      setPromoError('Invalid code. Try MENANCE10 or VIP20');
     } else {
       setPromoInput('');
     }
@@ -163,7 +163,7 @@ export default function CheckoutPage() {
     });
   };
 
-  // Submit Order to backend API and sync with Menace Admin
+  // Submit Order to backend API and sync with Menance Admin
   const submitOrderToBackend = async (paymentDetails?: any) => {
     const payload = {
       customer: {
@@ -249,7 +249,7 @@ export default function CheckoutPage() {
             key: rzpData.keyId,
             amount: rzpData.amount,
             currency: rzpData.currency,
-            name: 'MENACE APPAREL',
+            name: 'MENANCE APPAREL',
             description: 'Streetwear Drop 001 Checkout',
             order_id: rzpData.orderId,
             prefill: {

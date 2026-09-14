@@ -1,6 +1,6 @@
-# MENACE Admin Panel — Production Guide
+# MENANCE Admin Panel — Production Guide
 
-The **MENACE Admin Panel** is a dense, keyboard-friendly operations cockpit tailored for a modern Gen Z apparel brand. Built on **Next.js 15 App Router**, **Cloudflare D1**, **Drizzle ORM**, **Clerk RBAC**, and **TanStack Table**.
+The **MENANCE Admin Panel** is a dense, keyboard-friendly operations cockpit tailored for a modern Gen Z apparel brand. Built on **Next.js 15 App Router**, **Cloudflare D1**, **Drizzle ORM**, **Clerk RBAC**, and **TanStack Table**.
 
 ---
 
@@ -11,7 +11,7 @@ Access to `/admin/*` requires either the `admin` or `staff` role.
 ### Method A: Instant Bootstrap via Environment Variable (Fastest)
 Add your Clerk account email to the `ADMIN_EMAILS` variable:
 ```bash
-ADMIN_EMAILS="your-email@example.com,zamin@menace.store"
+ADMIN_EMAILS="your-email@example.com,zamin@menance.store"
 ```
 Users signing in with this email are automatically granted full `admin` permissions on all routes and server actions.
 
@@ -34,7 +34,7 @@ Users signing in with this email are automatically granted full `admin` permissi
 ### Create D1 Database
 In your Cloudflare dashboard (or terminal):
 ```bash
-npx wrangler d1 create menace-db
+npx wrangler d1 create menance-db
 ```
 Copy the `database_id` returned and paste it into `wrangler.toml`:
 ```toml
@@ -45,13 +45,13 @@ database_id = "your-d1-database-id-here"
 ```
 
 ### Apply Initial Migration & Seeds
-Run the included SQL migration to create all tables and seed Drop 001 with the 6 authentic Menace tees, variant matrices, and discount codes:
+Run the included SQL migration to create all tables and seed Drop 001 with the 6 authentic Menance tees, variant matrices, and discount codes:
 ```bash
 # Apply to remote Cloudflare D1
-npx wrangler d1 execute menace-db --remote --file=src/lib/db/migrations/0001_init.sql
+npx wrangler d1 execute menance-db --remote --file=src/lib/db/migrations/0001_init.sql
 
 # Or apply locally for Wrangler dev
-npx wrangler d1 execute menace-db --local --file=src/lib/db/migrations/0001_init.sql
+npx wrangler d1 execute menance-db --local --file=src/lib/db/migrations/0001_init.sql
 ```
 
 ---
@@ -59,13 +59,13 @@ npx wrangler d1 execute menace-db --local --file=src/lib/db/migrations/0001_init
 ## 📦 3. Cloudflare R2 Storage (Product Imagery)
 
 1. In Cloudflare Dashboard, go to **R2 Object Storage** → **Create bucket**.
-2. Name the bucket `menace-assets`.
-3. In bucket settings, enable **Public Access** or connect a custom domain (e.g. `https://assets.menace.store`).
+2. Name the bucket `menance-assets`.
+3. In bucket settings, enable **Public Access** or connect a custom domain (e.g. `https://assets.menance.store`).
 4. In `wrangler.toml`, ensure the binding is set:
 ```toml
 [[r2_buckets]]
 binding = "R2_BUCKET"
-bucket_name = "menace-assets"
+bucket_name = "menance-assets"
 ```
 
 ---
@@ -108,4 +108,4 @@ Run the development server:
 ```bash
 npm run dev
 ```
-Navigate to `http://localhost:3000/admin`. The dual-mode database client will automatically provide in-memory/local SQLite fallback with real Menace catalog data!
+Navigate to `http://localhost:3000/admin`. The dual-mode database client will automatically provide in-memory/local SQLite fallback with real Menance catalog data!

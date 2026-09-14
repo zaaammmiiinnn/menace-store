@@ -27,7 +27,7 @@ export default function PrivacyPage() {
     },
     {
       title: "CONTACT",
-      content: "If you have any questions about this Privacy Policy, please contact us at privacy@menace.in."
+      content: "If you have any questions about this Privacy Policy, please contact us at privacy@menance.in."
     }
   ];
 

@@ -5,7 +5,7 @@ import { LoginForm } from '@/components/auth/LoginForm';
 
 export const metadata: Metadata = {
   title: 'Sign In — Not For Everyone',
-  description: 'Sign into your Menace account. Drop 001 order tracking, wishlist, and VIP drop alerts.',
+  description: 'Sign into your Menance account. Drop 001 order tracking, wishlist, and VIP drop alerts.',
 };
 
 export default function LoginPage() {

@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const productVariantSchema = z.object({
   id: z.string().optional(),
   size: z.enum(['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'], {
-    message: 'Select a valid Menace size (XS-4XL).',
+    message: 'Select a valid Menance size (XS-4XL).',
   }),
   color: z.string().min(1, 'Colorway name is required.'),
   sku: z.string().min(3, 'SKU must be at least 3 characters.').regex(/^[A-Z0-9-]+$/, 'SKU must be uppercase alphanumeric and hyphens.'),

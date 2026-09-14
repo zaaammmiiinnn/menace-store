@@ -221,7 +221,7 @@ export function LoginForm({ defaultAdminMode = false, forcedRedirect }: LoginFor
             <div className="relative">
               <input
                 type="email"
-                placeholder={isAdminMode ? 'admin@menace.store' : 'name@menace.com'}
+                placeholder={isAdminMode ? 'admin@menance.store' : 'name@menance.com'}
                 {...magicForm.register('email')}
                 className="w-full bg-transparent border-b border-border py-2 text-off-white font-mono text-sm placeholder:text-muted-grey/40 focus:border-acid-green outline-none transition-colors"
               />
@@ -275,7 +275,7 @@ export function LoginForm({ defaultAdminMode = false, forcedRedirect }: LoginFor
             </label>
             <input
               type="email"
-              placeholder={isAdminMode ? 'admin@menace.store' : 'name@menace.com'}
+              placeholder={isAdminMode ? 'admin@menance.store' : 'name@menance.com'}
               {...passwordForm.register('email')}
               className="w-full bg-transparent border-b border-border py-2 text-off-white font-mono text-sm placeholder:text-muted-grey/40 focus:border-acid-green outline-none transition-colors"
             />

@@ -183,7 +183,7 @@ export function ProductsTable({ products }: ProductsTableProps) {
         data={data}
         searchPlaceholder="Search products by title, SKU, or category..."
         emptyMessage="No products found in the catalog."
-        exportFileName="menace-products.csv"
+        exportFileName="menance-products.csv"
       />
 
       <ConfirmDialog

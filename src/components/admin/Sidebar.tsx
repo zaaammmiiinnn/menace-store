@@ -31,7 +31,7 @@ export function Sidebar({ userRole = 'admin', userName = 'Admin', userEmail = ''
 
   const effectiveRole = clientUser?.role || userRole;
   const effectiveName = clientUser?.fullName || userName;
-  const effectiveEmail = clientUser?.email || userEmail || 'admin@menace.store';
+  const effectiveEmail = clientUser?.email || userEmail || 'admin@menance.store';
 
   const navItems = [
     { label: 'Dashboard', href: '/admin', icon: LayoutDashboard, shortcut: 'G+D', staff: true },
@@ -55,7 +55,7 @@ export function Sidebar({ userRole = 'admin', userName = 'Admin', userEmail = ''
         {/* Brand Header */}
         <div className="h-14 border-b border-[#1F1F1F] px-5 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="font-heading tracking-wider text-lg text-[#F5F1E8]">MENACE</span>
+            <span className="font-heading tracking-wider text-lg text-[#F5F1E8]">MENANCE</span>
             <span className="text-[10px] font-mono tracking-widest px-1.5 py-0.5 rounded bg-[#C6FF00]/10 text-[#C6FF00] border border-[#C6FF00]/20 uppercase">
               {effectiveRole}
             </span>

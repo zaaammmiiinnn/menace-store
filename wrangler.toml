@@ -13,7 +13,7 @@ NEXT_PUBLIC_CLERK_SIGN_IN_URL = "/login"
 NEXT_PUBLIC_CLERK_SIGN_UP_URL = "/signup"
 NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL = "/account"
 NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL = "/account"
-ADMIN_EMAILS = "zamin@menace.store,admin@menace.store,zamin@menace.store,admin@menace.store,zaminaskari.work@gmail.com,askarizamin110@gmail.com"
+ADMIN_EMAILS = "zamin@menance.store,admin@menance.store,zamin@menace.store,admin@menace.store,zaminaskari.work@gmail.com,askarizamin110@gmail.com"
 
 [[d1_databases]]
 binding = "DB"

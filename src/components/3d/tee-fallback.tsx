@@ -41,10 +41,10 @@ export default function TeeFallback({
     : (productName.toLowerCase().includes('waffle')
         ? ['/images/products/heavy-waffle-1.jpg', '/images/products/heavy-waffle-2.jpg']
         : productName.toLowerCase().includes('loud')
-        ? ['/images/products/loud-menace-1.jpg', '/images/products/loud-menace-2.jpg']
+        ? ['/images/products/loud-menance-1.jpg', '/images/products/loud-menance-2.jpg']
         : productName.toLowerCase().includes('acid')
-        ? ['/images/products/acid-menace-1.jpg', '/images/products/acid-menace-2.jpg']
-        : ['/images/products/quiet-menace-1.jpg', '/images/products/quiet-menace-2.jpg']);
+        ? ['/images/products/acid-menance-1.jpg', '/images/products/acid-menance-2.jpg']
+        : ['/images/products/quiet-menance-1.jpg', '/images/products/quiet-menance-2.jpg']);
 
   const [[page, direction], setPage] = useState([0, 0]);
   const [isReducedMotion, setIsReducedMotion] = useState(false);

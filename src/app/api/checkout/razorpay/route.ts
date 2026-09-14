@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
             amount: amountInPaise,
             currency,
             receipt: receipt || `rcpt_${Date.now()}`,
-            notes: notes || { store: 'MENACE Apparel' },
+            notes: notes || { store: 'MENANCE Apparel' },
           }),
         });
 
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
       orderId: testOrderId,
       amount: amountInPaise,
       currency,
-      keyId: keyId || 'rzp_test_menace_demo',
+      keyId: keyId || 'rzp_test_menance_demo',
       mode: 'test',
     });
   } catch (error: any) {

@@ -3,7 +3,7 @@ import { products } from "@/data/products";
 import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = siteConfig.seo?.siteUrl || "https://menace.store";
+  const baseUrl = siteConfig.seo?.siteUrl || "https://menance.store";
 
   const staticPages = [
     "",

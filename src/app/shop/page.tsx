@@ -65,7 +65,7 @@ function ShopContent() {
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Breadcrumb & Subheading */}
         <div className="flex items-center gap-2 text-xs font-mono text-muted-grey uppercase tracking-widest mb-3">
-          <span>MENACE</span>
+          <span>MENANCE</span>
           <span>/</span>
           <span className="text-acid-green">CATALOG</span>
           <span>/</span>

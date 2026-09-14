@@ -23,14 +23,14 @@ export default function AccountOrdersPage() {
       paymentMethod: 'UPI // GPay Verified',
       items: [
         {
-          name: 'QUIET MENACE OVERSIZED TEE',
-          slug: 'quiet-menace',
+          name: 'QUIET MENANCE OVERSIZED TEE',
+          slug: 'quiet-menance',
           color: 'Bone',
           size: 'L',
           price: 2499,
           quantity: 1,
           sku: 'MNC-TEE-001-BNE-L',
-          image: '/images/products/quiet-menace-1.jpg',
+          image: '/images/products/quiet-menance-1.jpg',
         },
       ],
     },
@@ -47,7 +47,7 @@ export default function AccountOrdersPage() {
       items: [
         {
           name: 'ACID TRIP WAFFLE TEE',
-          slug: 'soft-menace',
+          slug: 'soft-menance',
           color: 'Acid Green',
           size: 'XL',
           price: 2699,

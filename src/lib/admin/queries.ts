@@ -70,7 +70,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   const conversionRate = 3.4;
   const lowStockVariants = variants.filter((v: any) => v.stock < 10);
 
-  // 30 days revenue chart data (mocked realistic timeline for Menace drop)
+  // 30 days revenue chart data (mocked realistic timeline for Menance drop)
   const revenueChart: { date: string; revenue: number; orders: number }[] = [];
   const now = Date.now();
   for (let i = 29; i >= 0; i--) {
@@ -101,7 +101,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
   // Recent 10 orders with customer names
   const recentOrders = orders.slice(0, 10).map((o: any) => {
-    const cust = customers.find((c: any) => c.id === o.customer_id) || { name: 'Anonymous', email: 'guest@menace.store' };
+    const cust = customers.find((c: any) => c.id === o.customer_id) || { name: 'Anonymous', email: 'guest@menance.store' };
     return {
       ...o,
       customerName: cust.name,
@@ -112,10 +112,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   // Top products
   const topProducts = [
     { name: 'The Oversized Heavy Waffle Tee', units: 142, revenue: 227058, sku: 'MNC-WF-BLK' },
-    { name: 'The Quiet Menace Tee', units: 118, revenue: 153282, sku: 'MNC-QM-BLK' },
-    { name: 'The Loud Menace Tee', units: 94, revenue: 140906, sku: 'MNC-LM-WBLK' },
-    { name: 'The Acid Menace Tee', units: 68, revenue: 101932, sku: 'MNC-AM-ACD' },
-    { name: 'The Midnight Menace Tee', units: 52, revenue: 72748, sku: 'MNC-MM-BLK' },
+    { name: 'The Quiet Menance Tee', units: 118, revenue: 153282, sku: 'MNC-QM-BLK' },
+    { name: 'The Loud Menance Tee', units: 94, revenue: 140906, sku: 'MNC-LM-WBLK' },
+    { name: 'The Acid Menance Tee', units: 68, revenue: 101932, sku: 'MNC-AM-ACD' },
+    { name: 'The Midnight Menance Tee', units: 52, revenue: 72748, sku: 'MNC-MM-BLK' },
   ];
 
   const stats: DashboardStats = {
@@ -275,8 +275,8 @@ export async function getOrderById(id: string) {
     return {
       ...i,
       variant,
-      productName: product?.name || 'Menace Tee',
-      productSlug: product?.slug || 'quiet-menace',
+      productName: product?.name || 'Menance Tee',
+      productSlug: product?.slug || 'quiet-menance',
     };
   });
 
@@ -335,7 +335,7 @@ export async function getInventory() {
     const prod = products.find((p: any) => p.id === v.product_id);
     return {
       ...v,
-      productName: prod?.name || 'Menace Garment',
+      productName: prod?.name || 'Menance Garment',
       productSlug: prod?.slug || 'tee',
       productPrice: prod?.price_inr || 1299,
     };
@@ -357,7 +357,7 @@ export async function getStoreSettings() {
   });
 
   return {
-    storeName: settingsMap.store_name || 'MENACE',
+    storeName: settingsMap.store_name || 'MENANCE',
     tagline: settingsMap.tagline || 'Not for everyone.',
     primaryCurrency: settingsMap.primary_currency || 'INR',
     freeShippingThreshold: Number(settingsMap.free_shipping_threshold) || 2999,

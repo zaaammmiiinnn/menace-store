@@ -178,7 +178,7 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
         data={filteredOrders}
         searchPlaceholder="Search orders by ID, customer name, email..."
         emptyMessage="No orders match the current criteria."
-        exportFileName="menace-orders.csv"
+        exportFileName="menance-orders.csv"
       />
     </div>
   );

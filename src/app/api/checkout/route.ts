@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
       created_at: now,
     });
 
-    // 6. Live Sync with MENACE Operations Console (Admin Portal)
+    // 6. Live Sync with MENANCE Operations Console (Admin Portal)
     const syncPayload = {
       order: {
         id: orderId,

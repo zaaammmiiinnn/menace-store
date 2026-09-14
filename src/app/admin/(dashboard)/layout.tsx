@@ -6,8 +6,8 @@ import { AdminAuthGuard } from '@/components/admin/AdminAuthGuard';
 import { Toaster } from 'sonner';
 
 export const metadata = {
-  title: 'MENACE Admin — Operations',
-  description: 'Operations control panel for MENACE storefront.',
+  title: 'MENANCE Admin — Operations',
+  description: 'Operations control panel for MENANCE storefront.',
 };
 
 export default async function AdminLayout({

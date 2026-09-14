@@ -14,8 +14,8 @@ const defaultSizes: SizeOption[] = [
 export const baseProducts: Product[] = [
   {
     id: 'prod_001',
-    slug: 'quiet-menace',
-    name: 'The Quiet Menace Tee',
+    slug: 'quiet-menance',
+    name: 'The Quiet Menance Tee',
     description: '280 GSM Luxury Heavyweight Compact Cotton. No loud branding. Just an uncompromising drop-shoulder, boxy architectural silhouette, pre-shrunk finish, and a thick 1.25" ribbed collar built to hold structure for years.',
     price: 1299,
     colorways: [
@@ -25,7 +25,7 @@ export const baseProducts: Product[] = [
       { name: 'Cement Grey', hex: '#B5B5B5', materialColor: '#B5B5B5' }
     ],
     sizes: defaultSizes,
-    images: ['/images/products/quiet-menace-1.jpg', '/images/products/quiet-menace-2.jpg'],
+    images: ['/images/products/quiet-menance-1.jpg', '/images/products/quiet-menance-2.jpg'],
     category: 'tees',
     tags: ['essentials', 'heavyweight', 'blank', 'luxury'],
     isBestSeller: true,
@@ -34,9 +34,9 @@ export const baseProducts: Product[] = [
   },
   {
     id: 'prod_002',
-    slug: 'loud-menace',
-    name: 'The Loud Menace Tee',
-    description: '280 GSM Mineral-Washed Heavyweight Cotton. Features our high-density cracked puff print "MENACE" arch graphic across the chest in radioactive acid green. Raw unfinished attitude tailored to an oversized Gen Z boxy drape.',
+    slug: 'loud-menance',
+    name: 'The Loud Menance Tee',
+    description: '280 GSM Mineral-Washed Heavyweight Cotton. Features our high-density cracked puff print "MENANCE" arch graphic across the chest in radioactive acid green. Raw unfinished attitude tailored to an oversized Gen Z boxy drape.',
     price: 1499,
     colorways: [
       { name: 'Washed Black', hex: '#1A1A1A', materialColor: '#1A1A1A' },
@@ -45,7 +45,7 @@ export const baseProducts: Product[] = [
       { name: 'Navy', hex: '#1B2838', materialColor: '#1B2838' }
     ],
     sizes: defaultSizes,
-    images: ['/images/products/loud-menace-1.jpg', '/images/products/loud-menace-2.jpg'],
+    images: ['/images/products/loud-menance-1.jpg', '/images/products/loud-menance-2.jpg'],
     category: 'tees',
     tags: ['graphic', 'loud', 'statement', 'streetwear'],
     isBestSeller: false,
@@ -54,8 +54,8 @@ export const baseProducts: Product[] = [
   },
   {
     id: 'prod_003',
-    slug: 'midnight-menace',
-    name: 'The Midnight Menace Tee',
+    slug: 'midnight-menance',
+    name: 'The Midnight Menance Tee',
     description: 'Blacked-out nocturnal execution. 280 GSM combed cotton with stealth matte black silicone tonal micro-hit on the nape. For those who operate in the shadows after hours. Deep, non-reflective dye with zero colour fading.',
     price: 1399,
     colorways: [
@@ -64,7 +64,7 @@ export const baseProducts: Product[] = [
       { name: 'Charcoal', hex: '#333333', materialColor: '#333333' }
     ],
     sizes: defaultSizes,
-    images: ['/images/products/midnight-menace-1.jpg', '/images/products/midnight-menace-2.jpg'],
+    images: ['/images/products/midnight-menance-1.jpg', '/images/products/midnight-menance-2.jpg'],
     category: 'tees',
     tags: ['dark', 'stealth', 'night', 'minimalist'],
     isBestSeller: true,
@@ -73,7 +73,7 @@ export const baseProducts: Product[] = [
   },
   {
     id: 'prod_004',
-    slug: 'soft-menace',
+    slug: 'soft-menance',
     name: 'The Oversized Heavy Waffle Tee',
     description: 'Signature 300 GSM thermal honeycomb waffle weave. Heavy tactile drape that breathes naturally while insulating against cool air. Cut wide and cropped slightly at the natural waist for relaxed streetwear stacking.',
     price: 1599,
@@ -92,7 +92,7 @@ export const baseProducts: Product[] = [
   },
   {
     id: 'prod_005',
-    slug: 'sunday-menace',
+    slug: 'sunday-menance',
     name: 'The Raw Edge Boxy Tee',
     description: '260 GSM open-end vintage jersey with deliberate raw-cut hems that curl organically with each wear and wash. Ultra-soft silicone garment wash gives it a 10-year broken-in feel from day one. Zero break-in required.',
     price: 1299,
@@ -111,8 +111,8 @@ export const baseProducts: Product[] = [
   },
   {
     id: 'prod_006',
-    slug: 'public-menace',
-    name: 'The Acid Menace Tee',
+    slug: 'public-menance',
+    name: 'The Acid Menance Tee',
     description: 'High-visibility luminescent acid green oversized tee. 280 GSM combed compact cotton engineered specifically for flash photography and club lighting. Front and back cybernetic stencil typography hits with sealed seams.',
     price: 1499,
     colorways: [
@@ -121,7 +121,7 @@ export const baseProducts: Product[] = [
       { name: 'Washed Black', hex: '#1A1A1A', materialColor: '#1A1A1A' }
     ],
     sizes: defaultSizes,
-    images: ['/images/products/acid-menace-1.jpg', '/images/products/acid-menace-2.jpg'],
+    images: ['/images/products/acid-menance-1.jpg', '/images/products/acid-menance-2.jpg'],
     category: 'tees',
     tags: ['loud', 'acid-green', 'cyber', 'statement'],
     isBestSeller: true,
@@ -147,10 +147,10 @@ export function upsertDynamicProduct(product: Partial<Product> & { id: string })
     ...product,
     id: product.id,
     slug: product.slug || existing?.slug || `prod-${product.id}`,
-    name: product.name || existing?.name || 'Menace Tee',
+    name: product.name || existing?.name || 'Menance Tee',
     description: product.description || existing?.description || '',
     price: product.price ?? existing?.price ?? 1299,
-    images: product.images && product.images.length > 0 ? product.images : (existing?.images || ['/images/products/quiet-menace-1.jpg']),
+    images: product.images && product.images.length > 0 ? product.images : (existing?.images || ['/images/products/quiet-menance-1.jpg']),
     colorways: product.colorways || existing?.colorways || [{ name: 'Black', hex: '#0A0A0A', materialColor: '#0A0A0A' }],
     sizes: product.sizes || existing?.sizes || defaultSizes,
     category: product.category || existing?.category || 'tees',
