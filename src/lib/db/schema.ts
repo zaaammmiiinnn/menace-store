@@ -68,27 +68,48 @@ export const customers = sqliteTable('customers', {
 // --- ORDERS ---
 export const orders = sqliteTable('orders', {
   id: text('id').primaryKey(),
-  customerId: text('customer_id').notNull().references(() => customers.id),
-  status: text('status', { enum: ['pending', 'paid', 'shipped', 'delivered', 'cancelled'] }).notNull().default('pending'),
+  razorpayOrderId: text('razorpay_order_id').unique(),
+  razorpayPaymentId: text('razorpay_payment_id'),
+  clerkUserId: text('clerk_user_id'),
+  customerName: text('customer_name').notNull(),
+  customerEmail: text('customer_email').notNull(),
+  customerPhone: text('customer_phone').notNull(),
+  shippingAddress: text('shipping_address').notNull(), // JSON string
+  subtotalInr: integer('subtotal_inr').notNull(),
+  shippingInr: integer('shipping_inr').notNull(),
+  discountInr: integer('discount_inr').notNull().default(0),
   totalInr: integer('total_inr').notNull(),
-  shippingAddress: text('shipping_address').notNull(),
+  status: text('status', { enum: ['pending', 'paid', 'failed', 'shipped', 'delivered', 'refunded'] }).notNull().default('pending'),
+  createdAt: integer('created_at').notNull(),
+  paidAt: integer('paid_at'),
+  // Legacy / optional fields for backward compatibility
+  customerId: text('customer_id'),
   trackingNumber: text('tracking_number'),
   notes: text('notes'),
-  createdAt: integer('created_at').notNull(),
   fulfilledAt: integer('fulfilled_at'),
 }, (table) => [
-  index('idx_orders_customer_id').on(table.customerId),
+  index('idx_orders_razorpay_order_id').on(table.razorpayOrderId),
   index('idx_orders_status').on(table.status),
+  index('idx_orders_customer_email').on(table.customerEmail),
 ]);
 
 // --- ORDER ITEMS ---
 export const orderItems = sqliteTable('order_items', {
   id: text('id').primaryKey(),
   orderId: text('order_id').notNull().references(() => orders.id, { onDelete: 'cascade' }),
-  variantId: text('variant_id').notNull().references(() => productVariants.id),
+  productId: text('product_id'),
+  variantId: text('variant_id'),
+  productName: text('product_name').notNull(),
+  size: text('size').notNull(),
+  color: text('color').notNull(),
   quantity: integer('quantity').notNull(),
-  priceAtPurchase: integer('price_at_purchase').notNull(),
-});
+  priceInr: integer('price_inr').notNull(),
+  imageUrl: text('image_url'),
+  // Legacy field
+  priceAtPurchase: integer('price_at_purchase'),
+}, (table) => [
+  index('idx_order_items_order_id').on(table.orderId),
+]);
 
 // --- DISCOUNT CODES ---
 export const discountCodes = sqliteTable('discount_codes', {
