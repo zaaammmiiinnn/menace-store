@@ -226,6 +226,27 @@ export async function getProductById(id: string) {
 }
 
 export async function getDrops() {
+  const d1 = getD1Database();
+  if (d1) {
+    try {
+      const dropsRes = await d1.prepare('SELECT * FROM drops').all();
+      const productsRes = await d1.prepare('SELECT id, drop_id FROM products').all();
+      const drops = dropsRes?.results || [];
+      const products = productsRes?.results || [];
+      if (drops.length > 0) {
+        return drops.map((d: any) => {
+          const dropProducts = products.filter((p: any) => p.drop_id === d.id);
+          return {
+            ...d,
+            productsCount: dropProducts.length,
+          };
+        });
+      }
+    } catch (e) {
+      console.error('[D1 getDrops Error]:', e);
+    }
+  }
+
   const store = getLocalStore();
   const drops = store.getTable('drops');
   const products = store.getTable('products');
@@ -240,6 +261,33 @@ export async function getDrops() {
 }
 
 export async function getOrders() {
+  const d1 = getD1Database();
+  if (d1) {
+    try {
+      const ordersRes = await d1.prepare('SELECT * FROM orders ORDER BY created_at DESC').all();
+      const customersRes = await d1.prepare('SELECT * FROM customers').all();
+      const orderItemsRes = await d1.prepare('SELECT * FROM order_items').all();
+      const orders = ordersRes?.results || [];
+      const customers = customersRes?.results || [];
+      const orderItems = orderItemsRes?.results || [];
+      if (orders.length > 0) {
+        return orders.map((o: any) => {
+          const cust = customers.find((c: any) => c.id === o.customer_id || c.email === o.customer_email);
+          const items = orderItems.filter((i: any) => i.order_id === o.id);
+          const itemsCount = items.reduce((acc: number, i: any) => acc + (i.quantity || 1), 0);
+          return {
+            ...o,
+            customerName: o.customer_name || cust?.name || 'Guest User',
+            customerEmail: o.customer_email || cust?.email || '',
+            itemsCount: itemsCount > 0 ? itemsCount : 1,
+          };
+        });
+      }
+    } catch (e) {
+      console.error('[D1 getOrders Error]:', e);
+    }
+  }
+
   const store = getLocalStore();
   const orders = store.getTable('orders');
   const customers = store.getTable('customers');
@@ -327,6 +375,30 @@ export async function getCustomerById(id: string) {
 }
 
 export async function getInventory() {
+  const d1 = getD1Database();
+  if (d1) {
+    try {
+      const variantsRes = await d1.prepare('SELECT * FROM product_variants ORDER BY sku ASC').all();
+      const productsRes = await d1.prepare('SELECT * FROM products').all();
+      const variants = variantsRes?.results || [];
+      const products = productsRes?.results || [];
+
+      if (variants.length > 0 || products.length > 0) {
+        return variants.map((v: any) => {
+          const prod = products.find((p: any) => p.id === v.product_id);
+          return {
+            ...v,
+            productName: prod?.name || 'Menance Silhouette',
+            productSlug: prod?.slug || 'tee',
+            productPrice: prod?.price_inr || 1499,
+          };
+        });
+      }
+    } catch (e) {
+      console.error('[D1 getInventory Error]:', e);
+    }
+  }
+
   const store = getLocalStore();
   const variants = store.getTable('product_variants');
   const products = store.getTable('products');

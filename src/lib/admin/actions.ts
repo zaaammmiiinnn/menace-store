@@ -33,8 +33,17 @@ export async function createProductAction(data: any) {
         now
       ).run();
 
-      for (let index = 0; index < parsed.variants.length; index++) {
-        const v = parsed.variants[index];
+      const variantsToInsert: any[] = (parsed.variants && parsed.variants.length > 0)
+        ? parsed.variants
+        : [
+            { size: 'S', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-S`, stock: 25 },
+            { size: 'M', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-M`, stock: 50 },
+            { size: 'L', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-L`, stock: 40 },
+            { size: 'XL', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-XL`, stock: 20 },
+          ];
+
+      for (let index = 0; index < variantsToInsert.length; index++) {
+        const v = variantsToInsert[index];
         await d1.prepare(
           `INSERT INTO product_variants (id, product_id, size, color, sku, stock, price_override, image_url)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
@@ -50,8 +59,12 @@ export async function createProductAction(data: any) {
         ).run();
       }
 
-      for (let index = 0; index < parsed.images.length; index++) {
-        const url = parsed.images[index];
+      const imagesToInsert = (parsed.images && parsed.images.length > 0)
+        ? parsed.images
+        : ['/products/the-classic-waffle-black/front.jpg'];
+
+      for (let index = 0; index < imagesToInsert.length; index++) {
+        const url = imagesToInsert[index];
         await d1.prepare(
           `INSERT INTO product_images (id, product_id, url, alt, sort_order)
            VALUES (?, ?, ?, ?, ?)`
@@ -158,9 +171,18 @@ export async function updateProductAction(id: string, data: any) {
         id
       ).run();
 
+      const variantsToSave: any[] = (parsed.variants && parsed.variants.length > 0)
+        ? parsed.variants
+        : [
+            { size: 'S', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-S`, stock: 25 },
+            { size: 'M', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-M`, stock: 50 },
+            { size: 'L', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-L`, stock: 40 },
+            { size: 'XL', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-XL`, stock: 20 },
+          ];
+
       await d1.prepare('DELETE FROM product_variants WHERE product_id = ?').bind(id).run();
-      for (let idx = 0; idx < parsed.variants.length; idx++) {
-        const v = parsed.variants[idx];
+      for (let idx = 0; idx < variantsToSave.length; idx++) {
+        const v = variantsToSave[idx];
         await d1.prepare(
           `INSERT INTO product_variants (id, product_id, size, color, sku, stock, price_override, image_url)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
@@ -176,9 +198,13 @@ export async function updateProductAction(id: string, data: any) {
         ).run();
       }
 
+      const imagesToSave = (parsed.images && parsed.images.length > 0)
+        ? parsed.images
+        : ['/products/the-classic-waffle-black/front.jpg'];
+
       await d1.prepare('DELETE FROM product_images WHERE product_id = ?').bind(id).run();
-      for (let idx = 0; idx < parsed.images.length; idx++) {
-        const url = parsed.images[idx];
+      for (let idx = 0; idx < imagesToSave.length; idx++) {
+        const url = imagesToSave[idx];
         await d1.prepare(
           `INSERT INTO product_images (id, product_id, url, alt, sort_order)
            VALUES (?, ?, ?, ?, ?)`
@@ -295,25 +321,42 @@ export async function deleteProductAction(id: string) {
 // --- INVENTORY ---
 export async function updateStockAction(variantId: string, change: number, reason: string) {
   await requireAdmin();
+  const d1 = getD1Database();
+  let newStock = 0;
+
+  if (d1) {
+    try {
+      const variant = await d1.prepare('SELECT stock FROM product_variants WHERE id = ?').bind(variantId).first();
+      if (variant) {
+        newStock = Math.max(0, (variant.stock || 0) + change);
+        await d1.prepare('UPDATE product_variants SET stock = ? WHERE id = ?').bind(newStock, variantId).run();
+        try {
+          await d1.prepare(
+            'INSERT INTO inventory_log (id, variant_id, change, reason, created_at) VALUES (?, ?, ?, ?, ?)'
+          ).bind(`inv_${Date.now()}`, variantId, change, reason || 'Manual stock edit', Date.now()).run();
+        } catch {}
+      }
+    } catch (d1Err) {
+      console.error('[D1 updateStockAction Error]:', d1Err);
+    }
+  }
+
   const store = getLocalStore();
   const variants = store.getTable('product_variants');
   const variant = variants.find((v: any) => v.id === variantId);
 
-  if (!variant) {
-    throw new Error('Variant not found.');
+  if (variant) {
+    newStock = Math.max(0, (variant.stock || 0) + change);
+    variant.stock = newStock;
+
+    store.getTable('inventory_log').unshift({
+      id: `inv_${Date.now()}`,
+      variant_id: variantId,
+      change,
+      reason: reason || 'Manual stock edit',
+      created_at: Date.now(),
+    });
   }
-
-  const newStock = Math.max(0, (variant.stock || 0) + change);
-  variant.stock = newStock;
-
-  // Log inventory adjustment
-  store.getTable('inventory_log').unshift({
-    id: `inv_${Date.now()}`,
-    variant_id: variantId,
-    change,
-    reason: reason || 'Manual stock edit',
-    created_at: Date.now(),
-  });
 
   await logAuditAction({
     action: 'UPDATE_STOCK',
@@ -325,6 +368,7 @@ export async function updateStockAction(variantId: string, change: number, reaso
   revalidatePath('/admin');
   revalidatePath('/admin/inventory');
   revalidatePath('/admin/products');
+  revalidatePath('/shop');
 
   return { success: true, newStock };
 }

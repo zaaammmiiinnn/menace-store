@@ -2,6 +2,9 @@ import React from 'react';
 import { getProducts } from '@/lib/products/queries';
 import { ShopCatalogClient } from './ShopCatalogClient';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata = {
   title: 'CATALOG // DROP 001 — MENANCE',
   description: 'Heavyweight 240 GSM Waffle Knit tees and henleys. Boxy oversized fit. Unique back quote architecture. Not for everyone.',

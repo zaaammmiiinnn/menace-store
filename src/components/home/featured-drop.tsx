@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { products } from "@/data/products";
 import { ProductCard } from "@/components/ui/product-card";
@@ -9,7 +9,21 @@ import Link from "next/link";
 
 export function FeaturedDrop() {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const dropProducts = products.slice(0, 8);
+  const [dropProducts, setDropProducts] = useState(products.slice(0, 12));
+
+  useEffect(() => {
+    fetch('/api/products')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.products && data.products.length > 0) {
+          const active = data.products.filter((p: any) => p.status === 'active');
+          if (active.length > 0) {
+            setDropProducts(active.slice(0, 12));
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {

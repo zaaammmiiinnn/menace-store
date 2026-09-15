@@ -10,26 +10,41 @@ interface ShopCatalogClientProps {
   initialProducts: FormattedProduct[];
 }
 
-const CATEGORIES = ['All', 'Henleys', 'Waffle Tees', 'Waffle Full Sleeve'];
-
 export function ShopCatalogClient({ initialProducts }: ShopCatalogClientProps) {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('Featured');
 
+  const uniqueCategories = Array.from(
+    new Set(
+      initialProducts
+        .map((p) => {
+          if (!p.category) return null;
+          const c = p.category.trim();
+          return c.charAt(0).toUpperCase() + c.slice(1);
+        })
+        .filter(Boolean) as string[]
+    )
+  );
+
+  const categories = Array.from(new Set(['All', 'Tees', ...uniqueCategories, 'Henleys', 'Waffle Tees', 'Waffle Full Sleeve']));
+
   const filteredProducts = initialProducts
     .filter((p) => {
+      const pCat = (p.category || '').toLowerCase();
+      const selCat = selectedCategory.toLowerCase();
       const matchCat =
         selectedCategory === 'All' ||
-        p.category.toLowerCase() === selectedCategory.toLowerCase();
+        pCat === selCat ||
+        (selCat === 'tees' && (pCat === 'tees' || pCat === 'tee' || pCat.includes('tee')));
 
       const q = searchQuery.toLowerCase().trim();
       const matchSearch =
         !q ||
         p.name.toLowerCase().includes(q) ||
         p.description.toLowerCase().includes(q) ||
-        p.backQuote.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q);
+        (p.backQuote && p.backQuote.toLowerCase().includes(q)) ||
+        pCat.includes(q);
 
       return matchCat && matchSearch;
     })
@@ -45,7 +60,7 @@ export function ShopCatalogClient({ initialProducts }: ShopCatalogClientProps) {
       <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 p-3 bg-[#0E0E0E] border border-[#1C1C1C]">
         {/* Category Filter Pills */}
         <div className="flex flex-wrap items-center gap-1.5 overflow-x-auto">
-          {CATEGORIES.map((cat) => {
+          {categories.map((cat) => {
             const isActive = selectedCategory.toLowerCase() === cat.toLowerCase();
             return (
               <button

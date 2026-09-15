@@ -4,6 +4,9 @@ import { getProducts } from '@/lib/admin/queries';
 import { ProductsTable } from '@/components/admin/ProductsTable';
 import { Plus } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function AdminProductsPage() {
   const products = await getProducts();
 

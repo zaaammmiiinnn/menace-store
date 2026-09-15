@@ -21,23 +21,25 @@ export function ProductForm({ initialData, isEditing = false }: ProductFormProps
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const defaultVariants: VariantItem[] = initialData?.variants?.map((v: any) => ({
-    id: v.id,
-    size: v.size,
-    color: v.color,
-    sku: v.sku,
-    stock: v.stock,
-    priceOverride: v.price_override || null,
-  })) || [
-    { size: 'S', color: 'Black', sku: 'MNC-NEW-BLK-S', stock: 25 },
-    { size: 'M', color: 'Black', sku: 'MNC-NEW-BLK-M', stock: 50 },
-    { size: 'L', color: 'Black', sku: 'MNC-NEW-BLK-L', stock: 40 },
-    { size: 'XL', color: 'Black', sku: 'MNC-NEW-BLK-XL', stock: 20 },
-  ];
+  const defaultVariants: VariantItem[] = (initialData?.variants && initialData.variants.length > 0)
+    ? initialData.variants.map((v: any) => ({
+        id: v.id,
+        size: v.size,
+        color: v.color || 'Black',
+        sku: v.sku,
+        stock: v.stock ?? 0,
+        priceOverride: v.price_override || v.priceOverride || null,
+      }))
+    : [
+        { size: 'S', color: 'Black', sku: `MNC-${(initialData?.slug || 'NEW').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-S`, stock: 25 },
+        { size: 'M', color: 'Black', sku: `MNC-${(initialData?.slug || 'NEW').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-M`, stock: 50 },
+        { size: 'L', color: 'Black', sku: `MNC-${(initialData?.slug || 'NEW').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-L`, stock: 40 },
+        { size: 'XL', color: 'Black', sku: `MNC-${(initialData?.slug || 'NEW').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-XL`, stock: 20 },
+      ];
 
-  const defaultImages: string[] = initialData?.images?.map((i: any) => i.url) || [
-    '/images/products/quiet-menance-1.jpg',
-  ];
+  const defaultImages: string[] = (initialData?.images && initialData.images.length > 0)
+    ? initialData.images.map((i: any) => (typeof i === 'string' ? i : i.url))
+    : ['/products/the-classic-waffle-black/front.jpg'];
 
   const [images, setImages] = useState<string[]>(defaultImages);
   const [variants, setVariants] = useState<VariantItem[]>(defaultVariants);
@@ -54,10 +56,10 @@ export function ProductForm({ initialData, isEditing = false }: ProductFormProps
       name: initialData?.name || '',
       slug: initialData?.slug || '',
       description: initialData?.description || '',
-      priceInr: initialData?.price_inr || 1499,
-      priceUsd: initialData?.price_usd || 45,
+      priceInr: initialData?.price_inr || initialData?.priceInr || 1499,
+      priceUsd: initialData?.price_usd || initialData?.priceUsd || 45,
       category: initialData?.category || 'tees',
-      dropId: initialData?.drop_id || 'drop_001',
+      dropId: initialData?.drop_id || initialData?.dropId || 'drop_001',
       status: initialData?.status || 'active',
       images: defaultImages,
       variants: defaultVariants,
@@ -81,21 +83,15 @@ export function ProductForm({ initialData, isEditing = false }: ProductFormProps
   };
 
   const onSubmit = async (values: ProductFormValues) => {
-    if (images.length === 0) {
-      toast.error('At least one product image is required.');
-      return;
-    }
-    if (variants.length === 0) {
-      toast.error('Add at least one size variant.');
-      return;
-    }
+    const finalImages = images.length > 0 ? images : defaultImages;
+    const finalVariants = variants.length > 0 ? variants : defaultVariants;
 
     setIsSubmitting(true);
     try {
       const payload = {
         ...values,
-        images,
-        variants,
+        images: finalImages,
+        variants: finalVariants,
       };
 
       if (isEditing) {

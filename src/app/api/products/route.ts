@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDynamicProducts, upsertDynamicProduct } from '@/data/products';
 import { getD1Database } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
   const d1 = getD1Database();
   if (d1) {
@@ -17,9 +20,17 @@ export async function GET() {
             name: p.name,
             description: p.description,
             price: p.price_inr,
-            images: images && images.length > 0 ? images : undefined,
+            priceInr: p.price_inr,
+            priceUsd: p.price_usd || 45,
+            images: images && images.length > 0 ? images : ['/products/the-classic-waffle-black/front.jpg'],
             category: p.category,
             status: p.status,
+            backQuote: p.back_quote || 'NOT FOR EVERYONE.',
+            frontLogo: p.front_logo || 'MENANCE®',
+            fabricGsm: p.fabric_gsm || 240,
+            fabricType: p.fabric_type || 'Waffle Knit',
+            fit: p.fit || 'Boxy Oversized',
+            sleeveType: p.sleeve_type || 'Half Sleeve',
           });
         }
       }

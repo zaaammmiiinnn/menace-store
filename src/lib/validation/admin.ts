@@ -9,7 +9,7 @@ export const productVariantSchema = z.object({
   sku: z.string().min(3, 'SKU must be at least 3 characters.').regex(/^[A-Z0-9-]+$/, 'SKU must be uppercase alphanumeric and hyphens.'),
   stock: z.number().int().min(0, 'Stock cannot be negative.').default(0),
   priceOverride: z.number().positive().nullable().optional(),
-  imageUrl: z.string().url().nullable().optional(),
+  imageUrl: z.string().nullable().optional(),
 });
 
 export const productSchema = z.object({
@@ -21,7 +21,7 @@ export const productSchema = z.object({
   category: z.string().min(1, "Select or enter a category.").default("tees"),
   dropId: z.string().nullable().optional().default("drop_001"),
   status: z.enum(['draft', 'active', 'archived']).default('draft'),
-  images: z.array(z.string().url("Invalid image URL.")).min(1, "At least one image is required to publish."),
+  images: z.array(z.string().min(1, "Image URL or path is required.")).min(1, "At least one image is required to publish."),
   variants: z.array(productVariantSchema).min(1, "Generate or add at least one variant."),
 });
 

@@ -2,6 +2,9 @@ import React from 'react';
 import { getDrops } from '@/lib/admin/queries';
 import { Calendar, Clock, Layers, CheckCircle2 } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function AdminDropsPage() {
   const drops = await getDrops();
 
@@ -19,7 +22,7 @@ export default async function AdminDropsPage() {
 
       {/* Drops Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {drops.map((drop) => {
+        {drops.map((drop: any) => {
           const isLive = drop.status === 'live';
           return (
             <div

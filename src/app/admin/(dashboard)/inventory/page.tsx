@@ -2,6 +2,9 @@ import React from 'react';
 import { getInventory } from '@/lib/admin/queries';
 import { InventoryTable } from '@/components/admin/InventoryTable';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function AdminInventoryPage() {
   const variants = await getInventory();
 
