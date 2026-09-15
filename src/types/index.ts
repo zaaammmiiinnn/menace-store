@@ -28,6 +28,14 @@ export interface Product {
   vibeName: string;
   vibe?: string;
   status?: 'draft' | 'active' | 'archived';
+  backQuote?: string;
+  frontLogo?: string;
+  fabricGsm?: number;
+  fabricType?: string;
+  fit?: string;
+  sleeveType?: string;
+  priceInr?: number;
+  priceUsd?: number;
 }
 
 export interface CartItem {

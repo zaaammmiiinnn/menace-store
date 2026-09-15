@@ -1,0 +1,54 @@
+<svg width="800" height="1000" viewBox="0 0 800 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="800" height="1000" fill="#0A0A0A" />
+
+  <!-- Subtle Grid Texture -->
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1A1A1A" stroke-width="1" />
+    </pattern>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#141414" stop-opacity="1" />
+      <stop offset="100%" stop-color="#0A0A0A" stop-opacity="1" />
+    </radialGradient>
+  </defs>
+  <rect width="800" height="1000" fill="url(#glow)" />
+  <rect width="800" height="1000" fill="url(#grid)" opacity="0.6" />
+
+  <!-- Outer Frame -->
+  <rect x="24" y="24" width="752" height="952" fill="none" stroke="#222222" stroke-width="1" />
+  <rect x="32" y="32" width="736" height="936" fill="none" stroke="#141414" stroke-width="1" />
+
+  <!-- Corner Brackets -->
+  <path d="M 24 64 L 24 24 L 64 24" stroke="#C6FF00" stroke-width="2" fill="none" />
+  <path d="M 776 64 L 776 24 L 736 24" stroke="#C6FF00" stroke-width="2" fill="none" />
+  <path d="M 24 936 L 24 976 L 64 976" stroke="#C6FF00" stroke-width="2" fill="none" />
+  <path d="M 776 936 L 776 976 L 736 976" stroke="#C6FF00" stroke-width="2" fill="none" />
+
+  <!-- Technical Telemetry Header -->
+  <text x="48" y="60" fill="#8A8A8A" font-family="monospace" font-size="11" letter-spacing="3">SPEC: DROP 001 // SILHOUETTE ARCHIVE</text>
+  <text x="752" y="60" fill="#C6FF00" font-family="monospace" font-size="11" letter-spacing="2" text-anchor="end">240 GSM // BOX-FIT</text>
+
+  <!-- Crosshair Guides -->
+  <line x1="400" y1="200" x2="400" y2="340" stroke="#1E1E1E" stroke-width="1" stroke-dasharray="4 4" />
+  <line x1="400" y1="660" x2="400" y2="800" stroke="#1E1E1E" stroke-width="1" stroke-dasharray="4 4" />
+  <line x1="260" y1="500" x2="540" y2="500" stroke="#1E1E1E" stroke-width="1" stroke-dasharray="4 4" />
+  <circle cx="400" cy="500" r="160" stroke="#1A1A1A" stroke-width="1" fill="none" />
+
+  <!-- Tonal Silhouette Vector -->
+  <path d="M 290 380 L 350 350 Q 400 375 450 350 L 510 380 L 580 430 L 540 480 L 500 460 L 500 660 L 300 660 L 300 460 L 260 480 L 220 430 Z"
+        fill="#111111" stroke="#262626" stroke-width="1.5" />
+
+  <!-- Center Branding -->
+  <text x="400" y="495" fill="#F5F1E8" font-family="-apple-system, BlinkMacSystemFont, 'Anton', 'Impact', sans-serif" font-size="52" font-weight="900" letter-spacing="8" text-anchor="middle">
+    MENANCE®
+  </text>
+  <text x="400" y="535" fill="#C6FF00" font-family="-apple-system, BlinkMacSystemFont, 'Inter', sans-serif" font-size="12" font-weight="700" letter-spacing="6" text-anchor="middle">
+    NOT FOR EVERYONE.
+  </text>
+
+  <!-- Technical Telemetry Footer -->
+  <line x1="48" y1="920" x2="752" y2="920" stroke="#1E1E1E" stroke-width="1" />
+  <text x="48" y="945" fill="#8A8A8A" font-family="monospace" font-size="11" letter-spacing="2">AUTHENTIC UNITEE HEAVYWEIGHT WAFFLE</text>
+  <text x="752" y="945" fill="#8A8A8A" font-family="monospace" font-size="11" letter-spacing="2" text-anchor="end">IMG: RAW ARCHIVE SAMPLE</text>
+</svg>

@@ -1,0 +1,149 @@
+export interface SeedProductDef {
+  id: string;
+  slug: string;
+  name: string;
+  category: string;
+  priceInr: number;
+  priceUsd: number;
+  backQuote: string;
+  frontLogo: string;
+  fabricGsm: number;
+  fabricType: string;
+  fit: string;
+  sleeveType: string;
+  color: string;
+  description: string;
+}
+
+export const SIZES = ['S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'] as const;
+
+export const SEED_PRODUCTS: SeedProductDef[] = [
+  {
+    id: 'prod_henley_black',
+    slug: 'the-henley-black',
+    name: 'The Henley — Black',
+    category: 'Henleys',
+    priceInr: 1899,
+    priceUsd: 24,
+    backQuote: 'MIND YOUR BUSINESS.',
+    frontLogo: 'MENANCE®',
+    fabricGsm: 240,
+    fabricType: 'Henley Waffle',
+    fit: 'Boxy Oversized',
+    sleeveType: 'Half Sleeve',
+    color: 'Black',
+    description: '240 GSM Henley Waffle Knit. Custom three-button placket, dropped shoulders, relaxed oversized boxy drape. Features "MIND YOUR BUSINESS." back quote print and small MENANCE® chest insignia.',
+  },
+  {
+    id: 'prod_henley_offwhite',
+    slug: 'the-henley-offwhite',
+    name: 'The Henley — Off-White',
+    category: 'Henleys',
+    priceInr: 1899,
+    priceUsd: 24,
+    backQuote: 'NOT FOR EVERYONE.',
+    frontLogo: 'MENANCE®',
+    fabricGsm: 240,
+    fabricType: 'Henley Waffle',
+    fit: 'Boxy Oversized',
+    sleeveType: 'Half Sleeve',
+    color: 'Off-White',
+    description: '240 GSM Henley Waffle Knit in raw Off-White. Custom placket, boxy silhouette, finished with our signature "NOT FOR EVERYONE." back print and minimal chest hit.',
+  },
+  {
+    id: 'prod_classic_black',
+    slug: 'the-classic-waffle-black',
+    name: 'The Classic Waffle — Black',
+    category: 'Waffle Tees',
+    priceInr: 1699,
+    priceUsd: 22,
+    backQuote: 'SPEAK LESS. WEAR THIS.',
+    frontLogo: 'MENANCE®',
+    fabricGsm: 240,
+    fabricType: 'Waffle Knit',
+    fit: 'Boxy Oversized',
+    sleeveType: 'Half Sleeve',
+    color: 'Black',
+    description: '240 GSM thermal waffle knit short-sleeve tee. Deep pitch black, heavyweight collar rib, relaxed boxy cut. Screen printed "SPEAK LESS. WEAR THIS." across the upper back.',
+  },
+  {
+    id: 'prod_classic_offwhite',
+    slug: 'the-classic-waffle-offwhite',
+    name: 'The Classic Waffle — Off-White',
+    category: 'Waffle Tees',
+    priceInr: 1699,
+    priceUsd: 22,
+    backQuote: 'TAKE UP MORE SPACE.',
+    frontLogo: 'MENANCE®',
+    fabricGsm: 240,
+    fabricType: 'Waffle Knit',
+    fit: 'Boxy Oversized',
+    sleeveType: 'Half Sleeve',
+    color: 'Off-White',
+    description: '240 GSM natural off-white waffle knit. Breathable textured thermal weave with a heavy drape. Statement back print "TAKE UP MORE SPACE." with discreet front chest branding.',
+  },
+  {
+    id: 'prod_acidwash_full',
+    slug: 'acidwash-waffle-full',
+    name: 'The Acidwash Waffle — Full Sleeve',
+    category: 'Waffle Full Sleeve',
+    priceInr: 2199,
+    priceUsd: 28,
+    backQuote: 'LOOKS SOFT. ACTS HARD.',
+    frontLogo: 'MENANCE®',
+    fabricGsm: 240,
+    fabricType: 'Waffle Knit',
+    fit: 'Boxy Oversized',
+    sleeveType: 'Full Sleeve',
+    color: 'Acidwash Grey',
+    description: '240 GSM custom acidwash grey waffle knit with extended long sleeves and ribbed cuffs. Treated for a vintage broken-in patina. High-contrast back print: "LOOKS SOFT. ACTS HARD."',
+  },
+  {
+    id: 'prod_heavy_black_full',
+    slug: 'heavy-waffle-black-full',
+    name: 'The Heavy Waffle — Black Full Sleeve',
+    category: 'Waffle Full Sleeve',
+    priceInr: 1999,
+    priceUsd: 25,
+    backQuote: 'MOVE DIFFERENT.',
+    frontLogo: 'MENANCE®',
+    fabricGsm: 240,
+    fabricType: 'Waffle Knit',
+    fit: 'Boxy Oversized',
+    sleeveType: 'Full Sleeve',
+    color: 'Black',
+    description: '240 GSM heavyweight full sleeve thermal waffle in true black. Thick cuff construction, boxy body proportions, engineered to hold form. Upper back statement: "MOVE DIFFERENT."',
+  },
+  {
+    id: 'prod_heavy_brown_full',
+    slug: 'heavy-waffle-brown-full',
+    name: 'The Heavy Waffle — Brown Full Sleeve',
+    category: 'Waffle Full Sleeve',
+    priceInr: 1999,
+    priceUsd: 25,
+    backQuote: 'NO EXPLANATIONS.',
+    frontLogo: 'MENANCE®',
+    fabricGsm: 240,
+    fabricType: 'Waffle Knit',
+    fit: 'Boxy Oversized',
+    sleeveType: 'Full Sleeve',
+    color: 'Brown',
+    description: '240 GSM earthy deep brown waffle knit long sleeve. Subdued earth tone with brutalist streetwear cut. Finished with "NO EXPLANATIONS." back print and front MENANCE® branding.',
+  },
+  {
+    id: 'prod_heavy_offwhite_full',
+    slug: 'heavy-waffle-offwhite-full',
+    name: 'The Heavy Waffle — Off-White Full Sleeve',
+    category: 'Waffle Full Sleeve',
+    priceInr: 1999,
+    priceUsd: 25,
+    backQuote: 'STAY IN YOUR LANE.',
+    frontLogo: 'MENANCE®',
+    fabricGsm: 240,
+    fabricType: 'Waffle Knit',
+    fit: 'Boxy Oversized',
+    sleeveType: 'Full Sleeve',
+    color: 'Off-White',
+    description: '240 GSM raw off-white thermal full sleeve waffle tee. Drop shoulder, ribbed neckline and wrists. Emblazoned with "STAY IN YOUR LANE." across the back.',
+  },
+];

@@ -1,186 +1,121 @@
 import type { Product, SizeOption } from '@/types';
+import { SEED_PRODUCTS, SIZES } from '@/lib/db/seed-data';
 
-const defaultSizes: SizeOption[] = [
-  { value: 'XS', label: 'X-Small', scale: 0.85, inStock: true },
-  { value: 'S', label: 'Small', scale: 0.9, inStock: true },
-  { value: 'M', label: 'Medium', scale: 0.95, inStock: true },
-  { value: 'L', label: 'Large', scale: 1.0, inStock: true },
-  { value: 'XL', label: 'X-Large', scale: 1.05, inStock: true },
-  { value: '2XL', label: '2X-Large', scale: 1.1, inStock: true },
-  { value: '3XL', label: '3X-Large', scale: 1.12, inStock: true },
-  { value: '4XL', label: '4X-Large', scale: 1.15, inStock: true }
-];
+const defaultSizes: SizeOption[] = SIZES.map((size) => ({
+  value: size as any,
+  label: size,
+  scale: 1.0,
+  inStock: false,
+}));
 
-export const baseProducts: Product[] = [
-  {
-    id: 'prod_001',
-    slug: 'quiet-menance',
-    name: 'The Quiet Menance Tee',
-    description: '280 GSM Luxury Heavyweight Compact Cotton. No loud branding. Just an uncompromising drop-shoulder, boxy architectural silhouette, pre-shrunk finish, and a thick 1.25" ribbed collar built to hold structure for years.',
-    price: 1299,
+let dynamicProductsList: Product[] = SEED_PRODUCTS.map((p) => {
+  const colorHex = p.color.toLowerCase().includes('white')
+    ? '#F5F1E8'
+    : p.color.toLowerCase().includes('brown')
+    ? '#5A3D28'
+    : p.color.toLowerCase().includes('grey') || p.color.toLowerCase().includes('acid')
+    ? '#4A4E51'
+    : '#0A0A0A';
+
+  return {
+    id: p.id,
+    slug: p.slug,
+    name: p.name,
+    description: p.description,
+    price: p.priceInr,
+    priceInr: p.priceInr,
+    priceUsd: p.priceUsd,
+    category: p.category,
+    status: 'draft',
     colorways: [
-      { name: 'Pitch Black', hex: '#0A0A0A', materialColor: '#0A0A0A' },
-      { name: 'Bone White', hex: '#E8E0D0', materialColor: '#E8E0D0' },
-      { name: 'Charcoal', hex: '#333333', materialColor: '#333333' },
-      { name: 'Cement Grey', hex: '#B5B5B5', materialColor: '#B5B5B5' }
+      {
+        name: p.color,
+        hex: colorHex,
+        materialColor: colorHex,
+      },
     ],
     sizes: defaultSizes,
-    images: ['/images/products/quiet-menance-1.jpg', '/images/products/quiet-menance-2.jpg'],
-    category: 'tees',
-    tags: ['essentials', 'heavyweight', 'blank', 'luxury'],
-    isBestSeller: true,
-    isNew: false,
-    vibeName: 'quiet'
-  },
-  {
-    id: 'prod_002',
-    slug: 'loud-menance',
-    name: 'The Loud Menance Tee',
-    description: '280 GSM Mineral-Washed Heavyweight Cotton. Features our high-density cracked puff print "MENANCE" arch graphic across the chest in radioactive acid green. Raw unfinished attitude tailored to an oversized Gen Z boxy drape.',
-    price: 1499,
-    colorways: [
-      { name: 'Washed Black', hex: '#1A1A1A', materialColor: '#1A1A1A' },
-      { name: 'Acid Green', hex: '#C6FF00', materialColor: '#C6FF00' },
-      { name: 'Chalk White', hex: '#FFFFFF', materialColor: '#FFFFFF' },
-      { name: 'Navy', hex: '#1B2838', materialColor: '#1B2838' }
+    images: [
+      `/products/${p.slug}/front.jpg`,
+      `/products/${p.slug}/back.jpg`,
+      `/products/${p.slug}/detail-1.jpg`,
+      `/products/${p.slug}/detail-2.jpg`,
     ],
-    sizes: defaultSizes,
-    images: ['/images/products/loud-menance-1.jpg', '/images/products/loud-menance-2.jpg'],
-    category: 'tees',
-    tags: ['graphic', 'loud', 'statement', 'streetwear'],
+    tags: ['drop001', 'waffle', 'boxy', 'heavyweight'],
     isBestSeller: false,
     isNew: true,
-    vibeName: 'loud'
-  },
-  {
-    id: 'prod_003',
-    slug: 'midnight-menance',
-    name: 'The Midnight Menance Tee',
-    description: 'Blacked-out nocturnal execution. 280 GSM combed cotton with stealth matte black silicone tonal micro-hit on the nape. For those who operate in the shadows after hours. Deep, non-reflective dye with zero colour fading.',
-    price: 1399,
-    colorways: [
-      { name: 'Pitch Black', hex: '#0A0A0A', materialColor: '#0A0A0A' },
-      { name: 'Washed Black', hex: '#1A1A1A', materialColor: '#1A1A1A' },
-      { name: 'Charcoal', hex: '#333333', materialColor: '#333333' }
-    ],
-    sizes: defaultSizes,
-    images: ['/images/products/midnight-menance-1.jpg', '/images/products/midnight-menance-2.jpg'],
-    category: 'tees',
-    tags: ['dark', 'stealth', 'night', 'minimalist'],
-    isBestSeller: true,
-    isNew: false,
-    vibeName: 'midnight'
-  },
-  {
-    id: 'prod_004',
-    slug: 'soft-menance',
-    name: 'The Oversized Heavy Waffle Tee',
-    description: 'Signature 300 GSM thermal honeycomb waffle weave. Heavy tactile drape that breathes naturally while insulating against cool air. Cut wide and cropped slightly at the natural waist for relaxed streetwear stacking.',
-    price: 1599,
-    colorways: [
-      { name: 'Bone Cream', hex: '#E8E0D0', materialColor: '#E8E0D0' },
-      { name: 'Off-White', hex: '#F5F1E8', materialColor: '#F5F1E8' },
-      { name: 'Cement', hex: '#B5B5B5', materialColor: '#B5B5B5' }
-    ],
-    sizes: defaultSizes,
-    images: ['/images/products/heavy-waffle-1.jpg', '/images/products/heavy-waffle-2.jpg'],
-    category: 'tees',
-    tags: ['waffle', 'textured', 'thermal', 'heavyweight'],
-    isBestSeller: true,
-    isNew: true,
-    vibeName: 'quiet'
-  },
-  {
-    id: 'prod_005',
-    slug: 'sunday-menance',
-    name: 'The Raw Edge Boxy Tee',
-    description: '260 GSM open-end vintage jersey with deliberate raw-cut hems that curl organically with each wear and wash. Ultra-soft silicone garment wash gives it a 10-year broken-in feel from day one. Zero break-in required.',
-    price: 1299,
-    colorways: [
-      { name: 'Cement Grey', hex: '#B5B5B5', materialColor: '#B5B5B5' },
-      { name: 'Washed Black', hex: '#1A1A1A', materialColor: '#1A1A1A' },
-      { name: 'Bone', hex: '#E8E0D0', materialColor: '#E8E0D0' }
-    ],
-    sizes: defaultSizes,
-    images: ['/images/products/raw-edge-boxy-1.jpg', '/images/products/raw-edge-boxy-2.jpg'],
-    category: 'tees',
-    tags: ['washed', 'raw-edge', 'distressed', 'vintage'],
-    isBestSeller: false,
-    isNew: false,
-    vibeName: 'sunday'
-  },
-  {
-    id: 'prod_006',
-    slug: 'public-menance',
-    name: 'The Acid Menance Tee',
-    description: 'High-visibility luminescent acid green oversized tee. 280 GSM combed compact cotton engineered specifically for flash photography and club lighting. Front and back cybernetic stencil typography hits with sealed seams.',
-    price: 1499,
-    colorways: [
-      { name: 'Acid Green', hex: '#C6FF00', materialColor: '#C6FF00' },
-      { name: 'Pitch Black', hex: '#0A0A0A', materialColor: '#0A0A0A' },
-      { name: 'Washed Black', hex: '#1A1A1A', materialColor: '#1A1A1A' }
-    ],
-    sizes: defaultSizes,
-    images: ['/images/products/acid-menance-1.jpg', '/images/products/acid-menance-2.jpg'],
-    category: 'tees',
-    tags: ['loud', 'acid-green', 'cyber', 'statement'],
-    isBestSeller: true,
-    isNew: true,
-    vibeName: 'loud'
-  }
-];
+    vibeName: p.category.toLowerCase(),
+    vibe: p.category.toLowerCase(),
+    backQuote: p.backQuote,
+    frontLogo: p.frontLogo,
+    fabricGsm: p.fabricGsm,
+    fabricType: p.fabricType,
+    fit: p.fit,
+    sleeveType: p.sleeveType,
+  };
+});
 
-// Global dynamic product state synced with Admin Console
-const dynamicProductsMap = new Map<string, Product>();
+export const products = dynamicProductsList;
+export const baseProducts = products;
 
-// Initialize map with base products
-baseProducts.forEach(p => dynamicProductsMap.set(p.id, p));
-
-export function getDynamicProducts(): Product[] {
-  return Array.from(dynamicProductsMap.values());
+export function getProductBySlug(slug: string): Product | undefined {
+  return dynamicProductsList.find((p) => p.slug === slug);
 }
 
-export function upsertDynamicProduct(product: Partial<Product> & { id: string }): Product {
-  const existing = dynamicProductsMap.get(product.id) || baseProducts.find(p => p.id === product.id || p.slug === product.slug);
-  const merged: Product = {
-    ...(existing || baseProducts[0]),
-    ...product,
-    id: product.id,
-    slug: product.slug || existing?.slug || `prod-${product.id}`,
-    name: product.name || existing?.name || 'Menance Tee',
-    description: product.description || existing?.description || '',
-    price: product.price ?? existing?.price ?? 1299,
-    images: product.images && product.images.length > 0 ? product.images : (existing?.images || ['/images/products/quiet-menance-1.jpg']),
-    colorways: product.colorways || existing?.colorways || [{ name: 'Black', hex: '#0A0A0A', materialColor: '#0A0A0A' }],
-    sizes: product.sizes || existing?.sizes || defaultSizes,
-    category: product.category || existing?.category || 'tees',
-    tags: product.tags || existing?.tags || ['streetwear'],
-    isBestSeller: product.isBestSeller ?? existing?.isBestSeller ?? false,
-    isNew: product.isNew ?? existing?.isNew ?? true,
-    vibeName: product.vibeName || existing?.vibeName || 'quiet',
-  };
-  dynamicProductsMap.set(product.id, merged);
-  return merged;
+export function getAllProducts(): Product[] {
+  return dynamicProductsList;
+}
+
+export function getDynamicProducts(): Product[] {
+  return dynamicProductsList;
+}
+
+export function upsertDynamicProduct(partial: Partial<Product> & { id: string }): Product {
+  const existingIdx = dynamicProductsList.findIndex((p) => p.id === partial.id);
+  if (existingIdx >= 0) {
+    dynamicProductsList[existingIdx] = {
+      ...dynamicProductsList[existingIdx],
+      ...partial,
+      sizes: dynamicProductsList[existingIdx].sizes || defaultSizes,
+      colorways: dynamicProductsList[existingIdx].colorways || [],
+      images: partial.images || dynamicProductsList[existingIdx].images || [],
+    };
+    return dynamicProductsList[existingIdx];
+  } else {
+    const newProd: Product = {
+      id: partial.id,
+      slug: partial.slug || `product-${Date.now()}`,
+      name: partial.name || 'Menance Product',
+      description: partial.description || '',
+      price: partial.price || 1499,
+      priceInr: partial.priceInr || partial.price || 1499,
+      priceUsd: partial.priceUsd || 45,
+      category: partial.category || 'tees',
+      status: (partial.status as any) || 'active',
+      colorways: partial.colorways || [{ name: 'Black', hex: '#0A0A0A', materialColor: '#0A0A0A' }],
+      sizes: partial.sizes || defaultSizes,
+      images: partial.images || ['/products/placeholder.svg'],
+      tags: partial.tags || ['menance'],
+      isBestSeller: false,
+      isNew: true,
+      vibeName: 'quiet',
+      backQuote: partial.backQuote || 'NOT FOR EVERYONE.',
+      frontLogo: partial.frontLogo || 'MENANCE®',
+      fabricGsm: partial.fabricGsm || 240,
+      fabricType: partial.fabricType || 'Waffle Knit',
+      fit: partial.fit || 'Boxy Oversized',
+      sleeveType: partial.sleeveType || 'Half Sleeve',
+    };
+    dynamicProductsList.unshift(newProd);
+    return newProd;
+  }
 }
 
 export function deleteDynamicProduct(id: string): boolean {
-  return dynamicProductsMap.delete(id);
-}
-
-// Proxied products array that always resolves latest dynamic values
-export const products: Product[] = new Proxy(baseProducts, {
-  get(target, prop, receiver) {
-    const dynamicList = getDynamicProducts();
-    if (prop === 'length') return dynamicList.length;
-    if (typeof prop === 'string' && !isNaN(Number(prop))) {
-      return dynamicList[Number(prop)];
-    }
-    const val = Reflect.get(dynamicList, prop);
-    return typeof val === 'function' ? val.bind(dynamicList) : val;
+  const idx = dynamicProductsList.findIndex((p) => p.id === id);
+  if (idx !== -1) {
+    dynamicProductsList.splice(idx, 1);
+    return true;
   }
-});
-
-export const getProductBySlug = (slug: string): Product | undefined => {
-  const list = getDynamicProducts();
-  return list.find(p => p.slug === slug || p.id === slug);
-};
+  return false;
+}
