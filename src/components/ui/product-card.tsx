@@ -99,11 +99,14 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
             />
 
             {/* Real Garment Photo Display */}
-            <div className="absolute inset-0 flex items-center justify-center p-6 select-none overflow-hidden">
+            <div className="absolute inset-0 flex items-center justify-center select-none overflow-hidden bg-[#0A0A0A]">
               <img
-                src={isHovered && product.images?.[1] ? product.images[1] : (product.images?.[0] || '/images/products/raw-edge-boxy-1.jpg')}
+                src={isHovered && product.images?.[1] ? product.images[1] : (product.images?.[0] || '/products/placeholder.svg')}
                 alt={product.name}
-                className="w-full h-full object-contain object-center transition-transform duration-500 group-hover:scale-105 drop-shadow-[0_15px_25px_rgba(0,0,0,0.8)]"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/products/placeholder.svg';
+                }}
+                className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
               />
             </div>
 

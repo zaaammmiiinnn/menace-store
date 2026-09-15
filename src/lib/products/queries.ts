@@ -41,7 +41,7 @@ function getFallbackProducts(): FormattedProduct[] {
     priceUsd: p.priceUsd,
     category: p.category,
     dropId: 'drop_001',
-    status: 'draft',
+    status: 'active',
     backQuote: p.backQuote,
     frontLogo: p.frontLogo,
     fabricGsm: p.fabricGsm,
@@ -68,7 +68,7 @@ function getFallbackProducts(): FormattedProduct[] {
 export async function getProducts(): Promise<FormattedProduct[]> {
   try {
     const db = getDb();
-    const allProducts = await db.select().from(products);
+    const allProducts = await db.select().from(products).where(eq(products.status, 'active'));
     if (!allProducts || allProducts.length === 0) {
       return getFallbackProducts();
     }

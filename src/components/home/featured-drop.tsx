@@ -9,7 +9,7 @@ import Link from "next/link";
 
 export function FeaturedDrop() {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const dropProducts = products.slice(0, 6);
+  const dropProducts = products.slice(0, 8);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -32,7 +32,7 @@ export function FeaturedDrop() {
             <span>DROP 001 // LAUNCH COLLECTION</span>
           </div>
           <h2 className="font-display text-4xl sm:text-6xl md:text-7xl uppercase tracking-tighter text-off-white">
-            THE 6 WAFFLE SKUS
+            THE 8 DROP 001 SILHOUETTES
           </h2>
         </div>
 
