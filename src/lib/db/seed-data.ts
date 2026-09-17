@@ -210,6 +210,23 @@ export const SEED_PRODUCTS: SeedProductDef[] = [
     color: 'Black',
     description: '420 GSM ultra-heavyweight french terry fleece lounge sweatpants. Wide-leg cylindrical drape with zero stacking taper, heavy elastic waistband with extended matte metal-tipped drawstrings, and deep side welt pockets.',
   },
+  {
+    id: 'prod_heavy_sweatpants_grey',
+    slug: 'heavy-wide-leg-sweatpants-grey',
+    name: 'The Heavy Wide-Leg Sweatpants — Heather Grey',
+    category: 'Pants',
+    priceInr: 2499,
+    priceUsd: 32,
+    backQuote: 'LOOKS SOFT. ACTS HARD.',
+    frontLogo: 'MENANCE®',
+    fabricGsm: 420,
+    fabricType: 'Heavyweight French Terry',
+    fit: 'Wide Leg Baggy',
+    sleeveType: 'Full Length',
+    color: 'Heather Grey',
+    description: '420 GSM ultra-heavyweight heather grey french terry fleece lounge sweatpants. Wide-leg cylindrical drape with zero stacking taper, elastic waistband with contrast black drawstrings and metal aglets.',
+  },
 ];
+
 
 

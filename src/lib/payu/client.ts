@@ -84,10 +84,10 @@ export async function sha512(text: string): Promise<string> {
  */
 export function getPayUConfig(): PayUConfig {
   const key = process.env.PAYU_MERCHANT_KEY || process.env.NEXT_PUBLIC_PAYU_KEY || '5AZJMt';
-  const salt = process.env.PAYU_MERCHANT_SALT || '';
+  const salt = process.env.PAYU_MERCHANT_SALT || 'KxxhoHenOXoABAUCv1f973CV8zyDvEMC';
   const merchantId = process.env.PAYU_MERCHANT_ID || '13779004';
-  const clientId = process.env.PAYU_CLIENT_ID || '';
-  const clientSecret = process.env.PAYU_CLIENT_SECRET || '';
+  const clientId = process.env.PAYU_CLIENT_ID || 'fba7ab236b106dc64bbb3e79af571e91c70c810c82092884fb9b932470270a56';
+  const clientSecret = process.env.PAYU_CLIENT_SECRET || '96c95faae059ad654cb59b0c12efa4865d18809e570e9fdffe018b049707337b';
   const mode = (process.env.PAYU_MODE === 'test' ? 'test' : 'live') as 'live' | 'test';
 
   const paymentUrl =
