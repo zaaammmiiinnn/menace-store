@@ -14,7 +14,14 @@ export interface CartItem {
   quantity: number;
   imageUrl?: string;
   slug?: string;
+  edition?: 'archive' | 'plain' | 'custom';
+  customArtworkUrl?: string;
+  customPlacement?: 'front_chest' | 'front_center' | 'back';
+  customScale?: 'small' | 'medium' | 'large';
+  customQuoteText?: string;
 }
+
+
 
 export interface CartStoreState {
   items: CartItem[];

@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/components/admin/DataTable';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
-import { deleteProductAction } from '@/lib/admin/actions';
+import { deleteProductAction, toggleProductPurchaseModeAction } from '@/lib/admin/actions';
 import { toast } from 'sonner';
-import { Edit2, Trash2, ExternalLink } from 'lucide-react';
+import { Edit2, Trash2, ExternalLink, Zap, Lock, Loader2 } from 'lucide-react';
 
 interface ProductRow {
   id: string;
@@ -16,6 +16,8 @@ interface ProductRow {
   price_inr: number;
   category: string;
   status: string;
+  purchase_mode?: string;
+  purchaseMode?: string;
   dropName: string;
   totalStock: number;
   variantsCount: number;
@@ -30,6 +32,32 @@ export function ProductsTable({ products }: ProductsTableProps) {
   const [data, setData] = useState<ProductRow[]>(products);
   const [deleteTarget, setDeleteTarget] = useState<ProductRow | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+
+  const handleTogglePurchaseMode = async (id: string, newMode: 'buy_now' | 'notify_only') => {
+    setTogglingId(id);
+    // Optimistic update
+    setData((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, purchase_mode: newMode, purchaseMode: newMode } : p))
+    );
+
+    try {
+      const res = await toggleProductPurchaseModeAction(id, newMode);
+      if (res?.success) {
+        toast.success(
+          newMode === 'buy_now'
+            ? '⚡ Buy Now enabled! Customers can immediately purchase this tee.'
+            : '🔒 Product set to Notify Only. Cart locked on storefront.'
+        );
+      } else {
+        toast.error('Failed to update purchase mode.');
+      }
+    } catch {
+      toast.error('Server error updating purchase mode.');
+    } finally {
+      setTogglingId(null);
+    }
+  };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -129,6 +157,38 @@ export function ProductsTable({ products }: ProductsTableProps) {
           >
             {status}
           </span>
+        );
+      },
+    },
+    {
+      accessorKey: 'purchase_mode',
+      header: 'Buy Now Mode',
+      cell: ({ row }) => {
+        const item = row.original;
+        const isBuyNow = (item.purchase_mode || item.purchaseMode) !== 'notify_only';
+        const isPending = togglingId === item.id;
+
+        return (
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={() => handleTogglePurchaseMode(item.id, isBuyNow ? 'notify_only' : 'buy_now')}
+            className={`px-2.5 py-1 rounded text-[11px] font-mono uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
+              isBuyNow
+                ? 'bg-[#C6FF00]/15 hover:bg-[#C6FF00]/25 text-[#C6FF00] border border-[#C6FF00]/30 font-bold shadow-[0_0_10px_rgba(198,255,0,0.1)]'
+                : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30'
+            } disabled:opacity-50`}
+            title={isBuyNow ? 'Click to switch to Notify Only' : 'Click to enable Buy Now'}
+          >
+            {isPending ? (
+              <Loader2 className="w-3 h-3 animate-spin" />
+            ) : isBuyNow ? (
+              <Zap className="w-3 h-3 fill-current" />
+            ) : (
+              <Lock className="w-3 h-3" />
+            )}
+            <span>{isBuyNow ? '⚡ Buy Now' : '🔒 Notify'}</span>
+          </button>
         );
       },
     },

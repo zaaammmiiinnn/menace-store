@@ -43,12 +43,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith('/admin');
 
+  const isCheckout = pathname?.startsWith('/checkout');
+
   if (isAdmin) {
     return (
       <MotionProvider>
         <CustomCursor />
         <GlobalToast />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 relative z-10">{children}</main>
       </MotionProvider>
     );
   }
@@ -61,14 +63,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         <GrainOverlay />
         <GradientOrbs />
         <Confetti />
-        <Navbar />
-        <MobileMenu />
+        {!isCheckout && <Navbar />}
+        {!isCheckout && <MobileMenu />}
         <CartDrawer />
         <GlobalToast />
         <PageTransition>
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 relative z-10">{children}</main>
         </PageTransition>
-        <Footer />
+        {!isCheckout && <Footer />}
       </MotionProvider>
     </LenisProvider>
   );

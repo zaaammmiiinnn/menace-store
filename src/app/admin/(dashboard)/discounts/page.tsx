@@ -2,6 +2,9 @@ import React from 'react';
 import { getDiscounts } from '@/lib/admin/queries';
 import { DiscountsManager } from '@/components/admin/DiscountsManager';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function AdminDiscountsPage() {
   const discounts = await getDiscounts();
 

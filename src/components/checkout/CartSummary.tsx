@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Minus, Plus, Trash2, ShieldCheck, ArrowRight } from 'lucide-react';
 import { useCart, FREE_SHIPPING_THRESHOLD_INR, type CartItem } from '@/lib/store/cart';
+import { useCartStore } from '@/store/cart-store';
 
 interface CartSummaryProps {
   onContinue?: () => void;
@@ -20,10 +21,13 @@ export function CartSummary({ onContinue, collapsible = false }: CartSummaryProp
     getTotal,
     getFreeShippingDifference,
   } = useCart();
+  const { promoCode, discountType, discountValue, getDiscountAmount } = useCartStore();
 
   const subtotal = getSubtotal();
   const shippingFee = getShippingFee();
   const total = getTotal();
+  const promoDiscount = getDiscountAmount();
+  const adjustedTotal = Math.max(0, total - promoDiscount);
   const diff = getFreeShippingDifference();
   const progressPercent = Math.min(
     100,
@@ -98,6 +102,15 @@ export function CartSummary({ onContinue, collapsible = false }: CartSummaryProp
                   (e.target as HTMLImageElement).src = '/products/placeholder.svg';
                 }}
               />
+              {item.customArtworkUrl && (
+                <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-1.5 backdrop-blur-[1px]">
+                  <img
+                    src={item.customArtworkUrl}
+                    alt="Custom Print Artwork"
+                    className="max-w-[85%] max-h-[85%] object-contain drop-shadow"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Meta */}
@@ -111,6 +124,26 @@ export function CartSummary({ onContinue, collapsible = false }: CartSummaryProp
                 </span>
               </div>
 
+              {/* Edition Badge */}
+              {item.edition === 'plain' && (
+                <span className="inline-block text-[9px] font-mono uppercase bg-[#1A1A1A] text-[#8A8A8A] px-1.5 py-0.5 border border-[#333333]">
+                  RAW PLAIN BLANK
+                </span>
+              )}
+              {item.edition === 'custom' && (
+                <div className="space-y-0.5">
+                  <span className="inline-block text-[9px] font-mono uppercase bg-[#C6FF00]/10 text-[#C6FF00] px-1.5 py-0.5 border border-[#C6FF00]/30 font-bold">
+                    CUSTOM PRINT // {item.customPlacement?.replace('_', ' ').toUpperCase() || 'FRONT'}
+                  </span>
+                  {item.customQuoteText && (
+                    <p className="text-[10px] font-mono text-[#F5F1E8] font-bold">
+                      QUOTE: "{item.customQuoteText}"
+                    </p>
+                  )}
+                </div>
+              )}
+
+
               <div className="flex flex-wrap items-center gap-2 text-[10px] font-mono text-[#8A8A8A]">
                 <span className="px-1.5 py-0.5 bg-[#141414] border border-[#262626] uppercase">
                   COLOR: {item.color}
@@ -120,6 +153,7 @@ export function CartSummary({ onContinue, collapsible = false }: CartSummaryProp
                 </span>
                 <span>@ ₹{item.price.toLocaleString('en-IN')}</span>
               </div>
+
 
               {/* Quantity controls + remove */}
               <div className="flex items-center justify-between pt-2">
@@ -171,9 +205,20 @@ export function CartSummary({ onContinue, collapsible = false }: CartSummaryProp
             {shippingFee === 0 ? 'FREE' : `₹${shippingFee.toLocaleString('en-IN')}`}
           </span>
         </div>
+        {promoDiscount > 0 && (
+          <div className="flex justify-between text-[#C6FF00]">
+            <span>
+              PROMO ({promoCode}{' '}
+              {discountType === 'fixed'
+                ? `₹${discountValue} OFF`
+                : `${discountValue}% OFF`})
+            </span>
+            <span>-₹{promoDiscount.toLocaleString('en-IN')}</span>
+          </div>
+        )}
         <div className="flex justify-between text-sm font-bold text-[#F5F1E8] pt-2 border-t border-[#1C1C1C]">
           <span>BAG TOTAL</span>
-          <span className="text-[#C6FF00]">₹{total.toLocaleString('en-IN')}</span>
+          <span className="text-[#C6FF00]">₹{adjustedTotal.toLocaleString('en-IN')}</span>
         </div>
       </div>
 

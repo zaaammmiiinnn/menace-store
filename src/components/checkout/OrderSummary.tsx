@@ -3,6 +3,7 @@
 import React from 'react';
 import { Lock, ShieldCheck, ArrowRight } from 'lucide-react';
 import { useCart } from '@/lib/store/cart';
+import { useCartStore } from '@/store/cart-store';
 
 interface OrderSummaryProps {
   isProcessing: boolean;
@@ -12,10 +13,13 @@ interface OrderSummaryProps {
 
 export function OrderSummary({ isProcessing, onSubmit, error }: OrderSummaryProps) {
   const { items, getSubtotal, getShippingFee, getTotal } = useCart();
+  const { promoCode, discountType, discountValue, getDiscountAmount } = useCartStore();
 
   const subtotal = getSubtotal();
   const shippingFee = getShippingFee();
   const total = getTotal();
+  const promoDiscount = getDiscountAmount();
+  const adjustedTotal = Math.max(0, total - promoDiscount);
 
   return (
     <div className="border border-[#1C1C1C] bg-[#0A0A0A] p-5 sm:p-6 space-y-6 lg:sticky lg:top-24">
@@ -58,6 +62,18 @@ export function OrderSummary({ isProcessing, onSubmit, error }: OrderSummaryProp
           </span>
         </div>
 
+        {promoDiscount > 0 && (
+          <div className="flex justify-between text-[#C6FF00]">
+            <span>
+              PROMO ({promoCode}{' '}
+              {discountType === 'fixed'
+                ? `₹${discountValue} OFF`
+                : `${discountValue}% OFF`})
+            </span>
+            <span>-₹{promoDiscount.toLocaleString('en-IN')}</span>
+          </div>
+        )}
+
         <div className="border-t border-[#1C1C1C] pt-3 flex justify-between items-baseline">
           <div>
             <span className="font-display text-lg uppercase text-[#F5F1E8] block">
@@ -68,7 +84,7 @@ export function OrderSummary({ isProcessing, onSubmit, error }: OrderSummaryProp
             </span>
           </div>
           <span className="font-display text-2xl text-[#C6FF00]">
-            ₹{total.toLocaleString('en-IN')}
+            ₹{adjustedTotal.toLocaleString('en-IN')}
           </span>
         </div>
       </div>

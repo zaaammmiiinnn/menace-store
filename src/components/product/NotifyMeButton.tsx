@@ -1,22 +1,210 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Bell, Check, ShoppingBag, Lock } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Bell, Check, ShoppingBag, Lock, Zap, ArrowRight, ShieldCheck, Truck } from 'lucide-react';
+import { useCartStore } from '@/store/cart-store';
+import { useCart } from '@/lib/store/cart';
+import { useUiStore } from '@/store/ui-store';
+import { playClickSound } from '@/lib/sound';
+import { FormattedProduct } from '@/lib/products/queries';
+import { Product } from '@/types';
 
-interface NotifyMeButtonProps {
+export interface NotifyMeButtonProps {
   productName: string;
   selectedSize: string;
+  selectedColor?: string;
+  product?: FormattedProduct | any;
   isDropLive?: boolean;
+  edition?: 'archive' | 'plain' | 'custom';
+  customDesign?: {
+    artworkUrl: string;
+    artworkName?: string;
+    placement: 'front_center' | 'front_chest' | 'back';
+    scale: 'small' | 'medium' | 'large';
+    customQuoteText?: string;
+  } | null;
 }
+
 
 export function NotifyMeButton({
   productName,
   selectedSize,
-  isDropLive = false,
+  selectedColor = 'Black',
+  product,
+  isDropLive = true,
+  edition = 'archive',
+  customDesign = null,
 }: NotifyMeButtonProps) {
+
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  // Store hooks
+  const addItemToLegacyCart = useCartStore((state) => state.addItem);
+  const openCartDrawer = useCartStore((state) => state.openCart);
+  const triggerConfetti = useUiStore((state) => state.triggerConfetti);
+  const showToast = useUiStore((state) => state.showToast);
+  const addItemToModernCart = useCart((state) => state.addItem);
+
+  // Determine variant stock if variants are passed
+  const currentVariant = product?.variants?.find(
+    (v: any) => v.size === selectedSize && (!selectedColor || v.color.toLowerCase() === selectedColor.toLowerCase())
+  ) || product?.variants?.find((v: any) => v.size === selectedSize);
+
+  const stockCount = currentVariant ? Number(currentVariant.stock) : (product?.variants && product.variants.length > 0 ? 0 : 25);
+  const isOutOfStock = currentVariant ? Number(currentVariant.stock) <= 0 : false;
+
+  // Helper to build typed cart product
+  const getCartProduct = (): Product => {
+    return {
+      id: product?.id || `prod_${productName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
+      slug: product?.slug || productName.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+      name: product?.name || productName,
+      description: product?.description || '',
+      price: product?.priceInr || 1499,
+      priceInr: product?.priceInr || 1499,
+      priceUsd: product?.priceUsd || 49,
+      images: product?.images || ['/products/placeholder.svg'],
+      category: product?.category || 'tees',
+      tags: ['tees', 'drop_001'],
+      isBestSeller: false,
+      isNew: true,
+      vibeName: product?.backQuote || 'DROP 001',
+      backQuote: product?.backQuote,
+      frontLogo: product?.frontLogo,
+      fabricGsm: product?.fabricGsm || 240,
+      fabricType: product?.fabricType || 'Waffle Knit',
+      fit: product?.fit || 'Boxy Oversized',
+      sleeveType: product?.sleeveType || 'Drop Shoulder',
+      colorways: [
+        {
+          name: selectedColor,
+          hex: '#0A0A0A',
+          materialColor: '#0A0A0A',
+        },
+      ],
+      sizes: (product?.variants || []).map((v: any) => ({
+        value: v.size as any,
+        label: v.size,
+        scale: 1,
+        inStock: Number(v.stock) > 0,
+      })),
+    };
+  };
+
+  const handleBuyNow = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isOutOfStock || isRedirecting) return;
+
+    playClickSound();
+    setIsRedirecting(true);
+
+    const cartProd = getCartProduct();
+    const displayName =
+      edition === 'plain'
+        ? `${cartProd.name} (Plain Blank)`
+        : edition === 'custom' && customDesign?.artworkUrl
+        ? `${cartProd.name} (Custom: ${customDesign.placement.replace('_', ' ').toUpperCase()})`
+        : cartProd.name;
+
+    const displayImage =
+      edition === 'plain' || edition === 'custom'
+        ? product?.plainImages?.[0] || cartProd.images?.[0] || '/products/placeholder.svg'
+        : cartProd.images?.[0] || '/products/placeholder.svg';
+
+    const customKeySuffix =
+      edition === 'plain'
+        ? '-plain'
+        : edition === 'custom' && customDesign?.artworkUrl
+        ? `-custom-${Date.now()}`
+        : '';
+
+    const variantId = `${currentVariant?.id || `${cartProd.id}-${selectedColor}-${selectedSize}`}${customKeySuffix}`;
+
+    // Add to legacy cart store
+    addItemToLegacyCart(cartProd, selectedColor, selectedSize);
+
+    // Add to modern checkout cart store
+    addItemToModernCart({
+      variantId,
+      productId: cartProd.id,
+      name: displayName,
+      size: selectedSize,
+      color: selectedColor,
+      price: cartProd.priceInr || 1499,
+      quantity: 1,
+      imageUrl: displayImage,
+      slug: cartProd.slug,
+      edition,
+      customArtworkUrl: customDesign?.artworkUrl,
+      customPlacement: customDesign?.placement,
+      customScale: customDesign?.scale,
+      customQuoteText: customDesign?.customQuoteText,
+    });
+
+    showToast(`Redirecting to checkout...`);
+    router.push('/checkout');
+  };
+
+  const handleAddToBag = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isOutOfStock) return;
+
+    playClickSound();
+
+    const cartProd = getCartProduct();
+    const displayName =
+      edition === 'plain'
+        ? `${cartProd.name} (Plain Blank)`
+        : edition === 'custom' && customDesign?.artworkUrl
+        ? `${cartProd.name} (Custom: ${customDesign.customQuoteText ? `"${customDesign.customQuoteText}"` : customDesign.placement.replace('_', ' ').toUpperCase()})`
+        : cartProd.name;
+
+    const displayImage =
+      edition === 'plain' || edition === 'custom'
+        ? product?.plainImages?.[0] || cartProd.images?.[0] || '/products/placeholder.svg'
+        : cartProd.images?.[0] || '/products/placeholder.svg';
+
+    const customKeySuffix =
+      edition === 'plain'
+        ? '-plain'
+        : edition === 'custom' && customDesign?.artworkUrl
+        ? `-custom-${Date.now()}`
+        : '';
+
+    const variantId = `${currentVariant?.id || `${cartProd.id}-${selectedColor}-${selectedSize}`}${customKeySuffix}`;
+
+    // Add to legacy cart store
+    addItemToLegacyCart(cartProd, selectedColor, selectedSize);
+
+    // Add to modern checkout cart store
+    addItemToModernCart({
+      variantId,
+      productId: cartProd.id,
+      name: displayName,
+      size: selectedSize,
+      color: selectedColor,
+      price: cartProd.priceInr || 1499,
+      quantity: 1,
+      imageUrl: displayImage,
+      slug: cartProd.slug,
+      edition,
+      customArtworkUrl: customDesign?.artworkUrl,
+      customPlacement: customDesign?.placement,
+      customScale: customDesign?.scale,
+      customQuoteText: customDesign?.customQuoteText,
+    });
+
+
+    triggerConfetti();
+    showToast(`Added ${displayName} (${selectedSize}) to bag`);
+    openCartDrawer();
+  };
+
 
   const handleNotifySubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,18 +217,67 @@ export function NotifyMeButton({
     }, 2500);
   };
 
+  // --- LIVE DROP STATE: BUY NOW & ADD TO BAG ARE AVAILABLE ---
   if (isDropLive) {
+    if (isOutOfStock) {
+      return (
+        <div className="space-y-3">
+          <button
+            type="button"
+            disabled
+            className="w-full py-4 px-6 bg-[#171717] text-[#8A8A8A] border border-[#2A2A2A] font-display text-sm uppercase tracking-widest flex items-center justify-center gap-2 cursor-not-allowed"
+          >
+            <span>OUT OF STOCK // {selectedSize}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setIsOpen(true)}
+            className="w-full py-3 px-4 bg-[#0F0F0F] hover:bg-[#1A1A1A] text-[#C6FF00] border border-[#C6FF00]/30 font-mono text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-colors"
+          >
+            <Bell className="w-3.5 h-3.5" />
+            <span>NOTIFY WHEN RESTOCKED IN {selectedSize}</span>
+          </button>
+        </div>
+      );
+    }
+
     return (
-      <button
-        type="button"
-        className="w-full py-4 px-6 bg-[#C6FF00] hover:bg-[#F5F1E8] text-[#0A0A0A] font-display text-sm uppercase tracking-widest transition-colors flex items-center justify-center gap-2 cursor-pointer font-bold"
-      >
-        <ShoppingBag className="w-4 h-4" />
-        <span>ADD TO BAG // {selectedSize}</span>
-      </button>
+      <div className="space-y-3">
+        {/* Primary Action Button: BUY NOW */}
+        <button
+          type="button"
+          onClick={handleBuyNow}
+          disabled={isRedirecting}
+          className="w-full py-4 px-6 bg-[#C6FF00] hover:bg-[#b0e600] active:scale-[0.99] text-[#0A0A0A] font-display text-base uppercase tracking-widest transition-all flex items-center justify-center gap-2.5 cursor-pointer font-bold shadow-[0_0_25px_rgba(198,255,0,0.3)] disabled:opacity-75"
+        >
+          <Zap className="w-4 h-4 text-[#0A0A0A] fill-current" />
+          <span>{isRedirecting ? 'INITIALIZING CHECKOUT...' : `BUY NOW // ${selectedSize}`}</span>
+          <ArrowRight className="w-4 h-4 text-[#0A0A0A]" />
+        </button>
+
+        {/* Secondary Action Button: ADD TO BAG */}
+        <button
+          type="button"
+          onClick={handleAddToBag}
+          className="w-full py-3.5 px-6 bg-[#121212] hover:bg-[#1C1C1C] active:scale-[0.99] text-[#F5F1E8] hover:text-[#C6FF00] border border-[#262626] hover:border-[#C6FF00]/60 font-display text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2.5 cursor-pointer font-semibold"
+        >
+          <ShoppingBag className="w-4 h-4" />
+          <span>ADD TO BAG // {selectedSize}</span>
+        </button>
+
+        {/* Dispatch Guarantee Badge */}
+        <div className="pt-2 flex items-center justify-between text-[11px] font-mono text-[#8A8A8A]">
+          <span className="flex items-center gap-1.5 text-[#C6FF00]">
+            <span className="w-2 h-2 rounded-full bg-[#C6FF00] animate-pulse" />
+            IN STOCK & READY TO SHIP
+          </span>
+          <span>DISPATCHES IN 24-48H</span>
+        </div>
+      </div>
     );
   }
 
+  // --- UPCOMING DROP STATE: CART LOCKED & NOTIFY ME MODAL ---
   return (
     <div className="space-y-2">
       {/* Primary Action Button: Notify Me */}

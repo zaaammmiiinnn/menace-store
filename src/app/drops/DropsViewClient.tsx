@@ -69,12 +69,35 @@ export function DropsViewClient({ products, drop }: DropsViewClientProps) {
       {/* Brutalist Countdown Timer Block */}
       <div className="max-w-3xl mx-auto p-6 sm:p-8 bg-[#0E0E0E] border border-[#1C1C1C] relative">
         <div className="flex items-center justify-between pb-4 mb-6 border-b border-[#1C1C1C] text-[10px] font-mono tracking-widest uppercase text-[#8A8A8A]">
-          <span>TARGET RELEASE: OCTOBER 10, 2026 // 10:00 AM IST</span>
-          <span className="text-[#C6FF00] flex items-center gap-1">
+          <span>
+            {drop.status === 'live'
+              ? 'STATUS: LIVE COMMERCE // DISPATCHING ORDERS'
+              : 'TARGET RELEASE: OCTOBER 10, 2026 // 10:00 AM IST'}
+          </span>
+          <span className="text-[#C6FF00] flex items-center gap-1.5 font-bold">
             <span className="w-1.5 h-1.5 rounded-full bg-[#C6FF00] animate-ping" />
-            LIVE RADAR
+            {drop.status === 'live' ? 'COMMERCE ACTIVE' : 'LIVE RADAR'}
           </span>
         </div>
+
+        {drop.status === 'live' && (
+          <div className="mb-6 p-4 bg-[#0E1A0E] border border-[#C6FF00]/30 rounded flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-mono text-[#C6FF00] uppercase font-bold tracking-wider">
+                ⚡ PUBLIC DROP LIVE
+              </span>
+              <p className="text-sm font-display uppercase tracking-wide text-[#F5F1E8]">
+                All 8 Silhouettes are unlocked for instant purchase
+              </p>
+            </div>
+            <Link
+              href="/shop/zamin-askari-rizvi"
+              className="px-4 py-2 bg-[#C6FF00] text-[#0A0A0A] font-display text-xs uppercase tracking-wider font-bold rounded hover:bg-[#F5F1E8] transition-colors whitespace-nowrap"
+            >
+              BUY NOW // TEE 001
+            </Link>
+          </div>
+        )}
 
         <div className="grid grid-cols-4 gap-3 sm:gap-6 text-center">
           <div className="p-3 sm:p-4 bg-[#0A0A0A] border border-[#1C1C1C]">

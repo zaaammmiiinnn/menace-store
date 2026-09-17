@@ -8,14 +8,19 @@ import { SizeSelector } from '@/components/product/SizeSelector';
 import { NotifyMeButton } from '@/components/product/NotifyMeButton';
 import { ShieldCheck, Truck, RotateCcw, Sparkles } from 'lucide-react';
 
+import { CustomPrintStudio, type CustomDesignConfig } from '@/components/product/CustomPrintStudio';
+
 interface ProductDetailViewProps {
   product: FormattedProduct;
+  isDropLive?: boolean;
 }
 
-export function ProductDetailView({ product }: ProductDetailViewProps) {
+export function ProductDetailView({ product, isDropLive = true }: ProductDetailViewProps) {
   const [currency, setCurrency] = useState<'INR' | 'USD'>('INR');
   const [selectedSize, setSelectedSize] = useState('M');
   const [selectedColor, setSelectedColor] = useState(product.color);
+  const [edition, setEdition] = useState<'archive' | 'plain' | 'custom'>('archive');
+  const [customDesign, setCustomDesign] = useState<CustomDesignConfig | null>(null);
 
   const priceFormatted =
     currency === 'INR'
@@ -44,11 +49,15 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
           <div className="lg:col-span-7">
             <ProductGallery
               images={product.images}
+              plainImages={product.plainImages}
               productName={product.name}
               backQuote={product.backQuote}
               fabricGsm={product.fabricGsm}
+              isPlain={edition === 'plain'}
+              customArtwork={edition === 'custom' ? customDesign : null}
             />
           </div>
+
 
           {/* Right Column: Buy Box & Specs */}
           <div className="lg:col-span-5 space-y-6">
@@ -95,24 +104,97 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
                   {priceFormatted}
                 </span>
                 <span className="text-[11px] font-mono text-[#8A8A8A]">
-                  INCL. TAXES // SHIPS WITH DROP 001
+                  {isDropLive ? 'INCL. TAXES // READY TO SHIP // EXPRESS DISPATCH' : 'INCL. TAXES // SHIPS WITH DROP 001'}
                 </span>
               </div>
             </div>
 
-            {/* Prominent Back Quote Display */}
-            <div className="p-4 bg-[#0E0E0E] border-l-2 border-[#C6FF00] border-y border-r border-[#1C1C1C]">
-              <div className="text-[10px] font-mono text-[#C6FF00] uppercase tracking-widest mb-1 flex items-center gap-1.5">
-                <Sparkles className="w-3 h-3" />
-                <span>BACK QUOTE ARCHITECTURE</span>
+            {/* Edition / Style Selector */}
+            <div className="space-y-2 pb-2">
+              <div className="text-xs font-mono text-[#8A8A8A] uppercase tracking-wider flex items-center justify-between">
+                <span>SILHOUETTE EDITION:</span>
+                <span className="text-[#C6FF00] font-bold">
+                  {edition === 'archive'
+                    ? 'MENANCE SIGNATURE // WITH QUOTE'
+                    : edition === 'plain'
+                    ? 'RAW MINIMALIST BLANK'
+                    : 'CUSTOM PRINT // YOUR DESIGN'}
+                </span>
               </div>
-              <div className="font-display text-xl sm:text-2xl uppercase tracking-tight text-[#F5F1E8]">
-                "{product.backQuote}"
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEdition('archive')}
+                  className={`py-2 px-1 text-center font-mono text-[10px] sm:text-xs border uppercase transition-all cursor-pointer ${
+                    edition === 'archive'
+                      ? 'border-[#C6FF00] bg-[#C6FF00] text-[#0A0A0A] font-bold shadow-[0_0_15px_rgba(198,255,0,0.2)]'
+                      : 'border-[#222222] bg-[#0E0E0E] text-[#8A8A8A] hover:text-[#F5F1E8] hover:border-[#444444]'
+                  }`}
+                >
+                  SIGNATURE
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEdition('plain')}
+                  className={`py-2 px-1 text-center font-mono text-[10px] sm:text-xs border uppercase transition-all cursor-pointer ${
+                    edition === 'plain'
+                      ? 'border-[#C6FF00] bg-[#C6FF00] text-[#0A0A0A] font-bold shadow-[0_0_15px_rgba(198,255,0,0.2)]'
+                      : 'border-[#222222] bg-[#0E0E0E] text-[#8A8A8A] hover:text-[#F5F1E8] hover:border-[#444444]'
+                  }`}
+                >
+                  PLAIN BLANK
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEdition('custom')}
+                  className={`py-2 px-1 text-center font-mono text-[10px] sm:text-xs border uppercase transition-all cursor-pointer ${
+                    edition === 'custom'
+                      ? 'border-[#C6FF00] bg-[#C6FF00] text-[#0A0A0A] font-bold shadow-[0_0_15px_rgba(198,255,0,0.2)]'
+                      : 'border-[#222222] bg-[#0E0E0E] text-[#8A8A8A] hover:text-[#F5F1E8] hover:border-[#444444]'
+                  }`}
+                >
+                  CUSTOM PRINT
+                </button>
               </div>
-              <p className="text-[11px] font-mono text-[#8A8A8A] mt-1">
-                Printed across the upper rear shoulder blades in high-density archival ink.
-              </p>
             </div>
+
+            {/* Conditional Display Based on Edition */}
+            {edition === 'archive' && (
+              <div className="p-4 bg-[#0E0E0E] border-l-2 border-[#C6FF00] border-y border-r border-[#1C1C1C]">
+                <div className="text-[10px] font-mono text-[#C6FF00] uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3" />
+                  <span>BACK QUOTE ARCHITECTURE</span>
+                </div>
+                <div className="font-display text-xl sm:text-2xl uppercase tracking-tight text-[#F5F1E8]">
+                  "{product.backQuote}"
+                </div>
+                <p className="text-[11px] font-mono text-[#8A8A8A] mt-1">
+                  Printed across the upper rear shoulder blades in high-density archival ink.
+                </p>
+              </div>
+            )}
+
+            {edition === 'plain' && (
+              <div className="p-4 bg-[#0E0E0E] border-l-2 border-[#8A8A8A] border-y border-r border-[#1C1C1C]">
+                <div className="text-[10px] font-mono text-[#8A8A8A] uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                  <span>RAW MINIMALIST BLANK</span>
+                </div>
+                <div className="font-display text-lg uppercase tracking-tight text-[#F5F1E8]">
+                  ZERO GRAPHICS // PURE THERMAL DRAPE
+                </div>
+                <p className="text-[11px] font-mono text-[#8A8A8A] mt-1">
+                  Solid clean 240 GSM waffle knit without any front chest logo or back typography. Essential silhouette.
+                </p>
+              </div>
+            )}
+
+            {edition === 'custom' && (
+              <CustomPrintStudio
+                config={customDesign}
+                onChange={setCustomDesign}
+                productColor={selectedColor}
+              />
+            )}
 
             {/* Fabric Details Highlight */}
             <div className="p-3 bg-[#111111] border border-[#1C1C1C] flex items-center justify-between text-xs font-mono">
@@ -161,8 +243,13 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
             <NotifyMeButton
               productName={product.name}
               selectedSize={selectedSize}
-              isDropLive={false}
+              selectedColor={selectedColor}
+              product={product}
+              isDropLive={isDropLive}
+              edition={edition}
+              customDesign={customDesign}
             />
+
 
             {/* Editorial Description in Menance Voice */}
             <div className="pt-4 border-t border-[#1C1C1C] space-y-2">

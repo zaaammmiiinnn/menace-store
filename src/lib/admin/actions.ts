@@ -8,226 +8,84 @@ import { upsertDynamicProduct, deleteDynamicProduct } from '@/data/products';
 
 // --- PRODUCTS ---
 export async function createProductAction(data: any) {
-  await requireAdmin();
-  const parsed = productSchema.parse(data);
-  const id = `prod_${Date.now()}`;
-  const now = Date.now();
+  try {
+    await requireAdmin();
+    const parsed = productSchema.parse(data);
+    const id = `prod_${Date.now()}`;
+    const now = Date.now();
 
-  const d1 = getD1Database();
-  if (d1) {
-    try {
-      await d1.prepare(
-        `INSERT INTO products (id, slug, name, description, price_inr, price_usd, category, drop_id, status, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).bind(
-        id,
-        parsed.slug,
-        parsed.name,
-        parsed.description,
-        parsed.priceInr,
-        parsed.priceUsd,
-        parsed.category,
-        parsed.dropId || 'drop_001',
-        parsed.status,
-        now,
-        now
-      ).run();
-
-      const variantsToInsert: any[] = (parsed.variants && parsed.variants.length > 0)
-        ? parsed.variants
-        : [
-            { size: 'S', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-S`, stock: 25 },
-            { size: 'M', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-M`, stock: 50 },
-            { size: 'L', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-L`, stock: 40 },
-            { size: 'XL', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-XL`, stock: 20 },
-          ];
-
-      for (let index = 0; index < variantsToInsert.length; index++) {
-        const v = variantsToInsert[index];
+    const d1 = getD1Database();
+    if (d1) {
+      try {
         await d1.prepare(
-          `INSERT INTO product_variants (id, product_id, size, color, sku, stock, price_override, image_url)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+          `INSERT INTO products (id, slug, name, description, price_inr, price_usd, category, drop_id, status, purchase_mode, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         ).bind(
-          `var_${id}_${index}`,
           id,
-          v.size,
-          v.color,
-          v.sku,
-          v.stock,
-          v.priceOverride || null,
-          v.imageUrl || null
+          parsed.slug,
+          parsed.name,
+          parsed.description || '',
+          parsed.priceInr,
+          parsed.priceUsd,
+          parsed.category || 'tees',
+          parsed.dropId || 'drop_001',
+          parsed.status || 'active',
+          parsed.purchaseMode || 'buy_now',
+          now,
+          now
         ).run();
-      }
 
-      const imagesToInsert = (parsed.images && parsed.images.length > 0)
-        ? parsed.images
-        : ['/products/the-classic-waffle-black/front.jpg'];
+        const variantsToInsert: any[] = (parsed.variants && parsed.variants.length > 0)
+          ? parsed.variants
+          : [
+              { size: 'S', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-S`, stock: 25 },
+              { size: 'M', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-M`, stock: 50 },
+              { size: 'L', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-L`, stock: 40 },
+              { size: 'XL', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-XL`, stock: 20 },
+            ];
 
-      for (let index = 0; index < imagesToInsert.length; index++) {
-        const url = imagesToInsert[index];
-        await d1.prepare(
-          `INSERT INTO product_images (id, product_id, url, alt, sort_order)
-           VALUES (?, ?, ?, ?, ?)`
-        ).bind(
-          `img_${id}_${index}`,
-          id,
-          url,
-          `${parsed.name} Image ${index + 1}`,
-          index
-        ).run();
+        for (let index = 0; index < variantsToInsert.length; index++) {
+          const v = variantsToInsert[index];
+          await d1.prepare(
+            `INSERT INTO product_variants (id, product_id, size, color, sku, stock, price_override, image_url)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+          ).bind(
+            v.id || `var_${id}_${index}`,
+            id,
+            v.size,
+            v.color || 'Black',
+            v.sku || `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-${v.size}`,
+            Number(v.stock) || 0,
+            v.priceOverride ? Number(v.priceOverride) : null,
+            v.imageUrl || null
+          ).run();
+        }
+
+        const imagesToInsert = (parsed.images && parsed.images.length > 0)
+          ? parsed.images
+          : ['/products/the-classic-waffle-black/front.jpg'];
+
+        for (let index = 0; index < imagesToInsert.length; index++) {
+          const url = imagesToInsert[index];
+          await d1.prepare(
+            `INSERT INTO product_images (id, product_id, url, alt, sort_order)
+             VALUES (?, ?, ?, ?, ?)`
+          ).bind(
+            `img_${id}_${index}`,
+            id,
+            url,
+            `${parsed.name} Image ${index + 1}`,
+            index
+          ).run();
+        }
+      } catch (d1Err) {
+        console.error('[D1 createProductAction Error]:', d1Err);
       }
-    } catch (d1Err) {
-      console.error('[D1 createProductAction Error]:', d1Err);
     }
-  }
 
-  const store = getLocalStore();
-  const newProduct = {
-    id,
-    slug: parsed.slug,
-    name: parsed.name,
-    description: parsed.description,
-    price_inr: parsed.priceInr,
-    price_usd: parsed.priceUsd,
-    category: parsed.category,
-    drop_id: parsed.dropId || 'drop_001',
-    status: parsed.status,
-    created_at: now,
-    updated_at: now,
-  };
-
-  store.getTable('products').unshift(newProduct);
-
-  parsed.variants.forEach((v, index) => {
-    store.getTable('product_variants').push({
-      id: `var_${id}_${index}`,
-      product_id: id,
-      size: v.size,
-      color: v.color,
-      sku: v.sku,
-      stock: v.stock,
-      price_override: v.priceOverride || null,
-      image_url: v.imageUrl || null,
-    });
-  });
-
-  parsed.images.forEach((url, index) => {
-    store.getTable('product_images').push({
-      id: `img_${id}_${index}`,
-      product_id: id,
-      url,
-      alt: `${parsed.name} Image ${index + 1}`,
-      sort_order: index,
-    });
-  });
-
-  upsertDynamicProduct({
-    id,
-    slug: parsed.slug,
-    name: parsed.name,
-    description: parsed.description,
-    price: parsed.priceInr,
-    images: parsed.images,
-    category: parsed.category,
-    status: parsed.status,
-  });
-
-  await logAuditAction({
-    action: 'CREATE_PRODUCT',
-    entity: 'products',
-    entityId: id,
-    details: `Created product "${parsed.name}" (${parsed.slug}) with ${parsed.variants.length} variants.`,
-  });
-
-  revalidatePath('/admin');
-  revalidatePath('/admin/products');
-  revalidatePath(`/admin/products/${id}`);
-  revalidatePath('/shop');
-
-  return { success: true, id, slug: parsed.slug };
-}
-
-export async function updateProductAction(id: string, data: any) {
-  await requireAdmin();
-  const parsed = productSchema.parse(data);
-  const now = Date.now();
-
-  const d1 = getD1Database();
-  if (d1) {
-    try {
-      await d1.prepare(
-        `UPDATE products SET slug = ?, name = ?, description = ?, price_inr = ?, price_usd = ?, category = ?, drop_id = ?, status = ?, updated_at = ?
-         WHERE id = ?`
-      ).bind(
-        parsed.slug,
-        parsed.name,
-        parsed.description,
-        parsed.priceInr,
-        parsed.priceUsd,
-        parsed.category,
-        parsed.dropId || 'drop_001',
-        parsed.status,
-        now,
-        id
-      ).run();
-
-      const variantsToSave: any[] = (parsed.variants && parsed.variants.length > 0)
-        ? parsed.variants
-        : [
-            { size: 'S', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-S`, stock: 25 },
-            { size: 'M', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-M`, stock: 50 },
-            { size: 'L', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-L`, stock: 40 },
-            { size: 'XL', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-XL`, stock: 20 },
-          ];
-
-      await d1.prepare('DELETE FROM product_variants WHERE product_id = ?').bind(id).run();
-      for (let idx = 0; idx < variantsToSave.length; idx++) {
-        const v = variantsToSave[idx];
-        await d1.prepare(
-          `INSERT INTO product_variants (id, product_id, size, color, sku, stock, price_override, image_url)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-        ).bind(
-          v.id || `var_${id}_${idx}`,
-          id,
-          v.size,
-          v.color,
-          v.sku,
-          v.stock,
-          v.priceOverride || null,
-          v.imageUrl || null
-        ).run();
-      }
-
-      const imagesToSave = (parsed.images && parsed.images.length > 0)
-        ? parsed.images
-        : ['/products/the-classic-waffle-black/front.jpg'];
-
-      await d1.prepare('DELETE FROM product_images WHERE product_id = ?').bind(id).run();
-      for (let idx = 0; idx < imagesToSave.length; idx++) {
-        const url = imagesToSave[idx];
-        await d1.prepare(
-          `INSERT INTO product_images (id, product_id, url, alt, sort_order)
-           VALUES (?, ?, ?, ?, ?)`
-        ).bind(
-          `img_${id}_${idx}`,
-          id,
-          url,
-          `${parsed.name} Image ${idx + 1}`,
-          idx
-        ).run();
-      }
-    } catch (d1Err) {
-      console.error('[D1 updateProductAction Error]:', d1Err);
-    }
-  }
-
-  const store = getLocalStore();
-  const products = store.getTable('products');
-  const index = products.findIndex((p: any) => p.id === id);
-
-  if (index !== -1) {
-    products[index] = {
-      ...products[index],
+    const store = getLocalStore();
+    const newProduct = {
+      id,
       slug: parsed.slug,
       name: parsed.name,
       description: parsed.description,
@@ -236,51 +94,218 @@ export async function updateProductAction(id: string, data: any) {
       category: parsed.category,
       drop_id: parsed.dropId || 'drop_001',
       status: parsed.status,
+      created_at: now,
       updated_at: now,
     };
-  }
 
-  const variantsTable = store.getTable('product_variants');
-  const filteredVariants = variantsTable.filter((v: any) => v.product_id !== id);
-  parsed.variants.forEach((v, idx) => {
-    filteredVariants.push({
-      id: v.id || `var_${id}_${idx}`,
-      product_id: id,
-      size: v.size,
-      color: v.color,
-      sku: v.sku,
-      stock: v.stock,
-      price_override: v.priceOverride || null,
-      image_url: v.imageUrl || null,
+    store.getTable('products').unshift(newProduct);
+
+    (parsed.variants || []).forEach((v, index) => {
+      store.getTable('product_variants').push({
+        id: v.id || `var_${id}_${index}`,
+        product_id: id,
+        size: v.size,
+        color: v.color || 'Black',
+        sku: v.sku || `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-${v.size}`,
+        stock: Number(v.stock) || 0,
+        price_override: v.priceOverride ? Number(v.priceOverride) : null,
+        image_url: v.imageUrl || null,
+      });
     });
-  });
-  store.getTable('product_variants').length = 0;
-  store.getTable('product_variants').push(...filteredVariants);
 
-  upsertDynamicProduct({
-    id,
-    slug: parsed.slug,
-    name: parsed.name,
-    description: parsed.description,
-    price: parsed.priceInr,
-    images: parsed.images,
-    category: parsed.category,
-    status: parsed.status,
-  });
+    (parsed.images || []).forEach((url, index) => {
+      store.getTable('product_images').push({
+        id: `img_${id}_${index}`,
+        product_id: id,
+        url,
+        alt: `${parsed.name} Image ${index + 1}`,
+        sort_order: index,
+      });
+    });
 
-  await logAuditAction({
-    action: 'UPDATE_PRODUCT',
-    entity: 'products',
-    entityId: id,
-    details: `Updated product "${parsed.name}".`,
-  });
+    upsertDynamicProduct({
+      id,
+      slug: parsed.slug,
+      name: parsed.name,
+      description: parsed.description,
+      price: parsed.priceInr,
+      images: parsed.images,
+      category: parsed.category,
+      status: parsed.status,
+    });
 
-  revalidatePath('/admin');
-  revalidatePath('/admin/products');
-  revalidatePath(`/admin/products/${id}`);
-  revalidatePath('/shop');
+    await logAuditAction({
+      action: 'CREATE_PRODUCT',
+      entity: 'products',
+      entityId: id,
+      details: `Created product "${parsed.name}" (${parsed.slug}).`,
+    });
 
-  return { success: true };
+    revalidatePath('/admin');
+    revalidatePath('/admin/products');
+    revalidatePath('/admin/inventory');
+    revalidatePath(`/admin/products/${id}`);
+    revalidatePath('/shop');
+    revalidatePath(`/shop/${parsed.slug}`);
+
+    return { success: true, id, slug: parsed.slug };
+  } catch (err: any) {
+    console.error('[createProductAction Fatal Error]:', err);
+    return { success: false, error: err?.message || 'Failed to create product.' };
+  }
+}
+
+export async function updateProductAction(id: string, data: any) {
+  try {
+    await requireAdmin();
+    const parsed = productSchema.parse(data);
+    const now = Date.now();
+
+    const d1 = getD1Database();
+    let targetId = id;
+    if (d1) {
+      try {
+        // Resolve target product ID in D1 if id was slug or prod_xxx
+        const existing = (await d1.prepare('SELECT id FROM products WHERE id = ? OR slug = ?').bind(id, id).first()) as any;
+        if (existing?.id) {
+          targetId = existing.id;
+        }
+
+        await d1.prepare(
+          `UPDATE products SET slug = ?, name = ?, description = ?, price_inr = ?, price_usd = ?, category = ?, drop_id = ?, status = ?, purchase_mode = ?, updated_at = ?
+           WHERE id = ? OR slug = ?`
+        ).bind(
+          parsed.slug,
+          parsed.name,
+          parsed.description || '',
+          parsed.priceInr,
+          parsed.priceUsd,
+          parsed.category || 'tees',
+          parsed.dropId || 'drop_001',
+          parsed.status || 'active',
+          parsed.purchaseMode || 'buy_now',
+          now,
+          targetId,
+          targetId
+        ).run();
+
+        const variantsToSave: any[] = (parsed.variants && parsed.variants.length > 0)
+          ? parsed.variants
+          : [
+              { size: 'S', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-S`, stock: 25 },
+              { size: 'M', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-M`, stock: 50 },
+              { size: 'L', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-L`, stock: 40 },
+              { size: 'XL', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-XL`, stock: 20 },
+            ];
+
+        await d1.prepare('DELETE FROM product_variants WHERE product_id = ?').bind(targetId).run();
+        for (let idx = 0; idx < variantsToSave.length; idx++) {
+          const v = variantsToSave[idx];
+          await d1.prepare(
+            `INSERT INTO product_variants (id, product_id, size, color, sku, stock, price_override, image_url)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+          ).bind(
+            v.id || `var_${targetId}_${idx}_${Date.now()}`,
+            targetId,
+            v.size,
+            v.color || 'Black',
+            v.sku || `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-${v.size}`,
+            Number(v.stock) || 0,
+            v.priceOverride ? Number(v.priceOverride) : null,
+            v.imageUrl || null
+          ).run();
+        }
+
+        const imagesToSave = (parsed.images && parsed.images.length > 0)
+          ? parsed.images
+          : ['/products/the-classic-waffle-black/front.jpg'];
+
+        await d1.prepare('DELETE FROM product_images WHERE product_id = ?').bind(targetId).run();
+        for (let idx = 0; idx < imagesToSave.length; idx++) {
+          const url = imagesToSave[idx];
+          await d1.prepare(
+            `INSERT INTO product_images (id, product_id, url, alt, sort_order)
+             VALUES (?, ?, ?, ?, ?)`
+          ).bind(
+            `img_${targetId}_${idx}_${Date.now()}`,
+            targetId,
+            url,
+            `${parsed.name} Image ${idx + 1}`,
+            idx
+          ).run();
+        }
+      } catch (d1Err) {
+        console.error('[D1 updateProductAction Error]:', d1Err);
+      }
+    }
+
+    const store = getLocalStore();
+    const products = store.getTable('products');
+    const index = products.findIndex((p: any) => p.id === id || p.id === targetId || p.slug === id);
+
+    if (index !== -1) {
+      products[index] = {
+        ...products[index],
+        slug: parsed.slug,
+        name: parsed.name,
+        description: parsed.description,
+        price_inr: parsed.priceInr,
+        price_usd: parsed.priceUsd,
+        category: parsed.category,
+        drop_id: parsed.dropId || 'drop_001',
+        status: parsed.status,
+        updated_at: now,
+      };
+    }
+
+    const variantsTable = store.getTable('product_variants');
+    const filteredVariants = variantsTable.filter((v: any) => v.product_id !== id && v.product_id !== targetId);
+    (parsed.variants || []).forEach((v, idx) => {
+      filteredVariants.push({
+        id: v.id || `var_${targetId}_${idx}`,
+        product_id: targetId,
+        size: v.size,
+        color: v.color || 'Black',
+        sku: v.sku || `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-${v.size}`,
+        stock: Number(v.stock) || 0,
+        price_override: v.priceOverride ? Number(v.priceOverride) : null,
+        image_url: v.imageUrl || null,
+      });
+    });
+    store.getTable('product_variants').length = 0;
+    store.getTable('product_variants').push(...filteredVariants);
+
+    upsertDynamicProduct({
+      id: targetId,
+      slug: parsed.slug,
+      name: parsed.name,
+      description: parsed.description,
+      price: parsed.priceInr,
+      images: parsed.images,
+      category: parsed.category,
+      status: parsed.status,
+    });
+
+    await logAuditAction({
+      action: 'UPDATE_PRODUCT',
+      entity: 'products',
+      entityId: targetId,
+      details: `Updated product "${parsed.name}".`,
+    });
+
+    revalidatePath('/admin');
+    revalidatePath('/admin/products');
+    revalidatePath('/admin/inventory');
+    revalidatePath(`/admin/products/${targetId}`);
+    revalidatePath(`/admin/products/${parsed.slug}`);
+    revalidatePath('/shop');
+    revalidatePath(`/shop/${parsed.slug}`);
+
+    return { success: true };
+  } catch (err: any) {
+    console.error('[updateProductAction Fatal Error]:', err);
+    return { success: false, error: err?.message || 'Failed to update product.' };
+  }
 }
 
 export async function deleteProductAction(id: string) {
@@ -415,26 +440,54 @@ export async function updateOrderStatusAction(
 export async function createDiscountAction(data: any) {
   await requireAdmin();
   const parsed = discountCodeSchema.parse(data);
-  const store = getLocalStore();
-
   const id = `disc_${Date.now()}`;
+  const code = parsed.code.toUpperCase().trim();
+  const expiresAt = parsed.expiresAt ? new Date(parsed.expiresAt).getTime() : null;
+  const activeInt = parsed.active ? 1 : 0;
+
+  const d1 = getD1Database();
+  if (d1) {
+    try {
+      await d1.prepare(
+        `INSERT INTO discount_codes (id, code, type, value, min_order, max_uses, uses, expires_at, active)
+         VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?)`
+      ).bind(
+        id,
+        code,
+        parsed.type,
+        parsed.value,
+        parsed.minOrder,
+        parsed.maxUses || null,
+        expiresAt,
+        activeInt
+      ).run();
+    } catch (d1Err) {
+      console.error('[createDiscountAction] D1 insert failed:', d1Err);
+    }
+  }
+
+  const store = getLocalStore();
+  const existingIndex = store.getTable('discount_codes').findIndex((d: any) => d.id === id || d.code === code);
+  if (existingIndex > -1) {
+    store.getTable('discount_codes').splice(existingIndex, 1);
+  }
   store.getTable('discount_codes').unshift({
     id,
-    code: parsed.code.toUpperCase(),
+    code,
     type: parsed.type,
     value: parsed.value,
     min_order: parsed.minOrder,
     max_uses: parsed.maxUses || null,
     uses: 0,
-    expires_at: parsed.expiresAt ? new Date(parsed.expiresAt).getTime() : null,
-    active: parsed.active ? 1 : 0,
+    expires_at: expiresAt,
+    active: activeInt,
   });
 
   await logAuditAction({
     action: 'CREATE_DISCOUNT',
     entity: 'discount_codes',
     entityId: id,
-    details: `Created code "${parsed.code}" (${parsed.type}: ${parsed.value}).`,
+    details: `Created code "${code}" (${parsed.type}: ${parsed.value}).`,
   });
 
   revalidatePath('/admin/discounts');
@@ -443,18 +496,34 @@ export async function createDiscountAction(data: any) {
 
 export async function toggleDiscountAction(id: string, active: boolean) {
   await requireAdmin();
+  const activeInt = active ? 1 : 0;
+  let codeName = id;
+
+  const d1 = getD1Database();
+  if (d1) {
+    try {
+      const existing = await d1.prepare('SELECT code FROM discount_codes WHERE id = ?').bind(id).first();
+      if (existing?.code) codeName = existing.code;
+      await d1.prepare('UPDATE discount_codes SET active = ? WHERE id = ?').bind(activeInt, id).run();
+    } catch (d1Err) {
+      console.error('[toggleDiscountAction] D1 update failed:', d1Err);
+    }
+  }
+
   const store = getLocalStore();
   const discounts = store.getTable('discount_codes');
   const code = discounts.find((d: any) => d.id === id);
 
-  if (!code) throw new Error('Discount code not found.');
-  code.active = active ? 1 : 0;
+  if (code) {
+    code.active = activeInt;
+    codeName = code.code;
+  }
 
   await logAuditAction({
     action: 'TOGGLE_DISCOUNT',
     entity: 'discount_codes',
     entityId: id,
-    details: `${active ? 'Activated' : 'Deactivated'} discount code "${code.code}".`,
+    details: `${active ? 'Activated' : 'Deactivated'} discount code "${codeName}".`,
   });
 
   revalidatePath('/admin/discounts');
@@ -463,8 +532,23 @@ export async function toggleDiscountAction(id: string, active: boolean) {
 
 export async function deleteDiscountAction(id: string) {
   await requireAdmin();
+  let codeName = id;
+
+  const d1 = getD1Database();
+  if (d1) {
+    try {
+      const existing = await d1.prepare('SELECT code FROM discount_codes WHERE id = ?').bind(id).first();
+      if (existing?.code) codeName = existing.code;
+      await d1.prepare('DELETE FROM discount_codes WHERE id = ?').bind(id).run();
+    } catch (d1Err) {
+      console.error('[deleteDiscountAction] D1 delete failed:', d1Err);
+    }
+  }
+
   const store = getLocalStore();
   const discounts = store.getTable('discount_codes');
+  const found = discounts.find((d: any) => d.id === id);
+  if (found?.code) codeName = found.code;
   const filtered = discounts.filter((d: any) => d.id !== id);
   discounts.length = 0;
   discounts.push(...filtered);
@@ -473,7 +557,7 @@ export async function deleteDiscountAction(id: string) {
     action: 'DELETE_DISCOUNT',
     entity: 'discount_codes',
     entityId: id,
-    details: `Deleted discount code.`,
+    details: `Deleted discount code "${codeName}".`,
   });
 
   revalidatePath('/admin/discounts');
@@ -581,4 +665,80 @@ export async function getR2UploadUrlAction(filename: string, filetype: string) {
     publicUrl: `${publicDomain}/${key}`,
     key,
   };
+}
+
+// --- DROPS ---
+export async function toggleDropStatusAction(dropId: string, status: 'live' | 'upcoming' | 'archived') {
+  await requireAdmin();
+
+  const d1 = getD1Database();
+  if (d1) {
+    try {
+      await d1.prepare('UPDATE drops SET status = ? WHERE id = ?').bind(status, dropId).run();
+    } catch (e) {
+      console.error('[toggleDropStatusAction D1 Error]:', e);
+    }
+  }
+
+  const store = getLocalStore();
+  const drops = store.getTable('drops');
+  const drop = drops.find((d: any) => d.id === dropId);
+  if (drop) {
+    drop.status = status;
+  }
+
+  await logAuditAction({
+    action: 'UPDATE_DROP_STATUS',
+    entity: 'drops',
+    entityId: dropId,
+    details: `Updated drop "${dropId}" status to ${status.toUpperCase()} (${status === 'live' ? 'Buy Now Enabled' : 'Cart Locked'}).`,
+  });
+
+  revalidatePath('/admin');
+  revalidatePath('/admin/drops');
+  revalidatePath('/admin/products');
+  revalidatePath('/drops');
+  revalidatePath('/shop');
+  revalidatePath('/shop/[slug]', 'page');
+  revalidatePath('/');
+
+  return { success: true, status };
+}
+
+export async function toggleProductPurchaseModeAction(id: string, purchaseMode: 'buy_now' | 'notify_only') {
+  await requireAdmin();
+
+  const d1 = getD1Database();
+  if (d1) {
+    try {
+      await d1.prepare('UPDATE products SET purchase_mode = ? WHERE id = ? OR slug = ?')
+        .bind(purchaseMode, id, id)
+        .run();
+    } catch (e) {
+      console.error('[toggleProductPurchaseModeAction D1 Error]:', e);
+    }
+  }
+
+  const store = getLocalStore();
+  const productsTable = store.getTable('products');
+  const prod = productsTable.find((p: any) => p.id === id || p.slug === id);
+  if (prod) {
+    prod.purchase_mode = purchaseMode;
+  }
+
+  await logAuditAction({
+    action: 'UPDATE_PRODUCT_PURCHASE_MODE',
+    entity: 'products',
+    entityId: id,
+    details: `Updated product "${id}" purchase mode to ${purchaseMode.toUpperCase()} (${purchaseMode === 'buy_now' ? 'Buy Now Enabled' : 'Notify Only'}).`,
+  });
+
+  revalidatePath('/admin');
+  revalidatePath('/admin/products');
+  revalidatePath(`/admin/products/${id}`);
+  revalidatePath('/shop');
+  revalidatePath('/shop/[slug]', 'page');
+  revalidatePath('/');
+
+  return { success: true, purchaseMode };
 }

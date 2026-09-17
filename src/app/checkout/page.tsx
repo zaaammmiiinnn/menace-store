@@ -86,7 +86,13 @@ export default function CheckoutPage() {
         quantity: item.quantity,
         price: item.price,
         imageUrl: item.imageUrl || '/products/placeholder.svg',
-      }))
+        edition: item.edition,
+        customArtworkUrl: item.customArtworkUrl,
+        customPlacement: item.customPlacement,
+        customScale: item.customScale,
+      })),
+
+      { shouldValidate: true }
     );
   }, [cart.items, setValue]);
 
@@ -119,6 +125,24 @@ export default function CheckoutPage() {
     document.body.appendChild(script);
   }, []);
 
+  const onFormInvalid = (fieldErrors: any) => {
+    console.warn('[checkout] Validation errors:', fieldErrors);
+    setErrorMessage(
+      'Please complete all required fields (Name, Email, Mobile Number, Street Address, City, PIN code, and State) before proceeding to payment.'
+    );
+
+    setTimeout(() => {
+      const firstInvalid =
+        document.querySelector('.border-red-500') ||
+        document.querySelector('input:invalid') ||
+        document.querySelector('input[name*="customer"]');
+      if (firstInvalid) {
+        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        (firstInvalid as HTMLElement).focus?.();
+      }
+    }, 50);
+  };
+
   const onFormSubmit = async (formData: CreateOrderInput) => {
     setErrorMessage(null);
 
@@ -137,6 +161,7 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          promoCode: legacyCart.promoCode || null,
           items: cart.items.map((i) => ({
             productId: i.productId,
             variantId: i.variantId,
@@ -146,22 +171,58 @@ export default function CheckoutPage() {
             quantity: i.quantity,
             price: i.price,
             imageUrl: i.imageUrl,
+            edition: i.edition,
+            customArtworkUrl: i.customArtworkUrl,
+            customPlacement: i.customPlacement,
+            customScale: i.customScale,
           })),
         }),
       });
+
 
       if (!createRes.ok) {
         const errorData = await createRes.json();
         throw new Error(errorData.error || 'Failed to create order on server.');
       }
 
-      const { orderId, razorpayOrderId, amount, currency } = await createRes.json();
+      const { orderId, gateway, payu, razorpayOrderId, amount, currency } = await createRes.json();
+
+      // 2. PayU Hosted Payment Flow (Live Gateway)
+      if (gateway === 'payu' && payu?.action && payu?.params) {
+        // Clear cart stores before transitioning to PayU
+        cart.clearCart();
+        legacyCart.clearCart();
+
+        // Construct and auto-submit hidden PayU form
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = payu.action;
+
+        Object.entries(payu.params).forEach(([k, v]) => {
+          if (v !== undefined && v !== null) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = k;
+            input.value = String(v);
+            form.appendChild(input);
+          }
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+        return;
+      }
 
       const razorpayKey =
         process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_placeholder';
+      const isRealRazorpayKey =
+        Boolean(razorpayKey) &&
+        !razorpayKey.includes('placeholder') &&
+        !razorpayOrderId.includes('sim');
 
-      // 2. Open Razorpay Checkout Modal
-      if ((window as any).Razorpay) {
+      // 3. Fallback: Open Razorpay Checkout Modal if configured
+      if ((window as any).Razorpay && isRealRazorpayKey) {
+
         const options = {
           key: razorpayKey,
           amount,
@@ -188,7 +249,10 @@ export default function CheckoutPage() {
               const verifyRes = await fetch('/api/checkout/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(response),
+                body: JSON.stringify({
+                  ...response,
+                  orderId,
+                }),
               });
 
               const verifyData = await verifyRes.json();
@@ -231,16 +295,23 @@ export default function CheckoutPage() {
 
         rzp.open();
       } else {
-        // Test simulation if in offline environment
+        // Test/Sandbox simulation for preview environments
+        console.log('[checkout] Finalizing test transaction verification for order:', orderId);
         const verifyRes = await fetch('/api/checkout/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            orderId,
             razorpay_order_id: razorpayOrderId,
             razorpay_payment_id: `pay_sim_${Date.now()}`,
             razorpay_signature: `test_sig_${Date.now()}`,
           }),
         });
+
+        const verifyData = await verifyRes.json();
+        if (!verifyRes.ok || !verifyData.success) {
+          throw new Error(verifyData.error || 'Payment verification simulation failed');
+        }
 
         cart.clearCart();
         legacyCart.clearCart();
@@ -316,7 +387,7 @@ export default function CheckoutPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onFormSubmit)}>
+        <form onSubmit={handleSubmit(onFormSubmit, onFormInvalid)}>
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
             {/* Left Column (60% on desktop): Forms */}
             <div className="lg:col-span-7 space-y-8">
@@ -340,7 +411,7 @@ export default function CheckoutPage() {
             <div className="lg:col-span-5">
               <OrderSummary
                 isProcessing={isProcessing}
-                onSubmit={handleSubmit(onFormSubmit)}
+                onSubmit={handleSubmit(onFormSubmit, onFormInvalid)}
                 error={errorMessage}
               />
             </div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
-import { getProductBySlug } from '@/lib/products/queries';
+import { getProductBySlug, getDrop001, getDropById } from '@/lib/products/queries';
 import { ProductDetailView } from './ProductDetailView';
 
 export const dynamic = 'force-dynamic';
@@ -58,6 +58,11 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
     notFound();
   }
 
+  const drop = product.dropId ? await getDropById(product.dropId) : await getDrop001();
+  const isBuyNowEnabled = product.purchaseMode !== 'notify_only';
+  const isDropUpcoming = drop?.status === 'upcoming';
+  const isDropLive = isBuyNowEnabled && !isDropUpcoming;
+
   // JSON-LD structured data for Google & rich results
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -76,7 +81,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       '@type': 'Offer',
       price: product.priceInr,
       priceCurrency: 'INR',
-      availability: 'https://schema.org/PreOrder',
+      availability: isDropLive ? 'https://schema.org/InStock' : 'https://schema.org/PreOrder',
       url: `https://menance.store/shop/${product.slug}`,
       seller: {
         '@type': 'Organization',
@@ -91,7 +96,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <ProductDetailView product={product} />
+      <ProductDetailView product={product} isDropLive={isDropLive} />
     </>
   );
 }

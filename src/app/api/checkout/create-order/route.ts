@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
-import { orders, orderItems } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { orders, orderItems, discountCodes } from '@/lib/db/schema';
+import { eq, sql } from 'drizzle-orm';
 import { CreateOrderSchema } from '@/lib/validation/checkout';
 import { getRazorpay } from '@/lib/razorpay/client';
+import { getPayUConfig, generatePayURequestHash } from '@/lib/payu/client';
 
 // In-memory rate limiting tracker (max 5 order creations per minute per IP)
 const ipRequestMap = new Map<string, { count: number; resetAt: number }>();
@@ -52,7 +53,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { items, customer, shipping, clerkUserId } = validationResult.data;
+    const { items, customer, shipping, clerkUserId, promoCode } = validationResult.data;
 
     // 1. Calculate financial breakdown
     const subtotalInr = items.reduce(
@@ -60,8 +61,43 @@ export async function POST(req: NextRequest) {
       0
     );
     const shippingInr = subtotalInr >= 1499 ? 0 : 99;
-    const discountInr = 0;
-    const totalInr = subtotalInr + shippingInr - discountInr;
+    let discountInr = 0;
+    let appliedPromoId: string | null = null;
+
+    const db = getDb();
+
+    // Verify & apply promo code from Cloudflare D1
+    if (promoCode) {
+      try {
+        const cleanCode = promoCode.trim().toUpperCase();
+        const promoRows = await db
+          .select()
+          .from(discountCodes)
+          .where(eq(discountCodes.code, cleanCode));
+
+        if (promoRows && promoRows.length > 0) {
+          const promo = promoRows[0];
+          const isUsable =
+            Boolean(promo.active) &&
+            (!promo.expiresAt || promo.expiresAt > Date.now()) &&
+            (!promo.maxUses || (promo.uses || 0) < promo.maxUses) &&
+            (!promo.minOrder || subtotalInr >= promo.minOrder);
+
+          if (isUsable) {
+            appliedPromoId = promo.id;
+            if (promo.type === 'percentage') {
+              discountInr = Math.round((subtotalInr * promo.value) / 100);
+            } else {
+              discountInr = Math.min(subtotalInr, promo.value);
+            }
+          }
+        }
+      } catch (pErr) {
+        console.warn('[create-order] Promo lookup error:', pErr);
+      }
+    }
+
+    const totalInr = Math.max(0, subtotalInr + shippingInr - discountInr);
     const totalPaise = Math.round(totalInr * 100);
 
     // 2. Generate unique order ID
@@ -71,9 +107,12 @@ export async function POST(req: NextRequest) {
       .toUpperCase()}`;
     const nowTimestamp = Date.now();
 
-    const db = getDb();
-
     // 3. Create pending order in D1
+    const customItems = items.filter((i) => i.edition === 'custom' || i.customArtworkUrl);
+    const orderNotes = customItems.length > 0
+      ? `CUSTOM PRINT ORDER: ${customItems.map((c) => `${c.name} [Placement: ${c.customPlacement || 'front'}, Scale: ${c.customScale || 'medium'}]`).join(' | ')}`
+      : null;
+
     try {
       await db.insert(orders).values({
         id: orderId,
@@ -91,7 +130,9 @@ export async function POST(req: NextRequest) {
         status: 'pending',
         createdAt: nowTimestamp,
         paidAt: null,
+        notes: orderNotes,
       });
+
 
       // Insert associated line items
       for (const item of items) {
@@ -109,11 +150,82 @@ export async function POST(req: NextRequest) {
           imageUrl: item.imageUrl || null,
         });
       }
+
+      // Increment promo code usage if applied
+      if (appliedPromoId) {
+        try {
+          await db
+            .update(discountCodes)
+            .set({ uses: sql`${discountCodes.uses} + 1` })
+            .where(eq(discountCodes.id, appliedPromoId));
+        } catch (incErr) {
+          console.warn('[create-order] Failed to increment promo usage:', incErr);
+        }
+      }
     } catch (dbErr) {
       console.error('[create-order] D1 insert error:', dbErr);
     }
 
-    // 4. Initialize Razorpay order
+    // 4. Initialize PayU payment request
+    const payUConfig = getPayUConfig();
+    const baseUrl =
+      req.headers.get('origin') ||
+      (req.headers.get('host')
+        ? `${req.headers.get('x-forwarded-proto') || 'https'}://${req.headers.get('host')}`
+        : 'http://localhost:3000');
+
+    const surl = `${baseUrl}/api/checkout/payu/response`;
+    const furl = `${baseUrl}/api/checkout/payu/response`;
+    const productinfo = `MENANCE Order ${orderId}`;
+    const cleanFirstName = customer.name.trim().split(' ')[0] || 'Customer';
+    const cleanPhone = customer.phone.replace(/\D/g, '').slice(-10) || '9999999999';
+
+    let payuData: { action: string; params: Record<string, string> } | null = null;
+    if (payUConfig.key && payUConfig.salt) {
+      try {
+        const payuHash = await generatePayURequestHash(
+          {
+            txnid: orderId,
+            amount: totalInr,
+            productinfo,
+            firstname: cleanFirstName,
+            email: customer.email.trim(),
+            phone: cleanPhone,
+            surl,
+            furl,
+            udf1: orderId,
+            udf2: customer.name.trim(),
+            udf3: items.length.toString(),
+          },
+          payUConfig.salt,
+          payUConfig.key
+        );
+
+        payuData = {
+          action: payUConfig.paymentUrl,
+          params: {
+            key: payUConfig.key,
+            txnid: orderId,
+            amount: totalInr.toFixed(2),
+            productinfo,
+            firstname: cleanFirstName,
+            email: customer.email.trim(),
+            phone: cleanPhone,
+            surl,
+            furl,
+            hash: payuHash,
+            udf1: orderId,
+            udf2: customer.name.trim(),
+            udf3: items.length.toString(),
+            service_provider: 'payu_paisa',
+          },
+        };
+      } catch (payuErr) {
+        console.error('[create-order] PayU hash generation error:', payuErr);
+      }
+    }
+
+    // 5. Initialize Razorpay order (fallback / backward compatibility)
     let razorpayOrderId = `order_${Date.now()}_sim`;
     try {
       const razorpay = getRazorpay();
@@ -125,6 +237,8 @@ export async function POST(req: NextRequest) {
           customer_name: customer.name,
           customer_email: customer.email,
           customer_phone: customer.phone,
+          promo_code: promoCode || 'NONE',
+          discount_inr: discountInr.toString(),
         },
       });
 
@@ -150,10 +264,13 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       orderId,
+      gateway: payuData ? 'payu' : 'razorpay',
+      payu: payuData,
       razorpayOrderId,
       amount: totalPaise,
       currency: 'INR',
     });
+
   } catch (err: any) {
     console.error('[create-order] Unhandled error:', err);
     return NextResponse.json(

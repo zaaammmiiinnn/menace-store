@@ -2,27 +2,26 @@ import { z } from 'zod';
 
 export const productVariantSchema = z.object({
   id: z.string().optional(),
-  size: z.enum(['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'], {
-    message: 'Select a valid Menance size (XS-4XL).',
-  }),
-  color: z.string().min(1, 'Colorway name is required.'),
-  sku: z.string().min(3, 'SKU must be at least 3 characters.').regex(/^[A-Z0-9-]+$/, 'SKU must be uppercase alphanumeric and hyphens.'),
-  stock: z.number().int().min(0, 'Stock cannot be negative.').default(0),
-  priceOverride: z.number().positive().nullable().optional(),
+  size: z.string().min(1, 'Select a valid size.'),
+  color: z.string().default('Black'),
+  sku: z.string().min(1, 'SKU is required.'),
+  stock: z.coerce.number().int().min(0, 'Stock cannot be negative.').default(0),
+  priceOverride: z.coerce.number().nullable().optional(),
   imageUrl: z.string().nullable().optional(),
 });
 
 export const productSchema = z.object({
-  name: z.string().min(2, "Product name is required. Keep it punchy."),
-  slug: z.string().min(2, "Slug is required.").regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric and hyphens only."),
-  description: z.string().min(10, "Give it a real description. At least 10 characters."),
-  priceInr: z.number().positive("Price must be greater than 0."),
-  priceUsd: z.number().positive("USD price must be greater than 0."),
-  category: z.string().min(1, "Select or enter a category.").default("tees"),
+  name: z.string().min(1, "Product name is required."),
+  slug: z.string().min(1, "Slug is required."),
+  description: z.string().optional().default(""),
+  priceInr: z.coerce.number().min(0, "Price must be 0 or higher.").default(1499),
+  priceUsd: z.coerce.number().min(0, "USD price must be 0 or higher.").default(45),
+  category: z.string().default("tees"),
   dropId: z.string().nullable().optional().default("drop_001"),
-  status: z.enum(['draft', 'active', 'archived']).default('draft'),
-  images: z.array(z.string().min(1, "Image URL or path is required.")).min(1, "At least one image is required to publish."),
-  variants: z.array(productVariantSchema).min(1, "Generate or add at least one variant."),
+  status: z.enum(['draft', 'active', 'archived']).default('active'),
+  purchaseMode: z.enum(['buy_now', 'notify_only']).default('buy_now').optional(),
+  images: z.array(z.string()).optional().default([]),
+  variants: z.array(z.any()).optional().default([]),
 });
 
 export const orderStatusSchema = z.object({

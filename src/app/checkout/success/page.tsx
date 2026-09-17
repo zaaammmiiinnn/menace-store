@@ -146,8 +146,9 @@ function SuccessContent() {
 
           <div className="flex justify-between items-center pt-1 text-sm font-bold">
             <span className="text-[#8A8A8A]">PAYMENT VERIFIED:</span>
-            <span className="text-[#C6FF00]">PAID VIA RAZORPAY</span>
+            <span className="text-[#C6FF00]">PAID VIA PAYU</span>
           </div>
+
         </div>
 
         <p className="font-mono text-xs text-[#8A8A8A]">

@@ -34,7 +34,7 @@ export function GradientOrbs() {
   };
 
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 bg-base-black">
+    <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
       {/* Acid Green Orb */}
       <motion.div
         variants={variants}

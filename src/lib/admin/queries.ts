@@ -1,4 +1,4 @@
-import { getLocalStore, getD1Database } from '@/lib/db';
+import { getLocalStore, getD1Database, getDb, discountCodes } from '@/lib/db';
 
 export interface DashboardStats {
   revenueToday: number;
@@ -155,6 +155,8 @@ export async function getProducts() {
 
           return {
             ...p,
+            purchase_mode: p.purchase_mode || 'buy_now',
+            purchaseMode: p.purchase_mode || 'buy_now',
             variantsCount: productVariants.length,
             totalStock,
             dropName: drop?.name || 'Drop 001',
@@ -199,6 +201,8 @@ export async function getProductById(id: string) {
 
         return {
           ...product,
+          purchase_mode: (product as any).purchase_mode || 'buy_now',
+          purchaseMode: (product as any).purchase_mode || 'buy_now',
           variants: variantsRes?.results || [],
           images: imagesRes?.results || [],
           drop,
@@ -415,6 +419,26 @@ export async function getInventory() {
 }
 
 export async function getDiscounts() {
+  try {
+    const db = getDb();
+    const rows = await db.select().from(discountCodes);
+    if (rows && rows.length > 0) {
+      return rows.map((d) => ({
+        id: d.id,
+        code: d.code,
+        type: d.type,
+        value: d.value,
+        min_order: d.minOrder,
+        max_uses: d.maxUses,
+        uses: d.uses,
+        expires_at: d.expiresAt,
+        active: d.active ? 1 : 0,
+      }));
+    }
+  } catch (err) {
+    console.error('[getDiscounts] D1 query failed, falling back:', err);
+  }
+
   const store = getLocalStore();
   return store.getTable('discount_codes');
 }

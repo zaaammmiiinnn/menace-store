@@ -21,6 +21,8 @@ export function CartDrawer() {
     getFormattedPrice,
     promoCode,
     discountPercent,
+    discountType,
+    discountValue,
     applyPromoCode,
     removePromoCode,
     getTotal,
@@ -33,6 +35,7 @@ export function CartDrawer() {
 
   const [inputCode, setInputCode] = useState('');
   const [promoError, setPromoError] = useState(false);
+  const [isApplyingPromo, setIsApplyingPromo] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -45,20 +48,23 @@ export function CartDrawer() {
     };
   }, [isOpen]);
 
-  const handleApplyPromo = (e: React.FormEvent) => {
+  const handleApplyPromo = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputCode.trim()) return;
-    const success = applyPromoCode(inputCode.trim());
-    if (success) {
+    if (!inputCode.trim() || isApplyingPromo) return;
+    setIsApplyingPromo(true);
+    const result = await applyPromoCode(inputCode.trim());
+    setIsApplyingPromo(false);
+
+    if (result.success) {
       playConfettiSound();
       triggerConfetti();
-      showToast(`Promo ${inputCode.toUpperCase()} applied!`);
+      showToast(result.message);
       setInputCode('');
       setPromoError(false);
     } else {
       playClickSound();
       setPromoError(true);
-      showToast('Invalid promo code. Try MENANCE10 or VIP20');
+      showToast(result.message);
     }
   };
 
@@ -299,16 +305,21 @@ export function CartDrawer() {
                   </div>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-surface hover:bg-border text-xs font-display uppercase tracking-wider text-off-white rounded border border-border transition-colors cursor-pointer"
+                    disabled={isApplyingPromo}
+                    className="px-4 py-2 bg-surface hover:bg-border text-xs font-display uppercase tracking-wider text-off-white rounded border border-border transition-colors cursor-pointer disabled:opacity-50"
                   >
-                    Apply
+                    {isApplyingPromo ? '...' : 'Apply'}
                   </button>
                 </form>
 
                 {promoCode && (
                   <div className="flex items-center justify-between text-xs font-mono text-acid-green bg-acid-green/10 border border-acid-green/20 px-3 py-1.5 rounded">
                     <span className="flex items-center gap-1.5">
-                      <Check size={13} /> {promoCode} ({discountPercent}% OFF)
+                      <Check size={13} /> {promoCode} (
+                        {discountType === 'fixed'
+                          ? `₹${discountValue} OFF`
+                          : `${discountPercent || discountValue}% OFF`}
+                      )
                     </span>
                     <button
                       onClick={removePromoCode}
@@ -326,9 +337,11 @@ export function CartDrawer() {
                     <span>{getFormattedPrice(cartTotal)}</span>
                   </div>
 
-                  {discountPercent > 0 && (
+                  {getDiscountAmount() > 0 && (
                     <div className="flex justify-between text-xs font-mono text-acid-green">
-                      <span>Discount ({discountPercent}%)</span>
+                      <span>
+                        Discount ({discountType === 'fixed' ? `₹${discountValue}` : `${discountPercent || discountValue}%`})
+                      </span>
                       <span>-{getFormattedPrice(getDiscountAmount())}</span>
                     </div>
                   )}

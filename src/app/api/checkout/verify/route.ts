@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = validation.data;
+    const { orderId, razorpay_order_id, razorpay_payment_id, razorpay_signature } = validation.data;
     const secret = process.env.RAZORPAY_KEY_SECRET || 'placeholder_secret';
 
     // 1. Signature Verification using Web Crypto API (crypto.subtle)
@@ -52,9 +52,17 @@ export async function POST(req: NextRequest) {
         .where(eq(orders.razorpayOrderId, razorpay_order_id));
       if (rows && rows.length > 0) {
         targetOrder = rows[0];
+      } else if (orderId) {
+        const rowsById = await db
+          .select()
+          .from(orders)
+          .where(eq(orders.id, orderId));
+        if (rowsById && rowsById.length > 0) {
+          targetOrder = rowsById[0];
+        }
       }
     } catch (err) {
-      console.warn('[checkout/verify] Query error fetching order by razorpayOrderId:', err);
+      console.warn('[checkout/verify] Query error fetching order:', err);
     }
 
     // 3. Update D1 order status to 'paid'

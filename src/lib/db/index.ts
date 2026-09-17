@@ -55,7 +55,7 @@ class LocalD1Fallback {
         id: 'drop_001',
         name: 'DROP 001 — NOT FOR EVERYONE',
         launch_at: '2026-10-10T10:00:00+05:30',
-        status: 'upcoming',
+        status: 'live',
         description: 'First collection of 280 GSM heavyweight waffle knit oversized silhouettes.',
       },
     ];

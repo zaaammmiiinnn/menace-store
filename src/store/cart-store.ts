@@ -12,7 +12,9 @@ export interface CartState {
   currency: 'INR' | 'USD';
   promoCode: string | null;
   discountPercent: number;
-  
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+
   // Actions
   addItem: (product: Product, color?: string, size?: string) => void;
   removeItem: (productId: string, color: string, size: string) => void;
@@ -23,9 +25,9 @@ export interface CartState {
   toggleCart: () => void;
   setCurrency: (currency: 'INR' | 'USD') => void;
   toggleCurrency: () => void;
-  applyPromoCode: (code: string) => boolean;
+  applyPromoCode: (code: string) => Promise<{ success: boolean; message: string }>;
   removePromoCode: () => void;
-  
+
   // Computed helpers
   getItemCount: () => number;
   getSubtotal: () => number;
@@ -45,6 +47,8 @@ export const useCartStore = create<CartState>()(
       currency: 'INR',
       promoCode: null,
       discountPercent: 0,
+      discountType: 'percentage',
+      discountValue: 0,
       cartCount: 0,
       cartTotal: 0,
       totalItems: 0,
@@ -129,7 +133,17 @@ export const useCartStore = create<CartState>()(
         });
       },
 
-      clearCart: () => set({ items: [], cartCount: 0, totalItems: 0, cartTotal: 0, promoCode: null, discountPercent: 0 }),
+      clearCart: () =>
+        set({
+          items: [],
+          cartCount: 0,
+          totalItems: 0,
+          cartTotal: 0,
+          promoCode: null,
+          discountPercent: 0,
+          discountType: 'percentage',
+          discountValue: 0,
+        }),
 
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),
@@ -138,20 +152,70 @@ export const useCartStore = create<CartState>()(
       setCurrency: (currency) => set({ currency }),
       toggleCurrency: () => set({ currency: get().currency === 'INR' ? 'USD' : 'INR' }),
 
-      applyPromoCode: (code: string) => {
+      applyPromoCode: async (code: string) => {
         const normalized = code.trim().toUpperCase();
-        if (normalized === 'MENANCE10' || normalized === 'MENANCE10' || normalized === 'NOTFOREVERYONE') {
-          set({ promoCode: normalized, discountPercent: 10 });
-          return true;
+        if (!normalized) {
+          return { success: false, message: 'Please enter a promo code.' };
         }
-        if (normalized === 'DROP001' || normalized === 'VIP20') {
-          set({ promoCode: normalized, discountPercent: 20 });
-          return true;
+
+        const subtotal = get().getSubtotal();
+
+        try {
+          const res = await fetch('/api/promo/validate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: normalized, subtotal }),
+          });
+
+          const data = await res.json();
+          if (res.ok && data.valid) {
+            set({
+              promoCode: normalized,
+              discountType: data.type || 'percentage',
+              discountValue: data.value,
+              discountPercent: data.type === 'percentage' ? data.value : 0,
+            });
+            return {
+              success: true,
+              message: data.message || `Promo code "${normalized}" applied!`,
+            };
+          } else {
+            return {
+              success: false,
+              message: data.message || 'Invalid promo code.',
+            };
+          }
+        } catch (err) {
+          // Offline / network fallback
+          if (normalized === 'MENANCE10' || normalized === 'NOTFOREVERYONE') {
+            set({
+              promoCode: normalized,
+              discountType: 'percentage',
+              discountValue: 10,
+              discountPercent: 10,
+            });
+            return { success: true, message: `Promo code "${normalized}" applied! (10% OFF)` };
+          }
+          if (normalized === 'DROP001' || normalized === 'VIP20') {
+            set({
+              promoCode: normalized,
+              discountType: 'percentage',
+              discountValue: 20,
+              discountPercent: 20,
+            });
+            return { success: true, message: `Promo code "${normalized}" applied! (20% OFF)` };
+          }
+          return { success: false, message: 'Failed to connect to promo validation service.' };
         }
-        return false;
       },
 
-      removePromoCode: () => set({ promoCode: null, discountPercent: 0 }),
+      removePromoCode: () =>
+        set({
+          promoCode: null,
+          discountPercent: 0,
+          discountType: 'percentage',
+          discountValue: 0,
+        }),
 
       getItemCount: () => {
         return get().items.reduce((total, item) => total + item.quantity, 0);
@@ -163,8 +227,13 @@ export const useCartStore = create<CartState>()(
 
       getDiscountAmount: () => {
         const subtotal = get().getSubtotal();
-        const percent = get().discountPercent;
-        return (subtotal * percent) / 100;
+        if (subtotal <= 0) return 0;
+        const type = get().discountType || 'percentage';
+        const value = get().discountValue || get().discountPercent || 0;
+        if (type === 'fixed') {
+          return Math.min(subtotal, value);
+        }
+        return Math.round((subtotal * value) / 100);
       },
 
       getTotal: () => {
@@ -189,6 +258,8 @@ export const useCartStore = create<CartState>()(
         currency: state.currency,
         promoCode: state.promoCode,
         discountPercent: state.discountPercent,
+        discountType: state.discountType,
+        discountValue: state.discountValue,
       }),
     }
   )

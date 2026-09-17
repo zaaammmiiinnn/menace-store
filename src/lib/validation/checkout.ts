@@ -45,7 +45,13 @@ export const CustomerInfoSchema = z.object({
   phone: z
     .string()
     .trim()
-    .transform((val) => val.replace(/[\s+-]/g, '').replace(/^91/, ''))
+    .transform((val) => {
+      const digits = val.replace(/\D/g, '');
+      if (digits.length === 12 && digits.startsWith('91')) {
+        return digits.slice(2);
+      }
+      return digits;
+    })
     .refine((val) => /^[6-9]\d{9}$/.test(val), {
       message: 'Enter a valid 10-digit Indian mobile number',
     }),
@@ -74,16 +80,23 @@ export const CheckoutItemSchema = z.object({
   quantity: z.number().int().min(1, 'Quantity must be at least 1'),
   price: z.number().positive('Price must be greater than 0'),
   imageUrl: z.string().optional().default('/products/placeholder.svg'),
+  edition: z.enum(['archive', 'plain', 'custom']).optional(),
+  customArtworkUrl: z.string().optional(),
+  customPlacement: z.string().optional(),
+  customScale: z.string().optional(),
 });
+
 
 export const CreateOrderSchema = z.object({
   items: z.array(CheckoutItemSchema).min(1, 'Your cart is empty'),
   customer: CustomerInfoSchema,
   shipping: ShippingAddressSchema,
   clerkUserId: z.string().optional().nullable(),
+  promoCode: z.string().optional().nullable(),
 });
 
 export const VerifyPaymentSchema = z.object({
+  orderId: z.string().optional().nullable(),
   razorpay_order_id: z.string().min(1, 'Razorpay Order ID is required'),
   razorpay_payment_id: z.string().min(1, 'Razorpay Payment ID is required'),
   razorpay_signature: z.string().min(1, 'Razorpay Signature is required'),

@@ -4,6 +4,9 @@ import { getProductById } from '@/lib/admin/queries';
 import { ProductForm } from '@/components/admin/ProductForm';
 import { notFound } from 'next/navigation';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function EditProductPage({
   params,
 }: {

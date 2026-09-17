@@ -9,7 +9,7 @@ import { ImageUploader } from '@/components/admin/ImageUploader';
 import { VariantEditor, VariantItem } from '@/components/admin/VariantEditor';
 import { createProductAction, updateProductAction } from '@/lib/admin/actions';
 import { toast } from 'sonner';
-import { ArrowLeft, Save, Eye } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Zap } from 'lucide-react';
 import Link from 'next/link';
 
 interface ProductFormProps {
@@ -48,6 +48,7 @@ export function ProductForm({ initialData, isEditing = false }: ProductFormProps
     register,
     handleSubmit,
     setValue,
+    getValues,
     watch,
     formState: { errors },
   } = useForm<ProductFormValues>({
@@ -61,6 +62,7 @@ export function ProductForm({ initialData, isEditing = false }: ProductFormProps
       category: initialData?.category || 'tees',
       dropId: initialData?.drop_id || initialData?.dropId || 'drop_001',
       status: initialData?.status || 'active',
+      purchaseMode: initialData?.purchase_mode || initialData?.purchaseMode || 'buy_now',
       images: defaultImages,
       variants: defaultVariants,
     },
@@ -82,38 +84,76 @@ export function ProductForm({ initialData, isEditing = false }: ProductFormProps
     }
   };
 
-  const onSubmit = async (values: ProductFormValues) => {
-    const finalImages = images.length > 0 ? images : defaultImages;
-    const finalVariants = variants.length > 0 ? variants : defaultVariants;
+  const handleDirectSubmit = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    const formValues = getValues();
+    const finalName = (formValues.name || '').trim();
+    const finalSlug = (formValues.slug || '').trim();
+
+    if (!finalName) {
+      toast.error('Product title is required.');
+      return;
+    }
+    if (!finalSlug) {
+      toast.error('URL slug is required.');
+      return;
+    }
+
+    const priceInrVal = Number(formValues.priceInr);
+    const priceUsdVal = Number(formValues.priceUsd);
+
+    const finalImages = images && images.length > 0 ? images : defaultImages;
+    const finalVariants = variants && variants.length > 0 ? variants : defaultVariants;
 
     setIsSubmitting(true);
     try {
       const payload = {
-        ...values,
+        name: finalName,
+        slug: finalSlug,
+        description: formValues.description || '',
+        priceInr: isNaN(priceInrVal) || priceInrVal < 0 ? 1499 : priceInrVal,
+        priceUsd: isNaN(priceUsdVal) || priceUsdVal < 0 ? 45 : priceUsdVal,
+        category: formValues.category || 'tees',
+        dropId: formValues.dropId || 'drop_001',
+        status: formValues.status || 'active',
         images: finalImages,
         variants: finalVariants,
       };
 
       if (isEditing) {
-        await updateProductAction(initialData.id, payload);
+        const targetId = initialData?.id || initialData?.slug;
+        const res = await updateProductAction(targetId, payload);
+        if (res && !res.success && res.error) {
+          toast.error(res.error);
+          return;
+        }
         toast.success('Product updated successfully.');
         router.push('/admin/products');
         router.refresh();
       } else {
         const res = await createProductAction(payload);
+        if (res && !res.success && res.error) {
+          toast.error(res.error);
+          return;
+        }
         toast.success('Product published successfully!');
         router.push('/admin/products');
         router.refresh();
       }
     } catch (err: any) {
-      toast.error(err.message || 'Error saving product.');
+      console.error('[ProductForm Submit Error]:', err);
+      toast.error(err?.message || 'Error saving product. Please check fields.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleDirectSubmit} className="space-y-6">
       {/* Top action header */}
       <div className="flex items-center justify-between">
         <Link
@@ -136,9 +176,10 @@ export function ProductForm({ initialData, isEditing = false }: ProductFormProps
             </Link>
           )}
           <button
-            type="submit"
+            type="button"
+            onClick={handleDirectSubmit}
             disabled={isSubmitting}
-            className="flex items-center gap-1.5 h-9 px-4 bg-[#C6FF00] hover:bg-[#b0e600] text-[#0A0A0A] font-semibold rounded-md text-[12px] font-mono transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 h-9 px-4 bg-[#C6FF00] hover:bg-[#b0e600] text-[#0A0A0A] font-semibold rounded-md text-[12px] font-mono transition-colors disabled:opacity-50 cursor-pointer"
           >
             <Save className="w-3.5 h-3.5" />
             <span>{isSubmitting ? 'Saving...' : isEditing ? 'Update Product' : 'Publish Product'}</span>
@@ -247,6 +288,65 @@ export function ProductForm({ initialData, isEditing = false }: ProductFormProps
                   <option value="draft">Draft (Hidden)</option>
                   <option value="archived">Archived</option>
                 </select>
+              </div>
+            </div>
+
+            {/* Storefront Purchase Availability */}
+            <div className="p-4 rounded-lg bg-[#141414] border border-[#292929] space-y-2 mt-3">
+              <div>
+                <label className="text-[12px] font-mono font-bold text-[#F5F1E8] uppercase tracking-wider flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5 text-[#C6FF00]" /> Storefront Purchase Mode
+                </label>
+                <p className="text-[11px] text-[#8A8A8A] font-mono mt-0.5">
+                  Controls whether customers see "BUY NOW" & "ADD TO BAG" or "NOTIFY ME WHEN LIVE".
+                </p>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <label
+                  className={`p-3 rounded-lg border flex items-start gap-2.5 cursor-pointer transition-all ${
+                    watch('purchaseMode') !== 'notify_only'
+                      ? 'bg-[#C6FF00]/10 border-[#C6FF00]/60 text-[#F5F1E8]'
+                      : 'bg-[#0F0F0F] border-[#222222] text-[#8A8A8A] hover:border-[#333333]'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    value="buy_now"
+                    {...register('purchaseMode')}
+                    className="mt-1 accent-[#C6FF00]"
+                  />
+                  <div>
+                    <span className="block text-xs font-bold text-[#F5F1E8] font-mono">
+                      ⚡ BUY NOW ENABLED
+                    </span>
+                    <span className="text-[10px] text-[#8A8A8A] font-mono block mt-0.5 leading-relaxed">
+                      Removes notify lock. Customers can immediately purchase in-stock sizes with Buy Now & Add to Bag.
+                    </span>
+                  </div>
+                </label>
+
+                <label
+                  className={`p-3 rounded-lg border flex items-start gap-2.5 cursor-pointer transition-all ${
+                    watch('purchaseMode') === 'notify_only'
+                      ? 'bg-amber-500/10 border-amber-500/60 text-[#F5F1E8]'
+                      : 'bg-[#0F0F0F] border-[#222222] text-[#8A8A8A] hover:border-[#333333]'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    value="notify_only"
+                    {...register('purchaseMode')}
+                    className="mt-1 accent-amber-500"
+                  />
+                  <div>
+                    <span className="block text-xs font-bold text-[#F5F1E8] font-mono">
+                      🔒 NOTIFY ME ONLY
+                    </span>
+                    <span className="text-[10px] text-[#8A8A8A] font-mono block mt-0.5 leading-relaxed">
+                      Cart is locked. Displays "Notify Me When Live" and captures radar emails.
+                    </span>
+                  </div>
+                </label>
               </div>
             </div>
           </div>

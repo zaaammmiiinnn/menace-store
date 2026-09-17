@@ -1,12 +1,19 @@
 import React from 'react';
 import Link from 'next/link';
-import { getDashboardStats } from '@/lib/admin/queries';
+import { getDashboardStats, getDrops } from '@/lib/admin/queries';
 import { StatCard } from '@/components/admin/StatCard';
 import { DashboardCharts } from '@/components/admin/DashboardCharts';
+import { QuickDropToggle } from '@/components/admin/QuickDropToggle';
 import { Plus, ExternalLink, ArrowRight, Package, ShoppingBag } from 'lucide-react';
 
 export default async function AdminDashboardPage() {
   const stats = await getDashboardStats();
+  const drops = await getDrops();
+  const primaryDrop = drops.find((d: any) => d.id === 'drop_001') || drops[0] || {
+    id: 'drop_001',
+    name: 'DROP 001 — NOT FOR EVERYONE',
+    status: 'upcoming',
+  };
 
   return (
     <div className="space-y-6">
@@ -37,6 +44,13 @@ export default async function AdminDashboardPage() {
           </Link>
         </div>
       </div>
+
+      {/* 1-Click Storefront Availability Switcher */}
+      <QuickDropToggle
+        dropId={primaryDrop.id}
+        dropName={primaryDrop.name}
+        initialStatus={primaryDrop.status || 'upcoming'}
+      />
 
       {/* 4 Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

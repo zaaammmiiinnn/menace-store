@@ -46,7 +46,13 @@ export interface CartItem {
   quantity: number;
   selectedColor?: ColorSwatch;
   selectedSize?: SizeOption;
+  edition?: 'archive' | 'plain' | 'custom';
+  customArtworkUrl?: string;
+  customPlacement?: 'front_chest' | 'front_center' | 'back';
+  customScale?: 'small' | 'medium' | 'large';
+  customQuoteText?: string;
 }
+
 
 export interface WishlistItem {
   productId: string;
