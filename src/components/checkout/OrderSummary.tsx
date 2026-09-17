@@ -118,7 +118,7 @@ export function OrderSummary({ isProcessing, onSubmit, error }: OrderSummaryProp
         </button>
 
         <p className="mt-3 text-center text-[10px] font-mono text-[#8A8A8A] leading-relaxed">
-          Secure payment via Razorpay. UPI, cards, netbanking.
+          100% Secure payment via PayU. UPI, Cards, NetBanking, and Wallets.
         </p>
       </div>
 
