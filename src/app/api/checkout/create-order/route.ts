@@ -177,7 +177,8 @@ export async function POST(req: NextRequest) {
     const surl = `${baseUrl}/api/checkout/payu/response`;
     const furl = `${baseUrl}/api/checkout/payu/response`;
     const productinfo = `MENANCE Order ${orderId}`;
-    const cleanFirstName = customer.name.trim().split(' ')[0] || 'Customer';
+    const cleanFirstName =
+      (customer.name.trim().split(' ')[0] || 'Customer').replace(/[^a-zA-Z]/g, '') || 'Customer';
     const cleanPhone = customer.phone.replace(/\D/g, '').slice(-10) || '9999999999';
 
     let payuData: { action: string; params: Record<string, string> } | null = null;
@@ -196,6 +197,8 @@ export async function POST(req: NextRequest) {
             udf1: orderId,
             udf2: customer.name.trim(),
             udf3: items.length.toString(),
+            udf4: '',
+            udf5: '',
           },
           payUConfig.salt,
           payUConfig.key
@@ -217,6 +220,8 @@ export async function POST(req: NextRequest) {
             udf1: orderId,
             udf2: customer.name.trim(),
             udf3: items.length.toString(),
+            udf4: '',
+            udf5: '',
             service_provider: 'payu_paisa',
           },
         };
