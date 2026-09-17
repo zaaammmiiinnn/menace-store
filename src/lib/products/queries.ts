@@ -43,6 +43,8 @@ function getFallbackProducts(): FormattedProduct[] {
       'the-henley-black',
       'heavy-waffle-black-full',
       'heavy-waffle-brown-full',
+      'brown-boxy-fit-tshirt',
+      'off-white-boxy-fit-tshirt',
     ].includes(p.slug);
     const hasSecondModel = p.slug === 'the-henley-offwhite';
 
@@ -125,6 +127,8 @@ export async function getProducts(): Promise<FormattedProduct[]> {
         'the-henley-black',
         'heavy-waffle-black-full',
         'heavy-waffle-brown-full',
+        'brown-boxy-fit-tshirt',
+        'off-white-boxy-fit-tshirt',
       ].includes(p.slug);
       const hasSecondModel = p.slug === 'the-henley-offwhite';
 
@@ -205,6 +209,8 @@ export async function getProducts(): Promise<FormattedProduct[]> {
           'the-henley-black',
           'heavy-waffle-black-full',
           'heavy-waffle-brown-full',
+          'brown-boxy-fit-tshirt',
+          'off-white-boxy-fit-tshirt',
         ].includes(p.slug);
         const hasSecondModel = p.slug === 'the-henley-offwhite';
 
