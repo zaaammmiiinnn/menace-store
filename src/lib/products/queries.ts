@@ -37,11 +37,13 @@ function getFallbackProducts(): FormattedProduct[] {
   return SEED_PRODUCTS.map((p) => {
     const hasHenleyModel = p.slug === 'the-henley-offwhite';
     const hasWaffleModel = p.slug === 'heavy-waffle-offwhite-full';
+    const hasClassicModel = p.slug === 'the-classic-waffle-offwhite';
     const images = [
       `/products/${p.slug}/front.jpg`,
       `/products/${p.slug}/back.jpg`,
       ...(hasHenleyModel ? [`/products/${p.slug}/model.jpg`, `/products/${p.slug}/model-2.jpg`] : []),
       ...(hasWaffleModel ? [`/products/${p.slug}/model.jpg`] : []),
+      ...(hasClassicModel ? [`/products/${p.slug}/model.jpg`] : []),
       `/products/${p.slug}/detail-1.jpg`,
       `/products/${p.slug}/detail-2.jpg`,
     ];
@@ -51,9 +53,11 @@ function getFallbackProducts(): FormattedProduct[] {
       `/products/${p.slug}/back-plain.jpg`,
       ...(hasHenleyModel ? [`/products/${p.slug}/model.jpg`, `/products/${p.slug}/model-2.jpg`] : []),
       ...(hasWaffleModel ? [`/products/${p.slug}/model.jpg`] : []),
+      ...(hasClassicModel ? [`/products/${p.slug}/model.jpg`] : []),
       `/products/${p.slug}/detail-1.jpg`,
       `/products/${p.slug}/detail-2.jpg`,
     ];
+
 
 
     return {
@@ -108,6 +112,7 @@ export async function getProducts(): Promise<FormattedProduct[]> {
       const color = pVariants[0]?.color || 'Black';
       const hasHenleyModel = p.slug === 'the-henley-offwhite';
       const hasWaffleModel = p.slug === 'heavy-waffle-offwhite-full';
+      const hasClassicModel = p.slug === 'the-classic-waffle-offwhite';
       const imagesList = pImages.length > 0 
         ? pImages.map((img) => img.url)
         : [
@@ -115,6 +120,7 @@ export async function getProducts(): Promise<FormattedProduct[]> {
             `/products/${p.slug}/back.jpg`,
             ...(hasHenleyModel ? [`/products/${p.slug}/model.jpg`, `/products/${p.slug}/model-2.jpg`] : []),
             ...(hasWaffleModel ? [`/products/${p.slug}/model.jpg`] : []),
+            ...(hasClassicModel ? [`/products/${p.slug}/model.jpg`] : []),
             `/products/${p.slug}/detail-1.jpg`,
             `/products/${p.slug}/detail-2.jpg`,
           ];
@@ -124,9 +130,11 @@ export async function getProducts(): Promise<FormattedProduct[]> {
         `/products/${p.slug}/back-plain.jpg`,
         ...(hasHenleyModel ? [`/products/${p.slug}/model.jpg`, `/products/${p.slug}/model-2.jpg`] : []),
         ...(hasWaffleModel ? [`/products/${p.slug}/model.jpg`] : []),
+        ...(hasClassicModel ? [`/products/${p.slug}/model.jpg`] : []),
         `/products/${p.slug}/detail-1.jpg`,
         `/products/${p.slug}/detail-2.jpg`,
       ];
+
 
 
       return {
@@ -177,6 +185,7 @@ export async function getProducts(): Promise<FormattedProduct[]> {
         const color = pVariants[0]?.color || 'Black';
         const hasHenleyModel = p.slug === 'the-henley-offwhite';
         const hasWaffleModel = p.slug === 'heavy-waffle-offwhite-full';
+        const hasClassicModel = p.slug === 'the-classic-waffle-offwhite';
         const imagesList = pImages.length > 0 
           ? pImages.sort((a, b) => a.sortOrder - b.sortOrder).map((img) => img.url)
           : [
@@ -184,6 +193,7 @@ export async function getProducts(): Promise<FormattedProduct[]> {
               `/products/${p.slug}/back.jpg`,
               ...(hasHenleyModel ? [`/products/${p.slug}/model.jpg`, `/products/${p.slug}/model-2.jpg`] : []),
               ...(hasWaffleModel ? [`/products/${p.slug}/model.jpg`] : []),
+              ...(hasClassicModel ? [`/products/${p.slug}/model.jpg`] : []),
               `/products/${p.slug}/detail-1.jpg`,
               `/products/${p.slug}/detail-2.jpg`,
             ];
@@ -193,9 +203,11 @@ export async function getProducts(): Promise<FormattedProduct[]> {
           `/products/${p.slug}/back-plain.jpg`,
           ...(hasHenleyModel ? [`/products/${p.slug}/model.jpg`, `/products/${p.slug}/model-2.jpg`] : []),
           ...(hasWaffleModel ? [`/products/${p.slug}/model.jpg`] : []),
+          ...(hasClassicModel ? [`/products/${p.slug}/model.jpg`] : []),
           `/products/${p.slug}/detail-1.jpg`,
           `/products/${p.slug}/detail-2.jpg`,
         ];
+
 
 
         return {
