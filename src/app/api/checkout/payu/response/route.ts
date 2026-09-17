@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
+import { getDb, getD1Database } from '@/lib/db';
 import { orders } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { getPayUConfig, verifyPayUResponseHash, type PayUCallbackPayload } from '@/lib/payu/client';
@@ -56,12 +56,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const d1 = getD1Database();
     const db = getDb();
 
     if (isSuccess) {
       // Payment Successful
       try {
         if (orderId) {
+          if (d1) {
+            await d1
+              .prepare(
+                'UPDATE orders SET status = ?, paid_at = ?, razorpay_payment_id = ? WHERE id = ?'
+              )
+              .bind('paid', Date.now(), payload.mihpayid || payload.payuMoneyId || null, orderId)
+              .run()
+              .catch((e: any) => console.error('[PayU Callback] D1 direct paid update error:', e));
+          }
+
           await db
             .update(orders)
             .set({
@@ -69,7 +80,9 @@ export async function POST(req: NextRequest) {
               paidAt: Date.now(),
               razorpayPaymentId: payload.mihpayid || payload.payuMoneyId || null,
             })
-            .where(eq(orders.id, orderId));
+            .where(eq(orders.id, orderId))
+            .catch(() => {});
+
           console.log('[PayU Callback] Order successfully marked paid in D1:', orderId);
         }
       } catch (dbErr) {
@@ -91,12 +104,22 @@ export async function POST(req: NextRequest) {
 
       try {
         if (orderId) {
+          if (d1) {
+            await d1
+              .prepare('UPDATE orders SET status = ? WHERE id = ?')
+              .bind('failed', orderId)
+              .run()
+              .catch((e: any) => console.error('[PayU Callback] D1 direct failed update error:', e));
+          }
+
           await db
             .update(orders)
             .set({
               status: 'failed',
             })
-            .where(eq(orders.id, orderId));
+            .where(eq(orders.id, orderId))
+            .catch(() => {});
+
           console.log('[PayU Callback] Order marked failed in D1:', orderId);
         }
       } catch (dbErr) {

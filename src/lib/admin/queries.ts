@@ -284,6 +284,9 @@ export async function getOrders() {
             customerName: o.customer_name || cust?.name || 'Guest User',
             customerEmail: o.customer_email || cust?.email || '',
             itemsCount: itemsCount > 0 ? itemsCount : 1,
+            total_inr: o.total_inr !== undefined ? o.total_inr : (o.totalInr || 0),
+            created_at: o.created_at !== undefined ? o.created_at : (o.createdAt || Date.now()),
+            tracking_number: o.tracking_number || o.trackingNumber || null,
           };
         });
       }
@@ -307,11 +310,52 @@ export async function getOrders() {
       customerName: cust?.name || 'Guest User',
       customerEmail: cust?.email || '',
       itemsCount,
+      total_inr: o.total_inr !== undefined ? o.total_inr : (o.totalInr || 0),
+      created_at: o.created_at !== undefined ? o.created_at : (o.createdAt || Date.now()),
+      tracking_number: o.tracking_number || null,
     };
   });
 }
 
 export async function getOrderById(id: string) {
+  const d1 = getD1Database();
+  if (d1) {
+    try {
+      const order = await d1.prepare('SELECT * FROM orders WHERE id = ?').bind(id).first();
+      if (order) {
+        let customer = null;
+        if (order.customer_id) {
+          customer = await d1.prepare('SELECT * FROM customers WHERE id = ?').bind(order.customer_id).first();
+        }
+        if (!customer && order.customer_email) {
+          customer = await d1.prepare('SELECT * FROM customers WHERE email = ?').bind(order.customer_email).first();
+        }
+        const itemsRes = await d1.prepare('SELECT * FROM order_items WHERE order_id = ?').bind(id).all();
+        const items = itemsRes?.results || [];
+
+        return {
+          ...order,
+          customer: customer || {
+            id: order.customer_id || 'guest',
+            name: order.customer_name || 'Guest User',
+            email: order.customer_email || '',
+            phone: order.customer_phone || '',
+          },
+          items: items.map((i: any) => ({
+            ...i,
+            productName: i.product_name || 'Product',
+            price: i.price_inr || i.price_at_purchase || 0,
+            quantity: i.quantity || 1,
+            size: i.size || 'M',
+            color: i.color || 'Black',
+          })),
+        };
+      }
+    } catch (e) {
+      console.error('[D1 getOrderById Error]:', e);
+    }
+  }
+
   const store = getLocalStore();
   const order = store.getTable('orders').find((o: any) => o.id === id);
   if (!order) return null;
@@ -327,8 +371,9 @@ export async function getOrderById(id: string) {
     return {
       ...i,
       variant,
-      productName: product?.name || 'Menance Tee',
+      productName: product?.name || i.product_name || 'Menance Tee',
       productSlug: product?.slug || 'quiet-menance',
+      price: i.price_at_purchase || i.price_inr || 0,
     };
   });
 

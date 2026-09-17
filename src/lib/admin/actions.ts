@@ -407,19 +407,61 @@ export async function updateOrderStatusAction(
 ) {
   // Staff are allowed to update fulfillment tracking & status
   await requireStaff();
+
+  const fulfilledAt = (status === 'shipped' || status === 'delivered') ? Date.now() : null;
+
+  // Persist directly to Cloudflare D1
+  const d1 = getD1Database();
+  if (d1) {
+    try {
+      if (trackingNumber !== undefined && notes !== undefined) {
+        await d1.prepare(
+          `UPDATE orders
+           SET status = ?,
+               tracking_number = ?,
+               notes = ?,
+               fulfilled_at = COALESCE(?, fulfilled_at)
+           WHERE id = ?`
+        ).bind(status, trackingNumber, notes, fulfilledAt, orderId).run();
+      } else if (trackingNumber !== undefined) {
+        await d1.prepare(
+          `UPDATE orders
+           SET status = ?,
+               tracking_number = ?,
+               fulfilled_at = COALESCE(?, fulfilled_at)
+           WHERE id = ?`
+        ).bind(status, trackingNumber, fulfilledAt, orderId).run();
+      } else if (notes !== undefined) {
+        await d1.prepare(
+          `UPDATE orders
+           SET status = ?,
+               notes = ?,
+               fulfilled_at = COALESCE(?, fulfilled_at)
+           WHERE id = ?`
+        ).bind(status, notes, fulfilledAt, orderId).run();
+      } else {
+        await d1.prepare(
+          `UPDATE orders
+           SET status = ?,
+               fulfilled_at = COALESCE(?, fulfilled_at)
+           WHERE id = ?`
+        ).bind(status, fulfilledAt, orderId).run();
+      }
+    } catch (d1Err) {
+      console.error('[D1 updateOrderStatusAction Error]:', d1Err);
+    }
+  }
+
+  // Also update in-memory fallback store if present
   const store = getLocalStore();
   const orders = store.getTable('orders');
   const order = orders.find((o: any) => o.id === orderId);
 
-  if (!order) {
-    throw new Error('Order not found.');
-  }
-
-  order.status = status;
-  if (trackingNumber !== undefined) order.tracking_number = trackingNumber;
-  if (notes !== undefined) order.notes = notes;
-  if (status === 'shipped' || status === 'delivered') {
-    order.fulfilled_at = Date.now();
+  if (order) {
+    order.status = status;
+    if (trackingNumber !== undefined) order.tracking_number = trackingNumber;
+    if (notes !== undefined) order.notes = notes;
+    if (fulfilledAt) order.fulfilled_at = fulfilledAt;
   }
 
   await logAuditAction({

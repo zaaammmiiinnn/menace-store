@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
+import { getDb, getD1Database } from '@/lib/db';
 import { orders, orderItems, discountCodes } from '@/lib/db/schema';
 import { eq, sql } from 'drizzle-orm';
 import { CreateOrderSchema } from '@/lib/validation/checkout';
@@ -113,9 +113,96 @@ export async function POST(req: NextRequest) {
       ? `CUSTOM PRINT ORDER: ${customItems.map((c) => `${c.name} [Placement: ${c.customPlacement || 'front'}, Scale: ${c.customScale || 'medium'}]`).join(' | ')}`
       : null;
 
+    let customerId = `cust_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+
+    // A. Native Cloudflare D1 insertion
+    const d1 = getD1Database();
+    if (d1) {
+      try {
+        const cleanEmail = customer.email.trim().toLowerCase();
+        const existingCust = await d1
+          .prepare('SELECT id FROM customers WHERE email = ?')
+          .bind(cleanEmail)
+          .first();
+
+        if (existingCust?.id) {
+          customerId = existingCust.id as string;
+        } else {
+          await d1
+            .prepare(
+              'INSERT INTO customers (id, clerk_user_id, email, name, created_at, total_spent) VALUES (?, ?, ?, ?, ?, ?)'
+            )
+            .bind(
+              customerId,
+              clerkUserId || null,
+              cleanEmail,
+              customer.name.trim(),
+              nowTimestamp,
+              0
+            )
+            .run();
+        }
+
+        await d1
+          .prepare(
+            `INSERT INTO orders (
+              id, customer_id, customer_name, customer_email, customer_phone,
+              shipping_address, subtotal_inr, shipping_inr, discount_inr, total_inr,
+              status, created_at, notes, clerk_user_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          )
+          .bind(
+            orderId,
+            customerId,
+            customer.name.trim(),
+            cleanEmail,
+            customer.phone.trim(),
+            JSON.stringify(shipping),
+            subtotalInr,
+            shippingInr,
+            discountInr,
+            totalInr,
+            'pending',
+            nowTimestamp,
+            orderNotes,
+            clerkUserId || null
+          )
+          .run();
+
+        for (const item of items) {
+          const itemId = `item_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+          await d1
+            .prepare(
+              `INSERT INTO order_items (
+                id, order_id, product_id, variant_id, product_name,
+                size, color, quantity, price_inr, price_at_purchase, image_url
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            )
+            .bind(
+              itemId,
+              orderId,
+              item.productId,
+              item.variantId || null,
+              item.name,
+              item.size,
+              item.color,
+              item.quantity,
+              item.price,
+              item.price,
+              item.imageUrl || null
+            )
+            .run();
+        }
+      } catch (d1Err) {
+        console.error('[create-order] Native D1 insert error:', d1Err);
+      }
+    }
+
+    // B. Drizzle fallback insertion
     try {
       await db.insert(orders).values({
         id: orderId,
+        customerId,
         razorpayOrderId: null,
         razorpayPaymentId: null,
         clerkUserId: clerkUserId || null,
@@ -131,8 +218,7 @@ export async function POST(req: NextRequest) {
         createdAt: nowTimestamp,
         paidAt: null,
         notes: orderNotes,
-      });
-
+      }).catch(() => {});
 
       // Insert associated line items
       for (const item of items) {
@@ -147,8 +233,9 @@ export async function POST(req: NextRequest) {
           color: item.color,
           quantity: item.quantity,
           priceInr: item.price,
+          priceAtPurchase: item.price,
           imageUrl: item.imageUrl || null,
-        });
+        }).catch(() => {});
       }
 
       // Increment promo code usage if applied
