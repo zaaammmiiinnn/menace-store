@@ -26,32 +26,22 @@ function WebGLChecker({
   fallback: React.ReactNode;
 }) {
   const [hasWebGL, setHasWebGL] = useState<boolean | null>(null);
-  const [timedOut, setTimedOut] = useState(false);
 
   useEffect(() => {
-    // 2.5s fallback timer in case WebGL or GLTF assets hang in mobile webview
-    const timer = setTimeout(() => {
-      setTimedOut(true);
-    }, 2500);
-
     try {
       const canvas = document.createElement('canvas');
-      const gl = canvas.getContext('webgl', { powerPreference: 'high-performance' }) || canvas.getContext('experimental-webgl');
-      const isAvailable = Boolean(gl && gl instanceof WebGLRenderingContext);
-      setHasWebGL(isAvailable);
-      if (!isAvailable) {
-        clearTimeout(timer);
-      }
+      const gl =
+        canvas.getContext('webgl2') ||
+        canvas.getContext('webgl') ||
+        canvas.getContext('experimental-webgl');
+      setHasWebGL(Boolean(gl));
     } catch {
       setHasWebGL(false);
-      clearTimeout(timer);
     }
-
-    return () => clearTimeout(timer);
   }, []);
 
   if (hasWebGL === null) return null;
-  if (!hasWebGL || timedOut) return <>{fallback}</>;
+  if (!hasWebGL) return <>{fallback}</>;
   return <>{children}</>;
 }
 
