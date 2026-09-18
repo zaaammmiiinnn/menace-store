@@ -101,7 +101,7 @@ export function getPayUConfig(): PayUConfig {
   const salt =
     cfEnv.PAYU_MERCHANT_SALT ||
     process.env.PAYU_MERCHANT_SALT ||
-    'KxxhoHen0XoABAUCv1f973CV8zyDvEMC';
+    '7ieSYaBegBYUszannfMYuXpGJ7QBMlTp';
   const merchantId =
     cfEnv.PAYU_MERCHANT_ID ||
     process.env.PAYU_MERCHANT_ID ||
