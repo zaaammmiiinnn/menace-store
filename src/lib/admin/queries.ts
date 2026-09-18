@@ -613,18 +613,25 @@ export async function getStoreSettings() {
     });
   }
 
+  const parsedShippingRate =
+    settingsMap.standard_shipping_rate !== undefined && settingsMap.standard_shipping_rate !== ''
+      ? Number(settingsMap.standard_shipping_rate)
+      : 0;
+
+  const resolvedShippingType: 'free' | 'paid' =
+    (settingsMap.shipping_type as 'free' | 'paid') ||
+    (parsedShippingRate === 0 ? 'free' : 'paid');
+
   return {
     storeName: settingsMap.store_name || 'MENANCE',
     tagline: settingsMap.tagline || 'Not for everyone.',
     primaryCurrency: settingsMap.primary_currency || 'INR',
+    shippingType: resolvedShippingType,
     freeShippingThreshold:
       settingsMap.free_shipping_threshold !== undefined && settingsMap.free_shipping_threshold !== ''
         ? Number(settingsMap.free_shipping_threshold)
         : 1499,
-    standardShippingRate:
-      settingsMap.standard_shipping_rate !== undefined && settingsMap.standard_shipping_rate !== ''
-        ? Number(settingsMap.standard_shipping_rate)
-        : 0,
+    standardShippingRate: resolvedShippingType === 'free' ? 0 : parsedShippingRate,
     gstPercentage:
       settingsMap.gst_percentage !== undefined && settingsMap.gst_percentage !== ''
         ? Number(settingsMap.gst_percentage)

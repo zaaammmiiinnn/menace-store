@@ -62,7 +62,8 @@ export async function POST(req: NextRequest) {
       0
     );
     const storeSettings = await getStoreSettings();
-    const shippingInr = subtotalInr >= storeSettings.freeShippingThreshold ? 0 : storeSettings.standardShippingRate;
+    const isFreeShipping = storeSettings.shippingType === 'free' || storeSettings.standardShippingRate === 0;
+    const shippingInr = isFreeShipping ? 0 : (subtotalInr >= storeSettings.freeShippingThreshold ? 0 : storeSettings.standardShippingRate);
     let discountInr = 0;
     let appliedPromoId: string | null = null;
 

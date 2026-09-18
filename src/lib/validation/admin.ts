@@ -60,6 +60,7 @@ export const storeSettingsSchema = z.object({
   storeName: z.string().min(2, "Store name is required."),
   tagline: z.string().min(2, "Brand tagline is required."),
   primaryCurrency: z.string().default("INR"),
+  shippingType: z.enum(['free', 'paid']).default('free'),
   freeShippingThreshold: z.coerce.number().min(0),
   standardShippingRate: z.coerce.number().min(0),
   gstPercentage: z.coerce.number().min(0).max(100),

@@ -27,23 +27,30 @@ export function SettingsForm({ initialSettings, auditLogs }: SettingsFormProps) 
 
   const [deleteStaffTarget, setDeleteStaffTarget] = useState<string | null>(null);
 
-  const { register, handleSubmit } = useForm({
+  const { register, handleSubmit, watch, setValue } = useForm({
     defaultValues: {
       storeName: initialSettings.storeName || 'MENANCE',
       tagline: initialSettings.tagline || 'Not for everyone.',
       primaryCurrency: initialSettings.primaryCurrency || 'INR',
+      shippingType: initialSettings.shippingType || (initialSettings.standardShippingRate === 0 ? 'free' : 'paid'),
       freeShippingThreshold: initialSettings.freeShippingThreshold ?? 1499,
       standardShippingRate: initialSettings.standardShippingRate ?? 0,
       gstPercentage: initialSettings.gstPercentage ?? 18,
     },
   });
 
+  const currentShippingType = watch('shippingType');
+
   const onSubmit = async (values: any) => {
     setIsSaving(true);
     try {
-      const res = await updateStoreSettingsAction(values);
+      const payload = {
+        ...values,
+        standardShippingRate: values.shippingType === 'free' ? 0 : values.standardShippingRate,
+      };
+      const res = await updateStoreSettingsAction(payload);
       if (res?.success) {
-        toast.success('Store settings saved successfully.');
+        toast.success(`Store settings saved. Shipping is now ${values.shippingType.toUpperCase()}.`);
         router.refresh();
       } else {
         toast.error(res?.error || 'Failed to save settings.');
@@ -97,7 +104,7 @@ export function SettingsForm({ initialSettings, auditLogs }: SettingsFormProps) 
     <div className="space-y-8">
       {/* Store Configuration Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="p-6 rounded-lg bg-[#0F0F0F] border border-[#1F1F1F] space-y-4">
+        <div className="p-6 rounded-lg bg-[#0F0F0F] border border-[#1F1F1F] space-y-5">
           <div className="flex items-center justify-between border-b border-[#1A1A1A] pb-3">
             <div>
               <h2 className="text-[14px] font-semibold text-[#F5F1E8]">General Store Configuration</h2>
@@ -106,7 +113,7 @@ export function SettingsForm({ initialSettings, auditLogs }: SettingsFormProps) 
             <button
               type="submit"
               disabled={isSaving}
-              className="flex items-center gap-1.5 h-8 px-3.5 bg-[#C6FF00] hover:bg-[#b0e600] text-[#0A0A0A] font-semibold rounded text-[12px] font-mono transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 h-8 px-3.5 bg-[#C6FF00] hover:bg-[#b0e600] text-[#0A0A0A] font-semibold rounded text-[12px] font-mono transition-colors disabled:opacity-50 cursor-pointer"
             >
               <Save className="w-3.5 h-3.5" />
               <span>{isSaving ? 'Saving...' : 'Save Settings'}</span>
@@ -133,23 +140,117 @@ export function SettingsForm({ initialSettings, auditLogs }: SettingsFormProps) 
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+          {/* Shipping Policy Option (Free vs Paid) */}
+          <div className="pt-3 border-t border-[#1C1C1C] space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <label className="block text-[12px] font-bold text-[#F5F1E8] mb-0.5">
+                  SHIPPING DELIVERY POLICY
+                </label>
+                <p className="text-[11px] font-mono text-[#8A8A8A]">
+                  Select whether customer delivery across India is free or paid flat rate.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Option 1: Free Shipping Everywhere */}
+              <div
+                onClick={() => {
+                  setValue('shippingType', 'free', { shouldDirty: true });
+                  setValue('standardShippingRate', 0, { shouldDirty: true });
+                }}
+                className={`p-4 rounded-lg border text-left transition-all cursor-pointer relative flex flex-col justify-between ${
+                  currentShippingType === 'free'
+                    ? 'bg-[#C6FF00]/10 border-[#C6FF00] shadow-[0_0_20px_rgba(198,255,0,0.1)]'
+                    : 'bg-[#141414] border-[#262626] hover:border-[#383838]'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className={`text-[13px] font-bold font-mono ${currentShippingType === 'free' ? 'text-[#C6FF00]' : 'text-[#F5F1E8]'}`}>
+                    ⚡️ FREE SHIPPING (ALL ORDERS)
+                  </span>
+                  {currentShippingType === 'free' && (
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#C6FF00] text-black">
+                      ACTIVE
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-[#8A8A8A] mt-2 leading-relaxed">
+                  Zero delivery fees for customers. All orders ship with ₹0 delivery charge pan-India.
+                </p>
+              </div>
+
+              {/* Option 2: Paid Shipping */}
+              <div
+                onClick={() => {
+                  setValue('shippingType', 'paid', { shouldDirty: true });
+                  if (watch('standardShippingRate') === 0) {
+                    setValue('standardShippingRate', 99, { shouldDirty: true });
+                  }
+                }}
+                className={`p-4 rounded-lg border text-left transition-all cursor-pointer relative flex flex-col justify-between ${
+                  currentShippingType === 'paid'
+                    ? 'bg-[#C6FF00]/10 border-[#C6FF00] shadow-[0_0_20px_rgba(198,255,0,0.1)]'
+                    : 'bg-[#141414] border-[#262626] hover:border-[#383838]'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className={`text-[13px] font-bold font-mono ${currentShippingType === 'paid' ? 'text-[#C6FF00]' : 'text-[#F5F1E8]'}`}>
+                    📦 PAID / FLAT RATE SHIPPING
+                  </span>
+                  {currentShippingType === 'paid' && (
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#C6FF00] text-black">
+                      ACTIVE
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-[#8A8A8A] mt-2 leading-relaxed">
+                  Charge flat delivery fees. Orders reaching the threshold automatically unlock free shipping.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
             <div>
-              <label className="block text-[11px] font-mono text-[#8A8A8A] mb-1">Free Shipping Threshold (₹)</label>
+              <label className="block text-[11px] font-mono text-[#8A8A8A] mb-1">
+                Free Shipping Threshold (₹)
+              </label>
               <input
                 type="number"
+                disabled={currentShippingType === 'free'}
                 {...register('freeShippingThreshold', { valueAsNumber: true })}
-                className="w-full bg-[#141414] border border-[#262626] rounded px-3 py-2 text-[13px] text-[#F5F1E8] font-mono tabular-nums focus:outline-none"
+                className={`w-full border rounded px-3 py-2 text-[13px] font-mono tabular-nums focus:outline-none ${
+                  currentShippingType === 'free'
+                    ? 'bg-[#111] border-[#1F1F1F] text-[#555] cursor-not-allowed'
+                    : 'bg-[#141414] border-[#262626] text-[#F5F1E8]'
+                }`}
               />
+              {currentShippingType === 'free' && (
+                <p className="text-[10px] text-[#C6FF00] font-mono mt-1">Bypassed: All orders ship free</p>
+              )}
             </div>
 
             <div>
-              <label className="block text-[11px] font-mono text-[#8A8A8A] mb-1">Standard Shipping Flat Rate (₹)</label>
+              <label className="block text-[11px] font-mono text-[#8A8A8A] mb-1">
+                Standard Shipping Flat Rate (₹)
+              </label>
               <input
                 type="number"
+                disabled={currentShippingType === 'free'}
                 {...register('standardShippingRate', { valueAsNumber: true })}
-                className="w-full bg-[#141414] border border-[#262626] rounded px-3 py-2 text-[13px] text-[#F5F1E8] font-mono tabular-nums focus:outline-none"
+                className={`w-full border rounded px-3 py-2 text-[13px] font-mono tabular-nums focus:outline-none ${
+                  currentShippingType === 'free'
+                    ? 'bg-[#111] border-[#1F1F1F] text-[#555] cursor-not-allowed'
+                    : 'bg-[#141414] border-[#262626] text-[#F5F1E8]'
+                }`}
               />
+              {currentShippingType === 'free' ? (
+                <p className="text-[10px] text-[#C6FF00] font-mono mt-1">Fixed at ₹0 (Free Shipping)</p>
+              ) : (
+                <p className="text-[10px] text-[#8A8A8A] font-mono mt-1">Charged when order &lt; threshold</p>
+              )}
             </div>
 
             <div>

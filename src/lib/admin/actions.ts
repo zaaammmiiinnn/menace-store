@@ -613,12 +613,15 @@ export async function updateStoreSettingsAction(data: any) {
     const parsed = storeSettingsSchema.parse(data);
     const now = Date.now();
 
+    const effectiveShippingRate = parsed.shippingType === 'free' ? 0 : parsed.standardShippingRate;
+
     const settingsToSave = [
       { key: 'store_name', value: parsed.storeName },
       { key: 'tagline', value: parsed.tagline },
       { key: 'primary_currency', value: parsed.primaryCurrency },
+      { key: 'shipping_type', value: parsed.shippingType },
       { key: 'free_shipping_threshold', value: String(parsed.freeShippingThreshold) },
-      { key: 'standard_shipping_rate', value: String(parsed.standardShippingRate) },
+      { key: 'standard_shipping_rate', value: String(effectiveShippingRate) },
       { key: 'gst_percentage', value: String(parsed.gstPercentage) },
     ];
 
@@ -659,7 +662,7 @@ export async function updateStoreSettingsAction(data: any) {
     await logAuditAction({
       action: 'UPDATE_SETTINGS',
       entity: 'settings',
-      details: `Updated store configuration. Free shipping threshold: ₹${parsed.freeShippingThreshold}, Standard shipping: ₹${parsed.standardShippingRate}.`,
+      details: `Updated store configuration. Mode: ${parsed.shippingType.toUpperCase()}, Shipping rate: ₹${effectiveShippingRate}, Free threshold: ₹${parsed.freeShippingThreshold}.`,
     });
 
     revalidatePath('/admin/settings');
