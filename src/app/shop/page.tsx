@@ -2,8 +2,7 @@ import React from 'react';
 import { getProducts } from '@/lib/products/queries';
 import { ShopCatalogClient } from './ShopCatalogClient';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 60;
 
 export const metadata = {
   title: 'CATALOG // DROP 001 — MENANCE',
