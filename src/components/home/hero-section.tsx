@@ -42,7 +42,6 @@ export function HeroSection() {
   const heroOpacity = useTransform(scrollY, [0, 400], [1, 0.4]);
 
   useEffect(() => {
-    // Initial calculation and interval
     const updateCountdown = () => {
       const remaining = getTimeRemaining(siteConfig.dropDate);
       setTimeLeft(remaining);
@@ -61,22 +60,22 @@ export function HeroSection() {
   const tagline = "NOT FOR EVERYONE.";
 
   return (
-    <section className="relative w-full min-h-[92vh] flex flex-col items-center justify-between pt-4 pb-12 overflow-hidden">
+    <section className="relative w-full min-h-[85vh] sm:min-h-[92vh] flex flex-col items-center justify-between pt-2 sm:pt-4 pb-8 sm:pb-12 overflow-hidden">
       {/* Background ambient lighting glow */}
       <div 
-        className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] rounded-full blur-[140px] pointer-events-none opacity-20 transition-colors duration-1000"
+        className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] sm:w-[550px] h-[350px] sm:h-[550px] rounded-full blur-[100px] sm:blur-[140px] pointer-events-none opacity-25 transition-colors duration-1000"
         style={{ backgroundColor: activeColor === '#0A0A0A' ? '#C6FF00' : activeColor }}
       />
 
       {/* Top Banner Hit */}
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-        className="z-10 flex items-center gap-2 px-3 py-1 rounded-full bg-surface border border-border/80"
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="z-10 flex items-center gap-2 px-3 py-1 rounded-full bg-surface border border-border/80 shadow-md my-1"
       >
         <span className="w-2 h-2 rounded-full bg-acid-green animate-pulse" />
-        <span className="font-mono text-[11px] tracking-widest text-off-white uppercase">
+        <span className="font-mono text-[10px] sm:text-[11px] tracking-widest text-off-white uppercase">
           DROP 001 // 280–300 GSM OVERSIZED &amp; WAFFLE KNIT
         </span>
       </motion.div>
@@ -84,7 +83,7 @@ export function HeroSection() {
       {/* 3D Tee Centerpiece with Controls */}
       <motion.div 
         style={{ y: shouldReduceMotion ? 0 : heroY, opacity: shouldReduceMotion ? 1 : heroOpacity }}
-        className="relative w-full max-w-2xl h-[48vh] md:h-[54vh] my-auto flex items-center justify-center z-20"
+        className="relative w-full max-w-2xl h-[300px] sm:h-[400px] md:h-[50vh] my-1 sm:my-auto flex items-center justify-center z-20"
       >
         <TeeScene
           color={activeColor}
@@ -93,8 +92,8 @@ export function HeroSection() {
           productName="Drop 001 Hero Tee"
         />
 
-        {/* Floating Swatches Selector (Left side on desktop, bottom overlay on mobile) */}
-        <div className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-30 p-2 rounded-xl bg-base-black/70 backdrop-blur-md border border-white/10 shadow-xl">
+        {/* Desktop Floating Swatches Selector (Left side) */}
+        <div className="hidden md:flex absolute left-4 md:left-8 top-1/2 -translate-y-1/2 flex-col gap-3 z-30 p-2 rounded-xl bg-base-black/70 backdrop-blur-md border border-white/10 shadow-xl">
           <span className="text-[9px] font-mono tracking-widest text-muted-grey uppercase text-center">
             COLOR
           </span>
@@ -118,8 +117,8 @@ export function HeroSection() {
           ))}
         </div>
 
-        {/* Floating Size Selector (Right side on desktop) */}
-        <div className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 flex flex-col gap-1.5 z-30 p-2 rounded-xl bg-base-black/70 backdrop-blur-md border border-white/10 shadow-xl">
+        {/* Desktop Floating Size Selector (Right side) */}
+        <div className="hidden md:flex absolute right-4 md:right-8 top-1/2 -translate-y-1/2 flex-col gap-1.5 z-30 p-2 rounded-xl bg-base-black/70 backdrop-blur-md border border-white/10 shadow-xl">
           <span className="text-[9px] font-mono tracking-widest text-muted-grey uppercase text-center">
             FIT
           </span>
@@ -140,77 +139,99 @@ export function HeroSection() {
         </div>
       </motion.div>
 
+      {/* Mobile-only Swatch Bar */}
+      <div className="flex md:hidden items-center justify-center gap-2.5 z-20 my-1 py-1.5 px-3 rounded-full bg-base-black/80 backdrop-blur-md border border-white/10">
+        <span className="text-[9px] font-mono text-muted-grey uppercase mr-1">SHADE:</span>
+        {HERO_SWATCHES.map((swatch) => (
+          <button
+            key={swatch.name}
+            onClick={() => {
+              setActiveColor(swatch.hex);
+              playClickSound();
+            }}
+            className={`w-4 h-4 rounded-full transition-transform border ${
+              activeColor === swatch.hex
+                ? 'scale-125 border-acid-green ring-1 ring-acid-green'
+                : 'border-white/20'
+            }`}
+            style={{ backgroundColor: swatch.hex }}
+            title={swatch.name}
+            aria-label={`Select ${swatch.name}`}
+          />
+        ))}
+      </div>
+
       {/* Main Tagline & Countdown Box */}
-      <div className="z-20 flex flex-col items-center gap-6 text-center px-4 max-w-4xl">
-        {/* Typewriter Tagline */}
+      <div className="z-20 flex flex-col items-center gap-4 sm:gap-6 text-center px-4 max-w-4xl mt-1">
+        {/* Tagline */}
         <div className="overflow-hidden">
           <motion.h1
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.4 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
             className="font-display text-4xl sm:text-6xl md:text-8xl tracking-tight text-off-white uppercase"
           >
             {tagline}
           </motion.h1>
-          <p className="font-mono text-xs sm:text-sm text-muted-grey tracking-widest uppercase mt-1">
+          <p className="font-mono text-[11px] sm:text-sm text-muted-grey tracking-widest uppercase mt-0.5 sm:mt-1">
             HEAVYWEIGHT BOXY OVERSIZED TEES. ZERO COMPROMISE.
           </p>
         </div>
 
         {/* Live Split-Flap Drop Countdown */}
-        <div className="flex items-center gap-2 sm:gap-4 p-3 rounded-2xl bg-surface/90 border border-border/80 backdrop-blur-md shadow-2xl">
+        <div className="flex items-center gap-2 sm:gap-4 p-2.5 sm:p-3 rounded-2xl bg-surface/90 border border-border/80 backdrop-blur-md shadow-2xl">
           <div className="flex flex-col items-center">
             <SplitFlap value={timeLeft.days.toString().padStart(2, "0")} />
-            <span className="text-muted-grey font-mono text-[9px] sm:text-[10px] mt-1.5 uppercase tracking-widest">
+            <span className="text-muted-grey font-mono text-[8px] sm:text-[10px] mt-1 uppercase tracking-widest">
               Days
             </span>
           </div>
-          <span className="text-xl font-display text-acid-green mb-4">:</span>
+          <span className="text-lg sm:text-xl font-display text-acid-green mb-3">:</span>
           <div className="flex flex-col items-center">
             <SplitFlap value={timeLeft.hours.toString().padStart(2, "0")} />
-            <span className="text-muted-grey font-mono text-[9px] sm:text-[10px] mt-1.5 uppercase tracking-widest">
+            <span className="text-muted-grey font-mono text-[8px] sm:text-[10px] mt-1 uppercase tracking-widest">
               Hours
             </span>
           </div>
-          <span className="text-xl font-display text-acid-green mb-4">:</span>
+          <span className="text-lg sm:text-xl font-display text-acid-green mb-3">:</span>
           <div className="flex flex-col items-center">
             <SplitFlap value={timeLeft.minutes.toString().padStart(2, "0")} />
-            <span className="text-muted-grey font-mono text-[9px] sm:text-[10px] mt-1.5 uppercase tracking-widest">
+            <span className="text-muted-grey font-mono text-[8px] sm:text-[10px] mt-1 uppercase tracking-widest">
               Mins
             </span>
           </div>
-          <span className="text-xl font-display text-acid-green mb-4">:</span>
+          <span className="text-lg sm:text-xl font-display text-acid-green mb-3">:</span>
           <div className="flex flex-col items-center">
             <SplitFlap value={timeLeft.seconds.toString().padStart(2, "0")} />
-            <span className="text-muted-grey font-mono text-[9px] sm:text-[10px] mt-1.5 uppercase tracking-widest">
+            <span className="text-muted-grey font-mono text-[8px] sm:text-[10px] mt-1 uppercase tracking-widest">
               Secs
             </span>
           </div>
         </div>
 
         {/* Magnetic Shop CTA Button */}
-        <div className="flex items-center gap-4 mt-2">
-          <MagneticButton href="/shop" variant="primary" size="lg" cursorLabel="ENTER">
-            <span className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-center gap-3 mt-1">
+          <MagneticButton href="/shop" variant="primary" size="md" cursorLabel="ENTER">
+            <span className="flex items-center gap-2 font-bold">
               <span>SHOP THE DROP</span>
-              <Sparkles size={16} />
+              <Sparkles size={15} />
             </span>
           </MagneticButton>
           
-          <MagneticButton href="/lookbook" variant="secondary" size="lg" cursorLabel="LOOKS">
+          <MagneticButton href="/lookbook" variant="secondary" size="md" cursorLabel="LOOKS">
             VIEW LOOKBOOK
           </MagneticButton>
         </div>
       </div>
 
       {/* Subtle Scroll Down Prompt */}
-      <div className="z-10 mt-6 flex flex-col items-center gap-1 text-muted-grey">
-        <span className="text-[9px] font-mono tracking-widest uppercase">SCROLL TO EXPLORE</span>
+      <div className="z-10 mt-4 sm:mt-6 flex flex-col items-center gap-1 text-muted-grey">
+        <span className="text-[8px] sm:text-[9px] font-mono tracking-widest uppercase">SCROLL TO EXPLORE</span>
         <motion.div
-          animate={{ y: [0, 6, 0] }}
+          animate={{ y: [0, 5, 0] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
         >
-          <ArrowDown size={14} className="text-acid-green" />
+          <ArrowDown size={13} className="text-acid-green" />
         </motion.div>
       </div>
     </section>

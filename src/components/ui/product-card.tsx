@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, useReducedMotion, useSpring, useTransform } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useUiStore } from '@/store/ui-store';
 import { useCartStore } from '@/store/cart-store';
 import { Product } from '@/types';
-import { ShoppingBag, Eye, Heart } from 'lucide-react';
+import { ShoppingBag, Heart } from 'lucide-react';
 import { useWishlistStore } from '@/store/wishlist-store';
 
 export interface ProductCardProps {
@@ -30,16 +30,25 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
   const [isHovered, setIsHovered] = useState(false);
   const [selectedColor, setSelectedColor] = useState(product.colorways?.[0]?.name || 'Black');
   const [selectedSize, setSelectedSize] = useState<string>('M');
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
 
-  // 3D Tilt calculation
+  useEffect(() => {
+    setIsTouchDevice(
+      'ontouchstart' in window ||
+      navigator.maxTouchPoints > 0 ||
+      window.matchMedia('(pointer: coarse)').matches
+    );
+  }, []);
+
+  // 3D Tilt calculation (only for mouse desktop devices)
   const x = useSpring(0, { stiffness: 200, damping: 20 });
   const y = useSpring(0, { stiffness: 200, damping: 20 });
 
-  const rotateX = useTransform(y, [-0.5, 0.5], ['10deg', '-10deg']);
-  const rotateY = useTransform(x, [-0.5, 0.5], ['-10deg', '10deg']);
+  const rotateX = useTransform(y, [-0.5, 0.5], ['8deg', '-8deg']);
+  const rotateY = useTransform(x, [-0.5, 0.5], ['-8deg', '8deg']);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (shouldReduceMotion || !ref.current) return;
+    if (shouldReduceMotion || isTouchDevice || !ref.current) return;
     const rect = ref.current.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
@@ -57,8 +66,10 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
   };
 
   const handleMouseEnter = () => {
-    setIsHovered(true);
-    setCursor('VIEW');
+    if (!isTouchDevice) {
+      setIsHovered(true);
+      setCursor('VIEW');
+    }
   };
 
   const handleQuickAdd = (e: React.MouseEvent) => {
@@ -72,12 +83,15 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
   const activeColorway = product.colorways.find((c) => c.name === selectedColor) || product.colorways[0];
   const primaryColorHex = activeColorway?.hex || '#1A1A1A';
 
+  const mainImage = product.images?.[0] || '/products/placeholder.svg';
+  const hoverImage = isHovered && product.images?.[1] ? product.images[1] : mainImage;
+
   return (
     <motion.div
-      initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 35 }}
+      initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 25 }}
       whileInView={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: '-40px' }}
-      transition={{ duration: 0.4, delay: index * 0.08 }}
+      viewport={{ once: true, margin: '-20px' }}
+      transition={{ duration: 0.35, delay: Math.min(index * 0.05, 0.3) }}
       className={cn('group relative flex flex-col', className)}
     >
       <div className="relative">
@@ -87,63 +101,63 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
             onMouseMove={handleMouseMove}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
-            style={shouldReduceMotion ? {} : { rotateX, rotateY, transformStyle: 'preserve-3d' }}
-            className="relative w-full aspect-[4/5] rounded-xl overflow-hidden bg-surface border border-border/80 group-hover:border-acid-green/60 transition-colors duration-300"
+            style={shouldReduceMotion || isTouchDevice ? {} : { rotateX, rotateY, transformStyle: 'preserve-3d' }}
+            className="relative w-full aspect-[4/5] rounded-xl overflow-hidden bg-[#111111] border border-border/80 group-hover:border-acid-green/60 transition-colors duration-300 shadow-lg"
           >
             {/* Ambient dynamic background gradient matching colorway */}
             <div
-              className="absolute inset-0 transition-all duration-700 opacity-30 group-hover:opacity-60"
+              className="absolute inset-0 transition-all duration-700 opacity-20 group-hover:opacity-50 pointer-events-none"
               style={{
-                background: `radial-gradient(circle at 50% 30%, ${primaryColorHex} 0%, #0A0A0A 85%)`,
+                background: `radial-gradient(circle at 50% 40%, ${primaryColorHex} 0%, #0A0A0A 85%)`,
               }}
             />
 
-            {/* Real Garment Photo Display */}
-            <div className="absolute inset-0 flex items-center justify-center select-none overflow-hidden bg-[#0A0A0A]">
+            {/* Real Garment Photo Display - Perfectly framed & never clipped */}
+            <div className="absolute inset-0 flex items-center justify-center select-none overflow-hidden p-3 sm:p-4">
               <img
-                src={isHovered && product.images?.[1] ? product.images[1] : (product.images?.[0] || '/products/placeholder.svg')}
+                src={hoverImage}
                 alt={product.name}
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = '/products/placeholder.svg';
                 }}
-                className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+                className="w-full h-full object-contain object-center transition-transform duration-500 group-hover:scale-105 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)]"
               />
             </div>
 
             {/* Tag / Badge */}
-            <div className="absolute top-3 left-3 flex gap-1.5 z-10">
+            <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex gap-1.5 z-10">
               {product.isNew && (
-                <span className="px-2 py-0.5 text-[10px] font-display uppercase tracking-wider bg-acid-green text-base-black rounded">
+                <span className="px-2 py-0.5 text-[9px] sm:text-[10px] font-display uppercase tracking-wider bg-acid-green text-base-black rounded font-bold shadow-md">
                   NEW
                 </span>
               )}
               {product.isBestSeller && (
-                <span className="px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider bg-off-white/10 text-off-white border border-off-white/20 rounded">
+                <span className="px-2 py-0.5 text-[9px] sm:text-[10px] font-mono uppercase tracking-wider bg-off-white/10 text-off-white border border-off-white/20 rounded shadow-md">
                   TOP SKU
                 </span>
               )}
             </div>
 
-              {/* Wishlist Heart Icon */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  toggleWishlist(product.id);
-                }}
-                className="absolute top-3 right-3 p-2 rounded-full bg-base-black/60 backdrop-blur-md text-off-white hover:text-acid-green border border-white/10 transition-colors z-10 cursor-pointer"
-                aria-label="Save to wishlist"
-              >
-                <Heart size={14} className={isWishlisted ? 'fill-acid-green text-acid-green' : ''} />
-              </button>
+            {/* Wishlist Heart Icon */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleWishlist(product.id);
+              }}
+              className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 p-1.5 sm:p-2 rounded-full bg-base-black/70 backdrop-blur-md text-off-white hover:text-acid-green border border-white/10 transition-colors z-10 cursor-pointer shadow-md"
+              aria-label="Save to wishlist"
+            >
+              <Heart size={14} className={isWishlisted ? 'fill-acid-green text-acid-green' : ''} />
+            </button>
 
-            {/* Quick Add Tray on Hover */}
+            {/* Quick Add Tray on Desktop Hover */}
             <motion.div
               initial={false}
-              animate={{ y: isHovered ? '0%' : '100%' }}
+              animate={{ y: isHovered && !isTouchDevice ? '0%' : '100%' }}
               transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-              className="absolute bottom-0 inset-x-0 p-3 bg-base-black/95 backdrop-blur-md border-t border-border flex flex-col gap-2 z-20"
+              className="hidden md:flex absolute bottom-0 inset-x-0 p-3 bg-base-black/95 backdrop-blur-md border-t border-border flex-col gap-2 z-20"
             >
               {/* Size Selector */}
               <div className="flex items-center justify-between gap-1 overflow-x-auto hide-scrollbar py-0.5">
@@ -172,7 +186,7 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
               <button
                 type="button"
                 onClick={handleQuickAdd}
-                className="w-full py-2 px-3 bg-off-white text-base-black hover:bg-acid-green transition-colors font-display text-xs uppercase tracking-wider flex items-center justify-center gap-2 rounded cursor-pointer"
+                className="w-full py-2 px-3 bg-off-white text-base-black hover:bg-acid-green transition-colors font-display text-xs uppercase tracking-wider flex items-center justify-center gap-2 rounded cursor-pointer font-bold"
               >
                 <ShoppingBag size={13} />
                 <span>Quick Add ({selectedSize})</span>
@@ -183,10 +197,10 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
       </div>
 
       {/* Product Information */}
-      <div className="mt-3 flex flex-col gap-1.5">
+      <div className="mt-2.5 sm:mt-3 flex flex-col gap-1">
         <div className="flex items-start justify-between gap-2">
           <Link href={`/shop/${product.slug}`} className="group-hover:text-acid-green transition-colors">
-            <h3 className="font-display text-base tracking-wide uppercase text-off-white line-clamp-1">
+            <h3 className="font-display text-sm sm:text-base tracking-wide uppercase text-off-white line-clamp-1">
               {product.name}
             </h3>
           </Link>
@@ -197,13 +211,13 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
 
         {/* Product Description Snippet */}
         {product.description && (
-          <p className="text-[11px] text-muted-grey line-clamp-2 leading-relaxed font-sans">
+          <p className="text-[10px] sm:text-[11px] text-muted-grey line-clamp-2 leading-relaxed font-sans">
             {product.description}
           </p>
         )}
 
         {/* Colorway Swatches */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mt-1">
           <div className="flex items-center gap-1.5">
             {product.colorways?.map((cw) => (
               <button
@@ -211,7 +225,7 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
                 type="button"
                 onClick={() => setSelectedColor(cw.name)}
                 className={cn(
-                  'w-3.5 h-3.5 rounded-full transition-transform cursor-pointer border',
+                  'w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full transition-transform cursor-pointer border',
                   selectedColor === cw.name
                     ? 'scale-125 border-acid-green ring-1 ring-acid-green/50'
                     : 'border-white/20 hover:scale-110'
@@ -223,7 +237,7 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
             ))}
           </div>
 
-          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-grey">
+          <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest text-muted-grey">
             {selectedColor}
           </span>
         </div>
