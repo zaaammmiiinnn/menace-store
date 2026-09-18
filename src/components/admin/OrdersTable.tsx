@@ -52,6 +52,7 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
       cell: ({ row }) => (
         <Link
           href={`/admin/orders/${row.original.id}`}
+          prefetch={false}
           className="font-mono font-bold text-[#F5F1E8] hover:text-[#C6FF00] transition-colors"
         >
           {row.original.id}
@@ -143,6 +144,7 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
             )}
             <Link
               href={`/admin/orders/${item.id}`}
+              prefetch={false}
               className="p-1 text-[#666] hover:text-[#F5F1E8] transition-colors"
               title="View Order Details"
             >

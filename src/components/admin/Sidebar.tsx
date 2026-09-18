@@ -63,6 +63,7 @@ export function Sidebar({ userRole = 'admin', userName = 'Admin', userEmail = ''
           <Link
             href="/"
             target="_blank"
+            prefetch={false}
             className="text-[#8A8A8A] hover:text-[#C6FF00] transition-colors p-1"
             title="View live storefront"
           >
@@ -83,6 +84,7 @@ export function Sidebar({ userRole = 'admin', userName = 'Admin', userEmail = ''
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={false}
                 className={`flex items-center justify-between h-10 px-3 rounded-md text-[13px] font-medium transition-colors ${
                   isActive
                     ? 'bg-[#1A1A1A] text-[#C6FF00] font-semibold'
@@ -132,6 +134,7 @@ export function Sidebar({ userRole = 'admin', userName = 'Admin', userEmail = ''
             <Link
               key={item.href}
               href={item.href}
+              prefetch={false}
               className={`flex flex-col items-center justify-center py-1 px-2 text-[10px] transition-colors ${
                 isActive ? 'text-[#C6FF00] font-semibold' : 'hover:text-[#F5F1E8]'
               }`}

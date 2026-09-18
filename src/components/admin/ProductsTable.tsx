@@ -88,6 +88,7 @@ export function ProductsTable({ products }: ProductsTableProps) {
             <div>
               <Link
                 href={`/admin/products/${item.id}`}
+                prefetch={false}
                 className="font-medium text-[#F5F1E8] hover:text-[#C6FF00] transition-colors"
               >
                 {item.name}
@@ -211,6 +212,7 @@ export function ProductsTable({ products }: ProductsTableProps) {
             <Link
               href={`/shop/${item.slug}`}
               target="_blank"
+              prefetch={false}
               className="p-1 text-[#666] hover:text-[#C6FF00] transition-colors"
               title="View on live store"
             >
@@ -218,6 +220,7 @@ export function ProductsTable({ products }: ProductsTableProps) {
             </Link>
             <Link
               href={`/admin/products/${item.id}`}
+              prefetch={false}
               className="p-1 text-[#666] hover:text-[#F5F1E8] transition-colors"
               title="Edit product"
             >

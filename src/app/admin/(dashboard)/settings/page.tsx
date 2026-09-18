@@ -8,8 +8,10 @@ export const revalidate = 0;
 
 export default async function AdminSettingsPage() {
   await requireAdmin();
-  const settings = await getStoreSettings();
-  const auditLogs = await getAuditLogs();
+  const [settings, auditLogs] = await Promise.all([
+    getStoreSettings(),
+    getAuditLogs(),
+  ]);
 
   return (
     <div className="space-y-6">

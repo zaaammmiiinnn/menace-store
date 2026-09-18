@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { currentUser } from '@clerk/nextjs/server';
 import { notFound, redirect } from 'next/navigation';
 import { getLocalStore, getD1Database } from '@/lib/db';
@@ -14,8 +15,9 @@ export interface AdminUser {
 /**
  * Returns the current authenticated user along with their resolved role.
  * Role hierarchy: Clerk publicMetadata.role -> ADMIN_EMAILS env allowlist -> 'customer'
+ * Wrapped with React cache() to deduplicate execution within the same request.
  */
-export async function getAdminUser(): Promise<AdminUser | null> {
+export const getAdminUser = cache(async (): Promise<AdminUser | null> => {
   // Local development preview bypass if explicitly enabled
   if (process.env.ADMIN_DEV_BYPASS === 'true' && process.env.NODE_ENV === 'development') {
     return {
@@ -27,7 +29,11 @@ export async function getAdminUser(): Promise<AdminUser | null> {
   }
 
   try {
-    const user = await currentUser();
+    // Timeout race safeguard (1.5s max) to prevent worker CPU/wall-time exhaustion
+    const user = await Promise.race([
+      currentUser(),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500)),
+    ]);
     if (!user) return null;
 
     const primaryEmail = user.emailAddresses?.[0]?.emailAddress?.toLowerCase() || '';
@@ -65,7 +71,7 @@ export async function getAdminUser(): Promise<AdminUser | null> {
     }
     return null;
   }
-}
+});
 
 /**
  * Enforces staff or admin access. If unauthenticated or customer, returns 404 (stealth) or redirects.

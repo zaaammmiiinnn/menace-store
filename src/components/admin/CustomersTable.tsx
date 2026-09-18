@@ -29,6 +29,7 @@ export function CustomersTable({ customers }: CustomersTableProps) {
         <div>
           <Link
             href={`/admin/customers/${row.original.id}`}
+            prefetch={false}
             className="font-medium text-[#F5F1E8] hover:text-[#C6FF00] transition-colors"
           >
             {row.original.name}
@@ -74,6 +75,7 @@ export function CustomersTable({ customers }: CustomersTableProps) {
       cell: ({ row }) => (
         <Link
           href={`/admin/customers/${row.original.id}`}
+          prefetch={false}
           className="p-1 text-[#666] hover:text-[#F5F1E8] transition-colors inline-block"
           title="View profile"
         >
