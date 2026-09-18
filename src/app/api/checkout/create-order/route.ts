@@ -5,6 +5,7 @@ import { eq, sql } from 'drizzle-orm';
 import { CreateOrderSchema } from '@/lib/validation/checkout';
 import { getRazorpay } from '@/lib/razorpay/client';
 import { getPayUConfig, generatePayURequestHash } from '@/lib/payu/client';
+import { getStoreSettings } from '@/lib/admin/queries';
 
 // In-memory rate limiting tracker (max 5 order creations per minute per IP)
 const ipRequestMap = new Map<string, { count: number; resetAt: number }>();
@@ -60,7 +61,8 @@ export async function POST(req: NextRequest) {
       (acc, item) => acc + item.price * item.quantity,
       0
     );
-    const shippingInr = subtotalInr >= 1499 ? 0 : 99;
+    const storeSettings = await getStoreSettings();
+    const shippingInr = subtotalInr >= storeSettings.freeShippingThreshold ? 0 : storeSettings.standardShippingRate;
     let discountInr = 0;
     let appliedPromoId: string | null = null;
 

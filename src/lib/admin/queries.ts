@@ -617,9 +617,18 @@ export async function getStoreSettings() {
     storeName: settingsMap.store_name || 'MENANCE',
     tagline: settingsMap.tagline || 'Not for everyone.',
     primaryCurrency: settingsMap.primary_currency || 'INR',
-    freeShippingThreshold: Number(settingsMap.free_shipping_threshold) || 1499,
-    standardShippingRate: Number(settingsMap.standard_shipping_rate) || 99,
-    gstPercentage: Number(settingsMap.gst_percentage) || 18,
+    freeShippingThreshold:
+      settingsMap.free_shipping_threshold !== undefined && settingsMap.free_shipping_threshold !== ''
+        ? Number(settingsMap.free_shipping_threshold)
+        : 1499,
+    standardShippingRate:
+      settingsMap.standard_shipping_rate !== undefined && settingsMap.standard_shipping_rate !== ''
+        ? Number(settingsMap.standard_shipping_rate)
+        : 0,
+    gstPercentage:
+      settingsMap.gst_percentage !== undefined && settingsMap.gst_percentage !== ''
+        ? Number(settingsMap.gst_percentage)
+        : 18,
     staffRoles: JSON.parse(settingsMap.staff_roles || '[]'),
   };
 }

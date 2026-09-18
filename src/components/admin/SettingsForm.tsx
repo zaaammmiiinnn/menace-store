@@ -32,9 +32,9 @@ export function SettingsForm({ initialSettings, auditLogs }: SettingsFormProps) 
       storeName: initialSettings.storeName || 'MENANCE',
       tagline: initialSettings.tagline || 'Not for everyone.',
       primaryCurrency: initialSettings.primaryCurrency || 'INR',
-      freeShippingThreshold: initialSettings.freeShippingThreshold || 2999,
-      standardShippingRate: initialSettings.standardShippingRate || 149,
-      gstPercentage: initialSettings.gstPercentage || 18,
+      freeShippingThreshold: initialSettings.freeShippingThreshold ?? 1499,
+      standardShippingRate: initialSettings.standardShippingRate ?? 0,
+      gstPercentage: initialSettings.gstPercentage ?? 18,
     },
   });
 
