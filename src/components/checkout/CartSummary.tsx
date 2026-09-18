@@ -97,7 +97,7 @@ export function CartSummary({ onContinue, collapsible = false }: CartSummaryProp
               <img
                 src={item.imageUrl || '/products/placeholder.svg'}
                 alt={item.name}
-                className="w-full h-full object-cover object-center"
+                className="w-full h-full object-contain p-1 object-center"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = '/products/placeholder.svg';
                 }}

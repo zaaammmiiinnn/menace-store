@@ -89,8 +89,8 @@ export function ProductGallery({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Main Hero Viewer */}
-      <div className="relative aspect-[4/5] w-full bg-[#0A0A0A] border border-[#1C1C1C] overflow-hidden">
+      {/* Main Hero Viewer - Clean object-contain so full shirt is visible */}
+      <div className="relative aspect-[4/5] w-full bg-[#111111] border border-[#1C1C1C] overflow-hidden p-4 sm:p-6 flex items-center justify-center shadow-2xl">
         {/* Subtle brutalist grid overlay */}
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(#1A1A1A_1px,transparent_1px)] [background-size:20px_20px] opacity-40 z-0" />
 
@@ -104,7 +104,7 @@ export function ProductGallery({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="w-full h-full object-cover object-center select-none relative z-10"
+            className="w-full h-full object-contain object-center select-none relative z-10 filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]"
           />
         </AnimatePresence>
 
@@ -118,55 +118,36 @@ export function ProductGallery({
                   customArtwork?.placement === 'front_center'
                     ? 'top-[33%] left-1/2 -translate-x-1/2 -translate-y-1/2'
                     : customArtwork?.placement === 'front_chest'
-                    ? 'top-[30%] left-[64%] -translate-x-1/2 -translate-y-1/2'
-                    : 'top-[31%] left-1/2 -translate-x-1/2 -translate-y-1/2'
+                    ? 'top-[28%] left-[64%] -translate-x-1/2 -translate-y-1/2'
+                    : 'top-[38%] left-1/2 -translate-x-1/2 -translate-y-1/2'
                 }`}
+                style={{
+                  width:
+                    customArtwork?.scale === 'small'
+                      ? '18%'
+                      : customArtwork?.scale === 'large'
+                      ? '42%'
+                      : '28%',
+                }}
               >
                 <img
                   src={artworkSrc}
-                  alt="Custom Print Artwork"
-                  className={`object-contain transition-all duration-200 ${
-                    customArtwork?.placement === 'front_chest'
-                      ? customArtwork?.scale === 'small'
-                        ? 'w-12 max-h-12'
-                        : customArtwork?.scale === 'large'
-                        ? 'w-24 max-h-24'
-                        : 'w-16 max-h-16'
-                      : customArtwork?.placement === 'back'
-                      ? customArtwork?.scale === 'small'
-                        ? 'w-48 sm:w-56 max-h-40'
-                        : customArtwork?.scale === 'large'
-                        ? 'w-72 sm:w-84 max-h-64'
-                        : 'w-60 sm:w-72 max-h-52'
-                      : customArtwork?.scale === 'small'
-                      ? 'w-32 max-h-28'
-                      : customArtwork?.scale === 'large'
-                      ? 'w-64 sm:w-72 max-h-60'
-                      : 'w-48 sm:w-56 max-h-44'
-                  }`}
-                  style={{
-                    filter: 'contrast(1.05) drop-shadow(0px 2px 5px rgba(0,0,0,0.4))',
-                  }}
+                  alt="Custom Artwork Overlay"
+                  className="w-full h-auto object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]"
                 />
-
               </div>
             )}
           </div>
         )}
 
-        {/* View Indicator Badge */}
+        {/* View Perspective Badge */}
         <div className="absolute top-3 left-3 z-20 flex flex-col gap-1.5">
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-1 text-[9px] font-mono tracking-widest uppercase bg-[#0A0A0A]/85 text-[#C6FF00] border border-[#1C1C1C] backdrop-blur-md">
-              {VIEW_LABELS[selectedIndex] || '01 // FRONT'}
+            <span className="px-2.5 py-1 text-[9px] font-mono tracking-widest uppercase bg-[#0A0A0A]/90 text-[#C6FF00] border border-[#222222] backdrop-blur-md font-bold">
+              {VIEW_LABELS[selectedIndex] || 'PERSPECTIVE'}
             </span>
-            {!isPlain && !artworkSrc && selectedIndex === 1 && (
-              <span className="px-2.5 py-1 text-[9px] font-mono tracking-wider uppercase bg-[#C6FF00] text-[#0A0A0A] font-bold">
-                "{backQuote}"
-              </span>
-            )}
-            {isPlain && !artworkSrc && (
-              <span className="px-2.5 py-1 text-[9px] font-mono tracking-widest uppercase bg-[#141414] text-[#F5F1E8] border border-[#333333]">
+            {isPlain && (
+              <span className="px-2.5 py-1 text-[9px] font-mono tracking-widest uppercase bg-[#141414] text-[#F5F1E8] border border-[#262626] font-bold">
                 RAW PLAIN BLANK
               </span>
             )}
@@ -178,7 +159,6 @@ export function ProductGallery({
             </span>
           )}
         </div>
-
 
         {/* GSM & Fit Spec Badge */}
         <div className="absolute bottom-3 right-3 z-20">
@@ -197,17 +177,17 @@ export function ProductGallery({
               key={`${img}_${idx}`}
               type="button"
               onClick={() => setSelectedIndex(idx)}
-              className={`relative aspect-[4/5] bg-[#0A0A0A] border transition-all duration-200 overflow-hidden cursor-pointer ${
+              className={`relative aspect-[4/5] bg-[#111111] border transition-all duration-200 overflow-hidden cursor-pointer p-1.5 flex items-center justify-center ${
                 isSelected
-                  ? 'border-[#C6FF00] ring-1 ring-[#C6FF00]/50'
-                  : 'border-[#1C1C1C] hover:border-[#333333] opacity-60 hover:opacity-100'
+                  ? 'border-[#C6FF00] ring-1 ring-[#C6FF00]/50 shadow-md'
+                  : 'border-[#1C1C1C] hover:border-[#333333] opacity-70 hover:opacity-100'
               }`}
             >
               <img
                 src={getImageSrc(idx)}
                 alt={`Thumbnail ${idx + 1}`}
                 onError={() => handleImageError(idx)}
-                className="w-full h-full object-cover object-center"
+                className="w-full h-full object-contain object-center"
               />
               <span className="absolute bottom-1 left-1 px-1 py-0.5 text-[8px] font-mono bg-[#0A0A0A]/90 text-[#F5F1E8]">
                 0{idx + 1}

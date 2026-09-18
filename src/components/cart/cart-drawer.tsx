@@ -191,7 +191,7 @@ export function CartDrawer() {
                             <img
                               src={item.product.images[0]}
                               alt={item.product.name}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-contain p-1"
                             />
                           </div>
                         ) : (
