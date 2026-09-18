@@ -544,6 +544,55 @@ export async function updateOrderStatusAction(
   return { success: true };
 }
 
+export async function deleteOrderAction(orderId: string) {
+  await requireAdmin();
+
+  // 1. Delete from Cloudflare D1
+  const d1 = getD1Database();
+  if (d1) {
+    try {
+      await d1.prepare('DELETE FROM order_items WHERE order_id = ?').bind(orderId).run();
+      await d1.prepare('DELETE FROM orders WHERE id = ?').bind(orderId).run();
+    } catch (d1Err) {
+      console.error('[D1 deleteOrderAction Error]:', d1Err);
+    }
+  }
+
+  // 2. Delete from in-memory fallback store if present
+  try {
+    const store = getLocalStore();
+    const orders = store.getTable('orders');
+    const orderIndex = orders.findIndex((o: any) => o.id === orderId);
+    if (orderIndex !== -1) {
+      orders.splice(orderIndex, 1);
+    }
+
+    const orderItems = store.getTable('order_items');
+    for (let i = orderItems.length - 1; i >= 0; i--) {
+      if (orderItems[i].order_id === orderId) {
+        orderItems.splice(i, 1);
+      }
+    }
+  } catch (storeErr) {
+    console.warn('[Store deleteOrderAction]:', storeErr);
+  }
+
+  // 3. Log audit action
+  await logAuditAction({
+    action: 'DELETE_ORDER',
+    entity: 'orders',
+    entityId: orderId,
+    details: `Permanently deleted order ${orderId} and associated items.`,
+  });
+
+  // 4. Invalidate and revalidate cache
+  revalidatePath('/admin');
+  revalidatePath('/admin/orders');
+  revalidatePath('/account/orders');
+
+  return { success: true };
+}
+
 // --- DISCOUNTS ---
 export async function createDiscountAction(data: any) {
   await requireAdmin();

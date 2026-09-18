@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { updateOrderStatusAction } from '@/lib/admin/actions';
+import { useRouter } from 'next/navigation';
+import { updateOrderStatusAction, deleteOrderAction } from '@/lib/admin/actions';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 import { toast } from 'sonner';
 import {
@@ -15,6 +16,7 @@ import {
   Clock,
   RotateCcw,
   Printer,
+  Trash2,
 } from 'lucide-react';
 
 interface OrderDetailClientProps {
@@ -22,11 +24,14 @@ interface OrderDetailClientProps {
 }
 
 export function OrderDetailClient({ order: initialOrder }: OrderDetailClientProps) {
+  const router = useRouter();
   const [order, setOrder] = useState(initialOrder);
   const [trackingNumber, setTrackingNumber] = useState(order.tracking_number || '');
   const [internalNote, setInternalNote] = useState(order.notes || '');
   const [isUpdating, setIsUpdating] = useState(false);
   const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleUpdateStatus = async (newStatus: any) => {
     setIsUpdating(true);
@@ -64,6 +69,18 @@ export function OrderDetailClient({ order: initialOrder }: OrderDetailClientProp
       toast.error('Refund processing failed.');
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleDeleteOrder = async () => {
+    setIsDeleting(true);
+    try {
+      await deleteOrderAction(order.id);
+      toast.success(`Order ${order.id} permanently deleted.`);
+      router.push('/admin/orders');
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to delete order.');
+      setIsDeleting(false);
     }
   };
 
@@ -107,10 +124,17 @@ export function OrderDetailClient({ order: initialOrder }: OrderDetailClientProp
           </button>
           <button
             onClick={() => setIsRefundModalOpen(true)}
-            className="flex items-center gap-1.5 h-9 px-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded text-[12px] font-mono transition-colors"
+            className="flex items-center gap-1.5 h-9 px-3 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-[12px] font-mono transition-colors"
           >
             <RotateCcw className="w-3.5 h-3.5" />
             <span>Refund Order</span>
+          </button>
+          <button
+            onClick={() => setIsDeleteModalOpen(true)}
+            className="flex items-center gap-1.5 h-9 px-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded text-[12px] font-mono transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>Delete Order</span>
           </button>
         </div>
       </div>
@@ -304,6 +328,18 @@ export function OrderDetailClient({ order: initialOrder }: OrderDetailClientProp
         onConfirm={handleRefund}
         onCancel={() => setIsRefundModalOpen(false)}
         isLoading={isUpdating}
+      />
+
+      {/* Confirm Delete Modal */}
+      <ConfirmDialog
+        isOpen={isDeleteModalOpen}
+        title={`Delete Order ${order.id}`}
+        description={`Are you sure you want to permanently delete order ${order.id}? This will remove all items and records for this order. This cannot be undone.`}
+        confirmText="Delete Order"
+        isDestructive={true}
+        isLoading={isDeleting}
+        onConfirm={handleDeleteOrder}
+        onCancel={() => setIsDeleteModalOpen(false)}
       />
     </div>
   );

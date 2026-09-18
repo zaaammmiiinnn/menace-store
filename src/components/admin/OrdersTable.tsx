@@ -4,9 +4,10 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/components/admin/DataTable';
-import { updateOrderStatusAction } from '@/lib/admin/actions';
+import { updateOrderStatusAction, deleteOrderAction } from '@/lib/admin/actions';
+import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 import { toast } from 'sonner';
-import { ExternalLink, Check, Truck } from 'lucide-react';
+import { ExternalLink, Check, Truck, Trash2 } from 'lucide-react';
 
 interface OrderRow {
   id: string;
@@ -27,6 +28,8 @@ interface OrdersTableProps {
 export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
   const [orders, setOrders] = useState<OrderRow[]>(initialOrders);
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [deletingOrder, setDeletingOrder] = useState<OrderRow | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const filteredOrders = statusFilter === 'all'
     ? orders
@@ -42,6 +45,21 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
       toast.success(`Order ${orderId} marked as Shipped (${tracking}).`);
     } catch {
       toast.error('Failed to update status.');
+    }
+  };
+
+  const handleDeleteOrder = async () => {
+    if (!deletingOrder) return;
+    setIsDeleting(true);
+    try {
+      await deleteOrderAction(deletingOrder.id);
+      setOrders((prev) => prev.filter((o) => o.id !== deletingOrder.id));
+      toast.success(`Order ${deletingOrder.id} deleted successfully.`);
+      setDeletingOrder(null);
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to delete order.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -150,6 +168,13 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
             >
               <ExternalLink className="w-3.5 h-3.5" />
             </Link>
+            <button
+              onClick={() => setDeletingOrder(item)}
+              className="p-1 text-[#666] hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
+              title="Delete Order"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
           </div>
         );
       },
@@ -181,6 +206,18 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
         searchPlaceholder="Search orders by ID, customer name, email..."
         emptyMessage="No orders match the current criteria."
         exportFileName="menance-orders.csv"
+      />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDialog
+        isOpen={!!deletingOrder}
+        title="Delete Order"
+        description={`Are you sure you want to permanently delete order ${deletingOrder?.id || ''}? This will remove all items and records for this order.`}
+        confirmText="Delete Order"
+        isDestructive={true}
+        isLoading={isDeleting}
+        onConfirm={handleDeleteOrder}
+        onCancel={() => setDeletingOrder(null)}
       />
     </div>
   );
