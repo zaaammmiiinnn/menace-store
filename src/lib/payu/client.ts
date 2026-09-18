@@ -62,10 +62,11 @@ export interface PayUCallbackPayload {
  * Computes SHA-512 hash using Web Crypto API with fallback to Node.js crypto.
  */
 export async function sha512(text: string): Promise<string> {
-  if (typeof crypto !== 'undefined' && crypto.subtle) {
+  const gCrypto = typeof globalThis !== 'undefined' ? (globalThis as any).crypto : undefined;
+  if (gCrypto && gCrypto.subtle) {
     const encoder = new TextEncoder();
     const data = encoder.encode(text);
-    const hashBuffer = await crypto.subtle.digest('SHA-512', data);
+    const hashBuffer = await gCrypto.subtle.digest('SHA-512', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
   }
@@ -73,7 +74,7 @@ export async function sha512(text: string): Promise<string> {
   // Node.js fallback
   try {
     const nodeCrypto = await import('node:crypto');
-    return nodeCrypto.createHash('sha512').update(text).digest('hex');
+    return nodeCrypto.createHash('sha512').update(text, 'utf-8').digest('hex');
   } catch {
     throw new Error('No crypto implementation available for SHA-512 calculation');
   }
@@ -83,12 +84,39 @@ export async function sha512(text: string): Promise<string> {
  * Returns active PayU configuration from environment variables.
  */
 export function getPayUConfig(): PayUConfig {
-  const key = process.env.PAYU_MERCHANT_KEY || process.env.NEXT_PUBLIC_PAYU_KEY || '5AZJMt';
-  const salt = process.env.PAYU_MERCHANT_SALT || 'KxxhoHen0XoABAUCv1f973CV8zyDvEMC';
-  const merchantId = process.env.PAYU_MERCHANT_ID || '13779004';
-  const clientId = process.env.PAYU_CLIENT_ID || 'fba7ab236b106dc64bbb3e79af571e91c70c810c82092884fb9b932470270a56';
-  const clientSecret = process.env.PAYU_CLIENT_SECRET || '96c95faae059ad654cb59b0c12efa4865d18809e570e9fdffe018b049707337b';
-  const mode = (process.env.PAYU_MODE === 'test' ? 'test' : 'live') as 'live' | 'test';
+  let cfEnv: any = {};
+  try {
+    const { getCloudflareContext } = require('@opennextjs/cloudflare');
+    const ctx = getCloudflareContext();
+    if (ctx && ctx.env) {
+      cfEnv = ctx.env;
+    }
+  } catch {}
+
+  const key =
+    cfEnv.PAYU_MERCHANT_KEY ||
+    process.env.PAYU_MERCHANT_KEY ||
+    process.env.NEXT_PUBLIC_PAYU_KEY ||
+    '5AZJMt';
+  const salt =
+    cfEnv.PAYU_MERCHANT_SALT ||
+    process.env.PAYU_MERCHANT_SALT ||
+    'KxxhoHen0XoABAUCv1f973CV8zyDvEMC';
+  const merchantId =
+    cfEnv.PAYU_MERCHANT_ID ||
+    process.env.PAYU_MERCHANT_ID ||
+    '13779004';
+  const clientId =
+    cfEnv.PAYU_CLIENT_ID ||
+    process.env.PAYU_CLIENT_ID ||
+    'fba7ab236b106dc64bbb3e79af571e91c70c810c82092884fb9b932470270a56';
+  const clientSecret =
+    cfEnv.PAYU_CLIENT_SECRET ||
+    process.env.PAYU_CLIENT_SECRET ||
+    '96c95faae059ad654cb59b0c12efa4865d18809e570e9fdffe018b049707337b';
+  const mode = (
+    (cfEnv.PAYU_MODE || process.env.PAYU_MODE) === 'test' ? 'test' : 'live'
+  ) as 'live' | 'test';
 
   const paymentUrl =
     mode === 'live'
@@ -140,7 +168,10 @@ export async function generatePayURequestHash(
     salt,
   ].join('|');
 
-  return (await sha512(hashString)).toLowerCase();
+  console.log('[PayU Request HashString]:', hashString);
+  const hash = (await sha512(hashString)).toLowerCase();
+  console.log('[PayU Generated Hash]:', hash);
+  return hash;
 }
 
 /**

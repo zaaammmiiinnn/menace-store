@@ -266,10 +266,14 @@ export async function POST(req: NextRequest) {
 
     const surl = `${baseUrl}/api/checkout/payu/response`;
     const furl = `${baseUrl}/api/checkout/payu/response`;
-    const productinfo = `MENANCE Order ${orderId}`;
+    // Clean productinfo without spaces or special characters (standard PayU best practice)
+    const cleanOrderId = orderId.replace(/[^a-zA-Z0-9_-]/g, '');
+    const productinfo = `MENANCE_${cleanOrderId}`;
     const cleanFirstName =
       (customer.name.trim().split(' ')[0] || 'Customer').replace(/[^a-zA-Z]/g, '') || 'Customer';
     const cleanPhone = customer.phone.replace(/\D/g, '').slice(-10) || '9999999999';
+    const cleanEmail = customer.email.trim().toLowerCase();
+    const formattedAmount = totalInr.toFixed(2);
 
     let payuData: { action: string; params: Record<string, string> } | null = null;
     if (payUConfig.key && payUConfig.salt) {
@@ -277,16 +281,16 @@ export async function POST(req: NextRequest) {
         const payuHash = await generatePayURequestHash(
           {
             txnid: orderId,
-            amount: totalInr,
+            amount: formattedAmount,
             productinfo,
             firstname: cleanFirstName,
-            email: customer.email.trim(),
+            email: cleanEmail,
             phone: cleanPhone,
             surl,
             furl,
-            udf1: orderId,
-            udf2: customer.name.trim(),
-            udf3: items.length.toString(),
+            udf1: '',
+            udf2: '',
+            udf3: '',
             udf4: '',
             udf5: '',
           },
@@ -299,20 +303,14 @@ export async function POST(req: NextRequest) {
           params: {
             key: payUConfig.key,
             txnid: orderId,
-            amount: totalInr.toFixed(2),
+            amount: formattedAmount,
             productinfo,
             firstname: cleanFirstName,
-            email: customer.email.trim(),
+            email: cleanEmail,
             phone: cleanPhone,
             surl,
             furl,
             hash: payuHash,
-            udf1: orderId,
-            udf2: customer.name.trim(),
-            udf3: items.length.toString(),
-            udf4: '',
-            udf5: '',
-            service_provider: 'payu_paisa',
           },
         };
       } catch (payuErr) {
