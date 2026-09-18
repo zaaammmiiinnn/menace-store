@@ -1,9 +1,21 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Package, Heart, Award, ArrowRight, Clock, ShieldCheck, Sparkles, Shield } from 'lucide-react';
+import {
+  Package,
+  Heart,
+  Award,
+  ArrowRight,
+  Clock,
+  ShieldCheck,
+  Sparkles,
+  Shield,
+  ShoppingBag,
+  CheckCircle2,
+  Truck,
+} from 'lucide-react';
 import { AccountNav } from '@/components/account/AccountNav';
 import { useAuth } from '@/lib/auth';
 import { useWishlistStore } from '@/store/wishlist-store';
@@ -11,37 +23,68 @@ import { useCartStore } from '@/store/cart-store';
 import { products } from '@/data/products';
 import { playClickSound, playHoverSound } from '@/lib/sound';
 
+interface OrderItem {
+  id: string;
+  name: string;
+  size: string;
+  color: string;
+  quantity: number;
+  price: number;
+  image: string;
+  slug: string;
+}
+
+interface OrderRecord {
+  id: string;
+  date: string;
+  status: string;
+  trackingNumber: string;
+  courier: string;
+  total: number;
+  items: OrderItem[];
+}
+
 export default function AccountDashboardPage() {
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const wishlistItems = useWishlistStore((state) => state.items);
   const getFormattedPrice = useCartStore((state) => state.getFormattedPrice);
 
-  const firstName = user?.firstName || 'MEMBER';
+  const [orders, setOrders] = useState<OrderRecord[]>([]);
+  const [isOrdersLoading, setIsOrdersLoading] = useState(true);
+
+  const firstName = user?.firstName || (user?.fullName && user.fullName !== 'MENANCE MEMBER' ? user.fullName.split(' ')[0] : 'MEMBER');
   const wishlistedProducts = products.filter((p) => wishlistItems.includes(p.id));
 
-  // Mocked recent orders
-  const mockOrders = [
-    {
-      id: 'MNC-84920',
-      date: 'SEPTEMBER 04, 2026',
-      status: 'DELIVERED',
-      items: [
-        { name: 'QUIET MENANCE OVERSIZED TEE', color: 'Bone', size: 'L', price: 2499, image: '/images/products/quiet-menance-1.jpg' },
-      ],
-      total: 2499,
-      tracking: 'BLUEDART // 489218491',
-    },
-    {
-      id: 'MNC-81044',
-      date: 'AUGUST 18, 2026',
-      status: 'DELIVERED',
-      items: [
-        { name: 'ACID TRIP WAFFLE TEE', color: 'Acid Green', size: 'XL', price: 2699, image: '/images/products/heavy-waffle-1.jpg' },
-      ],
-      total: 2699,
-      tracking: 'DELHIVERY // 729184012',
-    },
-  ];
+  useEffect(() => {
+    async function fetchUserOrders() {
+      if (!user?.email && !user?.id) {
+        setIsOrdersLoading(false);
+        return;
+      }
+      try {
+        const params = new URLSearchParams();
+        if (user.email) params.set('email', user.email);
+        if (user.id) params.set('clerkUserId', user.id);
+
+        const res = await fetch(`/api/account/orders?${params.toString()}`, { cache: 'no-store' });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.orders)) {
+          setOrders(data.orders);
+        }
+      } catch (err) {
+        console.error('[Account Dashboard] Failed to fetch orders:', err);
+      } finally {
+        setIsOrdersLoading(false);
+      }
+    }
+
+    if (!isAuthLoading) {
+      fetchUserOrders();
+    }
+  }, [user?.email, user?.id, isAuthLoading]);
+
+  const totalSpent = orders.reduce((acc, o) => acc + (o.total || 0), 0);
+  const fabricCredits = Math.max(100, Math.round(totalSpent * 0.1) + 180);
 
   return (
     <div className="min-h-screen bg-base-black text-off-white pt-24 pb-28 px-4 md:px-8">
@@ -104,8 +147,10 @@ export default function AccountDashboardPage() {
               <Package size={18} className="text-acid-green" />
             </div>
             <div>
-              <span className="font-display text-4xl text-off-white">02</span>
-              <p className="font-mono text-[11px] text-muted-grey mt-1">LIFETIME DELIVERED</p>
+              <span className="font-display text-4xl text-off-white">
+                {orders.length.toString().padStart(2, '0')}
+              </span>
+              <p className="font-mono text-[11px] text-muted-grey mt-1">LIFETIME ORDERS</p>
             </div>
           </div>
 
@@ -130,7 +175,9 @@ export default function AccountDashboardPage() {
               <Award size={18} className="text-acid-green" />
             </div>
             <div>
-              <span className="font-display text-4xl text-acid-green">280</span>
+              <span className="font-display text-4xl text-acid-green">
+                {fabricCredits}
+              </span>
               <p className="font-mono text-[11px] text-muted-grey mt-1">GSM LEVEL TIERS</p>
             </div>
           </div>
@@ -145,7 +192,9 @@ export default function AccountDashboardPage() {
                 <h2 className="font-display text-2xl uppercase tracking-wider text-off-white">
                   RECENT DROPS
                 </h2>
-                <span className="text-xs font-mono text-muted-grey">(02)</span>
+                <span className="text-xs font-mono text-muted-grey">
+                  ({orders.length.toString().padStart(2, '0')})
+                </span>
               </div>
               <Link
                 href="/account/orders"
@@ -158,59 +207,114 @@ export default function AccountDashboardPage() {
               </Link>
             </div>
 
-            <div className="space-y-3">
-              {mockOrders.map((order) => (
-                <div
-                  key={order.id}
-                  className="p-5 rounded-xl bg-surface border border-border/80 hover:border-acid-green/40 transition-colors flex flex-col gap-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="font-mono text-xs font-bold text-off-white">
-                        {order.id}
-                      </span>
-                      <span className="text-muted-grey text-xs font-mono ml-3">
-                        {order.date}
-                      </span>
-                    </div>
-                    <span className="px-2.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase bg-acid-green/10 border border-acid-green/30 text-acid-green">
-                      {order.status}
-                    </span>
+            {isOrdersLoading ? (
+              <div className="space-y-3">
+                {[1, 2].map((i) => (
+                  <div key={i} className="p-5 rounded-xl bg-surface/50 border border-border animate-pulse space-y-3">
+                    <div className="h-4 bg-white/10 rounded w-1/3" />
+                    <div className="h-10 bg-white/5 rounded" />
                   </div>
+                ))}
+              </div>
+            ) : orders.length === 0 ? (
+              <div className="p-8 rounded-xl bg-surface/40 border border-dashed border-border text-center space-y-3">
+                <ShoppingBag size={24} className="text-muted-grey/40 mx-auto" />
+                <p className="font-mono text-xs text-muted-grey uppercase">
+                  NO RECENT DROPS ORDERED YET.
+                </p>
+                <Link
+                  href="/shop"
+                  onClick={playClickSound}
+                  onMouseEnter={playHoverSound}
+                  className="inline-block px-4 py-2 rounded-lg bg-acid-green text-base-black font-mono text-xs font-bold uppercase hover:bg-white transition-colors"
+                >
+                  EXPLORE DROP 001
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {orders.slice(0, 3).map((order) => {
+                  const firstItem = order.items?.[0];
+                  return (
+                    <div
+                      key={order.id}
+                      className="p-5 rounded-xl bg-surface border border-border/80 hover:border-acid-green/40 transition-colors flex flex-col gap-3"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="font-mono text-xs font-bold text-off-white">
+                            {order.id}
+                          </span>
+                          <span className="text-muted-grey text-xs font-mono ml-3">
+                            {order.date}
+                          </span>
+                        </div>
+                        <span
+                          className={`px-2.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase ${
+                            order.status === 'PAID'
+                              ? 'bg-acid-green/10 border border-acid-green/30 text-acid-green'
+                              : order.status === 'SHIPPED'
+                              ? 'bg-cyan-500/10 border border-cyan-500/30 text-cyan-400'
+                              : 'bg-white/10 border border-white/20 text-muted-grey'
+                          }`}
+                        >
+                          {order.status}
+                        </span>
+                      </div>
 
-                  <div className="border-t border-border/40 pt-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {order.items[0].image && (
-                        <img
-                          src={order.items[0].image}
-                          alt={order.items[0].name}
-                          className="w-11 h-11 rounded-lg object-cover border border-border shrink-0 bg-base-black"
-                        />
+                      {firstItem && (
+                        <div className="border-t border-border/40 pt-3 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            {firstItem.image ? (
+                              <img
+                                src={firstItem.image}
+                                alt={firstItem.name}
+                                className="w-11 h-11 rounded-lg object-cover border border-border shrink-0 bg-base-black"
+                              />
+                            ) : (
+                              <div className="w-11 h-11 rounded-lg bg-base-black border border-border flex items-center justify-center font-mono text-xs text-acid-green">
+                                MNC
+                              </div>
+                            )}
+                            <div>
+                              <p className="font-display text-sm uppercase text-off-white tracking-wide">
+                                {firstItem.name}
+                              </p>
+                              <p className="font-mono text-xs text-muted-grey mt-0.5">
+                                {firstItem.color} • Size {firstItem.size}
+                                {order.items.length > 1 && ` (+${order.items.length - 1} more)`}
+                              </p>
+                            </div>
+                          </div>
+                          <span className="font-mono text-sm font-bold text-off-white">
+                            {getFormattedPrice(order.total)}
+                          </span>
+                        </div>
                       )}
-                      <div>
-                        <p className="font-display text-sm uppercase text-off-white tracking-wide">
-                          {order.items[0].name}
-                        </p>
-                        <p className="font-mono text-xs text-muted-grey mt-0.5">
-                          {order.items[0].color} • Size {order.items[0].size}
-                        </p>
+
+                      <div className="border-t border-border/40 pt-2 flex items-center justify-between text-[11px] font-mono text-muted-grey">
+                        <span className="flex items-center gap-1.5 text-off-white/80">
+                          {order.status === 'SHIPPED' ? (
+                            <Truck size={12} className="text-cyan-400" />
+                          ) : (
+                            <Clock size={12} className="text-acid-green" />
+                          )}
+                          <span>
+                            {order.courier}: {order.trackingNumber}
+                          </span>
+                        </span>
+                        <Link
+                          href="/account/orders"
+                          className="text-acid-green hover:underline uppercase text-[10px]"
+                        >
+                          DETAILS →
+                        </Link>
                       </div>
                     </div>
-                    <span className="font-mono text-sm font-bold text-off-white">
-                      {getFormattedPrice(order.total)}
-                    </span>
-                  </div>
-
-                  <div className="border-t border-border/40 pt-2 flex items-center justify-between text-[11px] font-mono text-muted-grey">
-                    <span className="flex items-center gap-1">
-                      <Clock size={12} />
-                      <span>{order.tracking}</span>
-                    </span>
-                    <span className="text-off-white/80 uppercase">Doorstep Verified</span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Right Column: Wishlist Quick Preview */}
@@ -243,6 +347,8 @@ export default function AccountDashboardPage() {
                 </p>
                 <Link
                   href="/shop"
+                  onClick={playClickSound}
+                  onMouseEnter={playHoverSound}
                   className="inline-block px-4 py-2 rounded-lg bg-acid-green text-base-black font-mono text-xs font-bold uppercase hover:bg-white transition-colors"
                 >
                   EXPLORE DROP 001
@@ -254,6 +360,8 @@ export default function AccountDashboardPage() {
                   <Link
                     key={item.id}
                     href={`/shop/${item.slug}`}
+                    onClick={playClickSound}
+                    onMouseEnter={playHoverSound}
                     className="p-3 rounded-xl bg-surface border border-border/80 hover:border-acid-green/50 transition-all flex items-center justify-between group"
                   >
                     <div className="flex items-center gap-3">

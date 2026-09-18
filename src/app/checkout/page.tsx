@@ -14,9 +14,11 @@ import { CustomerForm } from '@/components/checkout/CustomerForm';
 import { AddressForm } from '@/components/checkout/AddressForm';
 import { OrderSummary } from '@/components/checkout/OrderSummary';
 import { CreateOrderSchema, type CreateOrderInput } from '@/lib/validation/checkout';
+import { useAuth } from '@/lib/auth';
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const { user } = useAuth();
 
   const cart = useCart();
   const legacyCart = useCartStore();
@@ -143,6 +145,18 @@ export default function CheckoutPage() {
     }, 50);
   };
 
+  // Pre-populate customer name and email if logged in
+  useEffect(() => {
+    if (user) {
+      if (user.fullName && user.fullName !== 'MENANCE MEMBER') {
+        setValue('customer.name', user.fullName);
+      }
+      if (user.email) {
+        setValue('customer.email', user.email);
+      }
+    }
+  }, [user, setValue]);
+
   const onFormSubmit = async (formData: CreateOrderInput) => {
     setErrorMessage(null);
 
@@ -161,6 +175,7 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          clerkUserId: user?.id || null,
           promoCode: legacyCart.promoCode || null,
           items: cart.items.map((i) => ({
             productId: i.productId,
