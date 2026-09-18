@@ -1,27 +1,29 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AccountNav } from '@/components/account/AccountNav';
 import { useAuth } from '@/lib/auth';
+import { useUser } from '@clerk/nextjs';
 import { useUiStore } from '@/store/ui-store';
 import { ShieldCheck, Bell, MapPin, KeyRound, Check, Save } from 'lucide-react';
 import { playClickSound, playConfettiSound, playHoverSound } from '@/lib/sound';
 
 export default function AccountSettingsPage() {
   const { user } = useAuth();
+  const { user: clerkUser, isLoaded } = useUser();
   const showToast = useUiStore((state) => state.showToast);
   const triggerConfetti = useUiStore((state) => state.triggerConfetti);
 
-  const [firstName, setFirstName] = useState(user?.firstName || 'Zamin');
-  const [lastName, setLastName] = useState(user?.lastName || 'Askari');
-  const [email] = useState(user?.email || 'zamin@menance.com');
-  const [phone, setPhone] = useState('+91 98765 43210');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
 
   // Address state
-  const [street, setStreet] = useState('742 Evergreen Terrace, Sector 4');
-  const [city, setCity] = useState('New Delhi');
-  const [stateName, setStateName] = useState('Delhi');
-  const [pincode, setPincode] = useState('110001');
+  const [street, setStreet] = useState('');
+  const [city, setCity] = useState('');
+  const [stateName, setStateName] = useState('');
+  const [pincode, setPincode] = useState('');
 
   // Preferences
   const [dropAlerts, setDropAlerts] = useState(true);
@@ -31,28 +33,174 @@ export default function AccountSettingsPage() {
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingAddress, setSavingAddress] = useState(false);
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  // Sync state from Clerk and localStorage when user is loaded
+  useEffect(() => {
+    if (!isLoaded) return;
+
+    try {
+      const cachedProfileStr = typeof window !== 'undefined'
+        ? localStorage.getItem(`menance_profile_${clerkUser?.id || 'guest'}`)
+        : null;
+      const cachedAddressStr = typeof window !== 'undefined'
+        ? localStorage.getItem(`menance_address_${clerkUser?.id || 'guest'}`)
+        : null;
+      const cachedPrefsStr = typeof window !== 'undefined'
+        ? localStorage.getItem(`menance_prefs_${clerkUser?.id || 'guest'}`)
+        : null;
+
+      const meta = (clerkUser?.unsafeMetadata || {}) as any;
+
+      // 1. Profile fields
+      const cachedProfile = cachedProfileStr ? JSON.parse(cachedProfileStr) : {};
+      setFirstName(clerkUser?.firstName || cachedProfile.firstName || user?.firstName || '');
+      setLastName(clerkUser?.lastName || cachedProfile.lastName || user?.lastName || '');
+      setEmail(clerkUser?.primaryEmailAddress?.emailAddress || user?.email || '');
+      setPhone(
+        meta.phone ||
+        clerkUser?.primaryPhoneNumber?.phoneNumber ||
+        cachedProfile.phone ||
+        ''
+      );
+
+      // 2. Address fields
+      const cachedAddress = cachedAddressStr ? JSON.parse(cachedAddressStr) : {};
+      const addr = meta.address || cachedAddress || {};
+      setStreet(addr.street || '');
+      setCity(addr.city || '');
+      setStateName(addr.state || '');
+      setPincode(addr.pincode || '');
+
+      // 3. Notification Preferences
+      const cachedPrefs = cachedPrefsStr ? JSON.parse(cachedPrefsStr) : {};
+      const prefs = meta.preferences || cachedPrefs || {};
+      if (prefs.dropAlerts !== undefined) setDropAlerts(Boolean(prefs.dropAlerts));
+      if (prefs.restockAlerts !== undefined) setRestockAlerts(Boolean(prefs.restockAlerts));
+      if (prefs.newsletter !== undefined) setNewsletter(Boolean(prefs.newsletter));
+    } catch (e) {
+      console.warn('Failed to load profile data:', e);
+    }
+  }, [clerkUser, isLoaded, user]);
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     playClickSound();
     setSavingProfile(true);
-    setTimeout(() => {
-      setSavingProfile(false);
+
+    try {
+      if (clerkUser) {
+        await clerkUser.update({
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          unsafeMetadata: {
+            ...clerkUser.unsafeMetadata,
+            phone: phone.trim(),
+          },
+        });
+      }
+
+      // Persist to local cache for instantaneous load across refreshes
+      const profileData = {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phone: phone.trim(),
+      };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`menance_profile_${clerkUser?.id || 'guest'}`, JSON.stringify(profileData));
+        localStorage.setItem('menance_user_profile', JSON.stringify(profileData));
+      }
+
       playConfettiSound();
       triggerConfetti();
       showToast('PROFILE UPDATED.');
-    }, 600);
+    } catch (err: any) {
+      console.error('Failed to update profile:', err);
+      // Fallback: save to local storage anyway
+      const profileData = {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phone: phone.trim(),
+      };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`menance_profile_${clerkUser?.id || 'guest'}`, JSON.stringify(profileData));
+      }
+      playConfettiSound();
+      triggerConfetti();
+      showToast('PROFILE SAVED LOCALLY.');
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
-  const handleSaveAddress = (e: React.FormEvent) => {
+  const handleSaveAddress = async (e: React.FormEvent) => {
     e.preventDefault();
     playClickSound();
     setSavingAddress(true);
-    setTimeout(() => {
-      setSavingAddress(false);
+
+    const addressData = {
+      street: street.trim(),
+      city: city.trim(),
+      state: stateName.trim(),
+      pincode: pincode.trim(),
+    };
+
+    try {
+      if (clerkUser) {
+        await clerkUser.update({
+          unsafeMetadata: {
+            ...clerkUser.unsafeMetadata,
+            address: addressData,
+          },
+        });
+      }
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`menance_address_${clerkUser?.id || 'guest'}`, JSON.stringify(addressData));
+        localStorage.setItem('menance_shipping_address', JSON.stringify(addressData));
+      }
+
       playConfettiSound();
       triggerConfetti();
       showToast('SHIPPING ADDRESS SAVED.');
-    }, 600);
+    } catch (err: any) {
+      console.error('Failed to update address:', err);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`menance_address_${clerkUser?.id || 'guest'}`, JSON.stringify(addressData));
+        localStorage.setItem('menance_shipping_address', JSON.stringify(addressData));
+      }
+      playConfettiSound();
+      triggerConfetti();
+      showToast('SHIPPING ADDRESS SAVED.');
+    } finally {
+      setSavingAddress(false);
+    }
+  };
+
+  const handleTogglePreference = async (key: 'dropAlerts' | 'restockAlerts' | 'newsletter', val: boolean) => {
+    if (key === 'dropAlerts') setDropAlerts(val);
+    if (key === 'restockAlerts') setRestockAlerts(val);
+    if (key === 'newsletter') setNewsletter(val);
+
+    const prefs = {
+      dropAlerts: key === 'dropAlerts' ? val : dropAlerts,
+      restockAlerts: key === 'restockAlerts' ? val : restockAlerts,
+      newsletter: key === 'newsletter' ? val : newsletter,
+    };
+
+    try {
+      if (clerkUser) {
+        await clerkUser.update({
+          unsafeMetadata: {
+            ...clerkUser.unsafeMetadata,
+            preferences: prefs,
+          },
+        });
+      }
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`menance_prefs_${clerkUser?.id || 'guest'}`, JSON.stringify(prefs));
+      }
+    } catch (err) {
+      console.warn('Failed to save preference:', err);
+    }
   };
 
   return (
@@ -87,6 +235,7 @@ export default function AccountSettingsPage() {
                   </label>
                   <input
                     type="text"
+                    placeholder="First Name"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     className="w-full bg-transparent border-b border-border py-2 text-off-white font-mono text-sm focus:border-acid-green outline-none"
@@ -98,6 +247,7 @@ export default function AccountSettingsPage() {
                   </label>
                   <input
                     type="text"
+                    placeholder="Last Name"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     className="w-full bg-transparent border-b border-border py-2 text-off-white font-mono text-sm focus:border-acid-green outline-none"
@@ -113,6 +263,7 @@ export default function AccountSettingsPage() {
                   type="email"
                   value={email}
                   disabled
+                  placeholder="name@domain.com"
                   className="w-full bg-transparent border-b border-border py-2 text-muted-grey font-mono text-sm cursor-not-allowed opacity-80"
                 />
               </div>
@@ -123,6 +274,7 @@ export default function AccountSettingsPage() {
                 </label>
                 <input
                   type="text"
+                  placeholder="+91 98765 43210"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   className="w-full bg-transparent border-b border-border py-2 text-off-white font-mono text-sm focus:border-acid-green outline-none"
@@ -159,6 +311,7 @@ export default function AccountSettingsPage() {
                 </label>
                 <input
                   type="text"
+                  placeholder="Flat / House no, Street, Landmark"
                   value={street}
                   onChange={(e) => setStreet(e.target.value)}
                   className="w-full bg-transparent border-b border-border py-2 text-off-white font-mono text-sm focus:border-acid-green outline-none"
@@ -172,6 +325,7 @@ export default function AccountSettingsPage() {
                   </label>
                   <input
                     type="text"
+                    placeholder="City"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
                     className="w-full bg-transparent border-b border-border py-2 text-off-white font-mono text-sm focus:border-acid-green outline-none"
@@ -183,6 +337,7 @@ export default function AccountSettingsPage() {
                   </label>
                   <input
                     type="text"
+                    placeholder="State"
                     value={stateName}
                     onChange={(e) => setStateName(e.target.value)}
                     className="w-full bg-transparent border-b border-border py-2 text-off-white font-mono text-sm focus:border-acid-green outline-none"
@@ -194,6 +349,7 @@ export default function AccountSettingsPage() {
                   </label>
                   <input
                     type="text"
+                    placeholder="6-digit Pincode"
                     value={pincode}
                     onChange={(e) => setPincode(e.target.value)}
                     className="w-full bg-transparent border-b border-border py-2 text-off-white font-mono text-sm focus:border-acid-green outline-none"
@@ -261,7 +417,7 @@ export default function AccountSettingsPage() {
                 <input
                   type="checkbox"
                   checked={dropAlerts}
-                  onChange={(e) => setDropAlerts(e.target.checked)}
+                  onChange={(e) => handleTogglePreference('dropAlerts', e.target.checked)}
                   className="w-4 h-4 accent-acid-green"
                 />
               </label>
@@ -274,7 +430,7 @@ export default function AccountSettingsPage() {
                 <input
                   type="checkbox"
                   checked={restockAlerts}
-                  onChange={(e) => setRestockAlerts(e.target.checked)}
+                  onChange={(e) => handleTogglePreference('restockAlerts', e.target.checked)}
                   className="w-4 h-4 accent-acid-green"
                 />
               </label>
@@ -287,7 +443,7 @@ export default function AccountSettingsPage() {
                 <input
                   type="checkbox"
                   checked={newsletter}
-                  onChange={(e) => setNewsletter(e.target.checked)}
+                  onChange={(e) => handleTogglePreference('newsletter', e.target.checked)}
                   className="w-4 h-4 accent-acid-green"
                 />
               </label>
