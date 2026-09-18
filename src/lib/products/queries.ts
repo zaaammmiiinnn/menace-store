@@ -8,6 +8,7 @@ export interface FormattedProduct {
   slug: string;
   name: string;
   description: string;
+  price?: number;
   priceInr: number;
   priceUsd: number;
   category: string;
@@ -23,6 +24,12 @@ export interface FormattedProduct {
   color: string;
   images: string[];
   plainImages: string[];
+  colorways?: { name: string; hex: string; materialColor: string }[];
+  sizes?: { value: string; label: string; scale: number; inStock: boolean }[];
+  tags?: string[];
+  isBestSeller?: boolean;
+  isNew?: boolean;
+  vibeName?: string;
   variants: {
     id: string;
     size: string;
@@ -105,11 +112,20 @@ function getFallbackProducts(): FormattedProduct[] {
       hasSecondModel
     );
 
+    const colorHex = p.color.toLowerCase().includes('white')
+      ? '#F5F1E8'
+      : p.color.toLowerCase().includes('brown')
+      ? '#5A3D28'
+      : p.color.toLowerCase().includes('grey') || p.color.toLowerCase().includes('acid')
+      ? '#4A4E51'
+      : '#0A0A0A';
+
     return {
       id: p.id,
       slug: p.slug,
       name: p.name,
       description: p.description,
+      price: p.priceInr,
       priceInr: p.priceInr,
       priceUsd: p.priceUsd,
       category: p.category,
@@ -125,6 +141,12 @@ function getFallbackProducts(): FormattedProduct[] {
       color: p.color,
       images,
       plainImages,
+      colorways: [{ name: p.color, hex: colorHex, materialColor: colorHex }],
+      sizes: SIZES.map((size) => ({ value: size, label: size, scale: 1.0, inStock: true })),
+      tags: ['drop001', 'waffle', 'heavyweight'],
+      isBestSeller: false,
+      isNew: true,
+      vibeName: p.category.toLowerCase(),
       variants: SIZES.map((size) => ({
         id: `var_${p.id}_${size.toLowerCase()}`,
         size,
@@ -198,11 +220,20 @@ export async function getProducts(): Promise<FormattedProduct[]> {
             hasSecondModel
           );
 
+          const colorHex = color.toLowerCase().includes('white')
+            ? '#F5F1E8'
+            : color.toLowerCase().includes('brown')
+            ? '#5A3D28'
+            : color.toLowerCase().includes('grey') || color.toLowerCase().includes('acid')
+            ? '#4A4E51'
+            : '#0A0A0A';
+
           return {
             id: p.id,
             slug: p.slug,
             name: p.name,
             description: p.description,
+            price: p.price_inr ?? p.priceInr ?? 1499,
             priceInr: p.price_inr ?? p.priceInr ?? 1499,
             priceUsd: p.price_usd ?? p.priceUsd ?? 45,
             category: p.category || 'tees',
@@ -218,6 +249,12 @@ export async function getProducts(): Promise<FormattedProduct[]> {
             color,
             images: imagesList,
             plainImages,
+            colorways: [{ name: color, hex: colorHex, materialColor: colorHex }],
+            sizes: SIZES.map((size) => ({ value: size, label: size, scale: 1.0, inStock: true })),
+            tags: ['drop001', 'waffle', 'heavyweight'],
+            isBestSeller: false,
+            isNew: true,
+            vibeName: (p.category || 'tees').toLowerCase(),
             variants: pVariants.length > 0
               ? pVariants.map((v: any) => ({
                   id: v.id,
@@ -294,11 +331,20 @@ export async function getProductBySlug(slug: string): Promise<FormattedProduct |
           hasSecondModel
         );
 
+        const colorHex = color.toLowerCase().includes('white')
+          ? '#F5F1E8'
+          : color.toLowerCase().includes('brown')
+          ? '#5A3D28'
+          : color.toLowerCase().includes('grey') || color.toLowerCase().includes('acid')
+          ? '#4A4E51'
+          : '#0A0A0A';
+
         return {
           id: prodRes.id,
           slug: prodRes.slug,
           name: prodRes.name,
           description: prodRes.description,
+          price: prodRes.price_inr ?? prodRes.priceInr ?? 1499,
           priceInr: prodRes.price_inr ?? prodRes.priceInr ?? 1499,
           priceUsd: prodRes.price_usd ?? prodRes.priceUsd ?? 45,
           category: prodRes.category || 'tees',
@@ -314,6 +360,12 @@ export async function getProductBySlug(slug: string): Promise<FormattedProduct |
           color,
           images: imagesList,
           plainImages,
+          colorways: [{ name: color, hex: colorHex, materialColor: colorHex }],
+          sizes: SIZES.map((size) => ({ value: size, label: size, scale: 1.0, inStock: true })),
+          tags: ['drop001', 'waffle', 'heavyweight'],
+          isBestSeller: false,
+          isNew: true,
+          vibeName: (prodRes.category || 'tees').toLowerCase(),
           variants: pVariants.length > 0
             ? pVariants.map((v: any) => ({
                 id: v.id,

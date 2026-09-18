@@ -55,8 +55,14 @@ export const useCartStore = create<CartState>()(
 
       addItem: (product, colorName, sizeValue) => {
         const currentItems = get().items;
-        const color = colorName || product.colorways[0]?.name || 'Black';
-        const size = sizeValue || product.sizes[0]?.value || 'M';
+        const colorways = product.colorways && product.colorways.length > 0 
+          ? product.colorways 
+          : [{ name: (product as any).color || 'Black', hex: '#0A0A0A', materialColor: '#0A0A0A' }];
+        const sizes = product.sizes && product.sizes.length > 0 
+          ? product.sizes 
+          : [{ value: 'M', label: 'M', scale: 1.0, inStock: true }];
+        const color = colorName || colorways[0]?.name || 'Black';
+        const size = sizeValue || sizes[0]?.value || 'M';
         const id = `${product.id}-${color}-${size}`;
 
         const existingItemIndex = currentItems.findIndex(
@@ -71,22 +77,22 @@ export const useCartStore = create<CartState>()(
             quantity: updatedItems[existingItemIndex].quantity + 1,
           };
         } else {
-          const selectedColor = product.colorways.find((c) => c.name === color) || product.colorways[0];
-          const selectedSize = product.sizes.find((s) => s.value === size) || product.sizes[0];
+          const selectedColor = colorways.find((c) => c.name === color) || colorways[0];
+          const selectedSize = sizes.find((s) => s.value === size) || sizes[0];
           const newItem: CartItem = {
             id,
             product,
             color,
             size,
             quantity: 1,
-            selectedColor,
-            selectedSize,
+            selectedColor: selectedColor as any,
+            selectedSize: selectedSize as any,
           };
           updatedItems = [...currentItems, newItem];
         }
 
         const count = updatedItems.reduce((acc, item) => acc + item.quantity, 0);
-        const subtotal = updatedItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+        const subtotal = updatedItems.reduce((acc, item) => acc + (item.product.price || item.product.priceInr || 0) * item.quantity, 0);
 
         set({
           items: updatedItems,
@@ -222,7 +228,7 @@ export const useCartStore = create<CartState>()(
       },
 
       getSubtotal: () => {
-        return get().items.reduce((total, item) => total + item.product.price * item.quantity, 0);
+        return get().items.reduce((total, item) => total + (item.product.price || item.product.priceInr || 0) * item.quantity, 0);
       },
 
       getDiscountAmount: () => {

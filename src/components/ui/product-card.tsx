@@ -28,7 +28,19 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
 
   const shouldReduceMotion = useReducedMotion();
   const [isHovered, setIsHovered] = useState(false);
-  const [selectedColor, setSelectedColor] = useState(product.colorways?.[0]?.name || 'Black');
+  const colorways = product.colorways && product.colorways.length > 0 
+    ? product.colorways 
+    : [{ name: (product as any).color || 'Black', hex: '#1A1A1A', materialColor: '#1A1A1A' }];
+  const [selectedColor, setSelectedColor] = useState(colorways[0]?.name || 'Black');
+  const sizes = product.sizes && product.sizes.length > 0 
+    ? product.sizes 
+    : (product as any).variants?.map((v: any) => ({ value: v.size, label: v.size, scale: 1.0, inStock: true })) || [
+        { value: 'S', label: 'S', scale: 1.0, inStock: true },
+        { value: 'M', label: 'M', scale: 1.0, inStock: true },
+        { value: 'L', label: 'L', scale: 1.0, inStock: true },
+        { value: 'XL', label: 'XL', scale: 1.0, inStock: true },
+        { value: '2XL', label: '2XL', scale: 1.0, inStock: true },
+      ];
   const [selectedSize, setSelectedSize] = useState<string>('M');
   const [isTouchDevice, setIsTouchDevice] = useState(false);
 
@@ -80,11 +92,12 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
     showToast(`Added ${product.name} (${selectedSize}) to cart`);
   };
 
-  const activeColorway = product.colorways.find((c) => c.name === selectedColor) || product.colorways[0];
+  const activeColorway = colorways.find((c) => c.name === selectedColor) || colorways[0];
   const primaryColorHex = activeColorway?.hex || '#1A1A1A';
 
-  const mainImage = product.images?.[0] || '/products/placeholder.svg';
-  const hoverImage = isHovered && product.images?.[1] ? product.images[1] : mainImage;
+  const productImages = product.images && product.images.length > 0 ? product.images : ['/products/placeholder.svg'];
+  const mainImage = productImages[0] || '/products/placeholder.svg';
+  const hoverImage = isHovered && productImages[1] ? productImages[1] : mainImage;
 
   return (
     <motion.div
@@ -161,7 +174,7 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
             >
               {/* Size Selector */}
               <div className="flex items-center justify-between gap-1 overflow-x-auto hide-scrollbar py-0.5">
-                {product.sizes?.slice(0, 6).map((size) => (
+                {sizes.slice(0, 6).map((size: any) => (
                   <button
                     key={size.value}
                     type="button"
@@ -205,7 +218,7 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
             </h3>
           </Link>
           <span className="font-mono text-xs text-acid-green font-bold whitespace-nowrap">
-            {getFormattedPrice(product.price)}
+            {getFormattedPrice(product.price || product.priceInr || 0)}
           </span>
         </div>
 
@@ -219,7 +232,7 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
         {/* Colorway Swatches */}
         <div className="flex items-center justify-between mt-1">
           <div className="flex items-center gap-1.5">
-            {product.colorways?.map((cw) => (
+            {colorways.map((cw) => (
               <button
                 key={cw.name}
                 type="button"

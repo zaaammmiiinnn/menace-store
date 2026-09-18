@@ -179,7 +179,11 @@ export function CartDrawer() {
               ) : (
                 <ul className="space-y-4">
                   {items.map((item) => {
-                    const colorway = item.product.colorways.find((c) => c.name === item.color) || item.product.colorways[0];
+                    const colorways = item.product.colorways && item.product.colorways.length > 0
+                      ? item.product.colorways
+                      : [{ name: item.color || 'Black', hex: '#1A1A1A', materialColor: '#1A1A1A' }];
+                    const colorway = colorways.find((c) => c.name === item.color) || colorways[0];
+                    const itemPrice = item.product.price || item.product.priceInr || 0;
                     return (
                       <li
                         key={item.id}
@@ -232,7 +236,7 @@ export function CartDrawer() {
                               </div>
                             </div>
                             <span className="font-mono text-xs font-bold text-off-white whitespace-nowrap">
-                              {getFormattedPrice(item.product.price * item.quantity)}
+                              {getFormattedPrice(itemPrice * item.quantity)}
                             </span>
                           </div>
 

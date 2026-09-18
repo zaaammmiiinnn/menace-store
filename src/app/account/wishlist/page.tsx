@@ -20,7 +20,8 @@ export default function AccountWishlistPage() {
   const wishlistedProducts = products.filter((p) => wishlistIds.includes(p.id));
 
   const handleQuickAdd = (product: typeof products[0]) => {
-    addToCart(product, product.colorways[0].name, 'L');
+    const color = product.colorways?.[0]?.name || (product as any).color || 'Black';
+    addToCart(product, color, 'L');
     playAddCartSound();
     playConfettiSound();
     triggerConfetti();
