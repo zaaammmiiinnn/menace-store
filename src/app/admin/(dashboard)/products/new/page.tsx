@@ -2,6 +2,9 @@ import React from 'react';
 import { requireAdmin } from '@/lib/admin/auth';
 import { ProductForm } from '@/components/admin/ProductForm';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function NewProductPage() {
   await requireAdmin();
 

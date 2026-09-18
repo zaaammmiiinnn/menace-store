@@ -53,7 +53,7 @@ export function ProductDetailView({ product, isDropLive = true }: ProductDetailV
               productName={product.name}
               backQuote={product.backQuote}
               fabricGsm={product.fabricGsm}
-              isPlain={edition === 'plain'}
+              isPlain={edition === 'plain' || edition === 'custom'}
               customArtwork={edition === 'custom' ? customDesign : null}
             />
           </div>

@@ -1,6 +1,6 @@
 import { currentUser } from '@clerk/nextjs/server';
 import { notFound, redirect } from 'next/navigation';
-import { getLocalStore } from '@/lib/db';
+import { getLocalStore, getD1Database } from '@/lib/db';
 
 export type AdminRole = 'customer' | 'staff' | 'admin';
 
@@ -127,6 +127,28 @@ export async function logAuditAction(params: {
       createdAt: Date.now(),
     };
 
+    // 1. Write to D1 database
+    const d1 = getD1Database();
+    if (d1) {
+      try {
+        await d1.prepare(
+          'INSERT INTO audit_log (id, user_id, user_email, action, entity, entity_id, details, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        ).bind(
+          entry.id,
+          entry.userId,
+          entry.userEmail,
+          entry.action,
+          entry.entity,
+          entry.entityId,
+          entry.details,
+          entry.createdAt
+        ).run();
+      } catch (d1Err) {
+        console.error('[D1 logAuditAction Error]:', d1Err);
+      }
+    }
+
+    // 2. In-memory fallback
     const store = getLocalStore();
     const auditTable = store.getTable('audit_log');
     auditTable.unshift({

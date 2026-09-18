@@ -32,6 +32,56 @@ export interface FormattedProduct {
   }[];
 }
 
+// Helper to resolve product image lists and matching plain images
+function resolveProductImages(
+  pImages: { url: string; sortOrder: number }[] | undefined,
+  slug: string,
+  hasModel: boolean,
+  hasSecondModel: boolean
+): { imagesList: string[]; plainImages: string[] } {
+  let imagesList: string[] = [];
+
+  if (pImages && pImages.length > 0) {
+    imagesList = pImages
+      .slice()
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((img) => img.url);
+
+    // If only 2 images were saved in DB and they point to a product folder (e.g. front.jpg, back.jpg),
+    // append detail-1 and detail-2 from that same product folder if available
+    if (imagesList.length === 2 && imagesList[0].includes('/products/')) {
+      const match = imagesList[0].match(/^(.*)\/front\.(jpe?g|png|webp)$/i);
+      if (match) {
+        const basePath = match[1];
+        imagesList.push(`${basePath}/detail-1.jpg`, `${basePath}/detail-2.jpg`);
+      }
+    }
+  } else {
+    imagesList = [
+      `/products/${slug}/front.jpg`,
+      `/products/${slug}/back.jpg`,
+      ...(hasModel ? [`/products/${slug}/model.jpg`] : []),
+      ...(hasSecondModel ? [`/products/${slug}/model-2.jpg`] : []),
+      `/products/${slug}/detail-1.jpg`,
+      `/products/${slug}/detail-2.jpg`,
+    ];
+  }
+
+  // Derive plain images based on imagesList
+  const plainImages = imagesList.map((img) => {
+    if (img.includes('-plain')) return img;
+    if (/\/front\.(jpe?g|png|webp)$/i.test(img)) {
+      return img.replace(/\/front\.(jpe?g|png|webp)$/i, '/front-plain.$1');
+    }
+    if (/\/back\.(jpe?g|png|webp)$/i.test(img)) {
+      return img.replace(/\/back\.(jpe?g|png|webp)$/i, '/back-plain.$1');
+    }
+    return img;
+  });
+
+  return { imagesList, plainImages };
+}
+
 // Convert seed products into fallback formatted structure
 function getFallbackProducts(): FormattedProduct[] {
   return SEED_PRODUCTS.map((p) => {
@@ -48,26 +98,12 @@ function getFallbackProducts(): FormattedProduct[] {
     ].includes(p.slug);
     const hasSecondModel = p.slug === 'the-henley-offwhite';
 
-    const images = [
-      `/products/${p.slug}/front.jpg`,
-      `/products/${p.slug}/back.jpg`,
-      ...(hasModel ? [`/products/${p.slug}/model.jpg`] : []),
-      ...(hasSecondModel ? [`/products/${p.slug}/model-2.jpg`] : []),
-      `/products/${p.slug}/detail-1.jpg`,
-      `/products/${p.slug}/detail-2.jpg`,
-    ];
-
-    const plainImages = [
-      `/products/${p.slug}/front-plain.jpg`,
-      `/products/${p.slug}/back-plain.jpg`,
-      ...(hasModel ? [`/products/${p.slug}/model.jpg`] : []),
-      ...(hasSecondModel ? [`/products/${p.slug}/model-2.jpg`] : []),
-      `/products/${p.slug}/detail-1.jpg`,
-      `/products/${p.slug}/detail-2.jpg`,
-    ];
-
-
-
+    const { imagesList: images, plainImages } = resolveProductImages(
+      undefined,
+      p.slug,
+      hasModel,
+      hasSecondModel
+    );
 
     return {
       id: p.id,
@@ -132,25 +168,12 @@ export async function getProducts(): Promise<FormattedProduct[]> {
       ].includes(p.slug);
       const hasSecondModel = p.slug === 'the-henley-offwhite';
 
-      const imagesList = pImages.length > 0 
-        ? pImages.map((img) => img.url)
-        : [
-            `/products/${p.slug}/front.jpg`,
-            `/products/${p.slug}/back.jpg`,
-            ...(hasModel ? [`/products/${p.slug}/model.jpg`] : []),
-            ...(hasSecondModel ? [`/products/${p.slug}/model-2.jpg`] : []),
-            `/products/${p.slug}/detail-1.jpg`,
-            `/products/${p.slug}/detail-2.jpg`,
-          ];
-
-      const plainImages = [
-        `/products/${p.slug}/front-plain.jpg`,
-        `/products/${p.slug}/back-plain.jpg`,
-        ...(hasModel ? [`/products/${p.slug}/model.jpg`] : []),
-        ...(hasSecondModel ? [`/products/${p.slug}/model-2.jpg`] : []),
-        `/products/${p.slug}/detail-1.jpg`,
-        `/products/${p.slug}/detail-2.jpg`,
-      ];
+      const { imagesList, plainImages } = resolveProductImages(
+        pImages,
+        p.slug,
+        hasModel,
+        hasSecondModel
+      );
 
 
 
@@ -214,25 +237,12 @@ export async function getProducts(): Promise<FormattedProduct[]> {
         ].includes(p.slug);
         const hasSecondModel = p.slug === 'the-henley-offwhite';
 
-        const imagesList = pImages.length > 0 
-          ? pImages.sort((a, b) => a.sortOrder - b.sortOrder).map((img) => img.url)
-          : [
-              `/products/${p.slug}/front.jpg`,
-              `/products/${p.slug}/back.jpg`,
-              ...(hasModel ? [`/products/${p.slug}/model.jpg`] : []),
-              ...(hasSecondModel ? [`/products/${p.slug}/model-2.jpg`] : []),
-              `/products/${p.slug}/detail-1.jpg`,
-              `/products/${p.slug}/detail-2.jpg`,
-            ];
-
-        const plainImages = [
-          `/products/${p.slug}/front-plain.jpg`,
-          `/products/${p.slug}/back-plain.jpg`,
-          ...(hasModel ? [`/products/${p.slug}/model.jpg`] : []),
-          ...(hasSecondModel ? [`/products/${p.slug}/model-2.jpg`] : []),
-          `/products/${p.slug}/detail-1.jpg`,
-          `/products/${p.slug}/detail-2.jpg`,
-        ];
+        const { imagesList, plainImages } = resolveProductImages(
+          pImages,
+          p.slug,
+          hasModel,
+          hasSecondModel
+        );
 
 
 

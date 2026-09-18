@@ -2,6 +2,9 @@ import React from 'react';
 import { getCustomers } from '@/lib/admin/queries';
 import { CustomersTable } from '@/components/admin/CustomersTable';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function AdminCustomersPage() {
   const customers = await getCustomers();
 

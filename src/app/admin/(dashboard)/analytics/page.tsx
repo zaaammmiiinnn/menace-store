@@ -1,6 +1,9 @@
 import React from 'react';
 import { AnalyticsView } from '@/components/admin/AnalyticsView';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function AdminAnalyticsPage() {
   return (
     <div className="space-y-5">

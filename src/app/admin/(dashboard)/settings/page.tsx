@@ -3,6 +3,9 @@ import { requireAdmin } from '@/lib/admin/auth';
 import { getStoreSettings, getAuditLogs } from '@/lib/admin/queries';
 import { SettingsForm } from '@/components/admin/SettingsForm';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function AdminSettingsPage() {
   await requireAdmin();
   const settings = await getStoreSettings();

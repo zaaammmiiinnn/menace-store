@@ -55,18 +55,36 @@ export function ProductGallery({
     }
   }, [customArtwork?.placement]);
 
+  // Keep selected index within active list range
+  useEffect(() => {
+    if (selectedIndex >= activeImageList.length) {
+      setSelectedIndex(0);
+    }
+  }, [activeImageList.length, selectedIndex]);
+
   const getImageSrc = (index: number) => {
-    const key = `${activeImageList[index]}_${index}`;
-    if (failedImages[key] || !activeImageList[index]) {
-      // Fallback to placeholder or original images
+    const activeUrl = activeImageList[index];
+    const key = `${activeUrl}_${index}`;
+    if (failedImages[key] || !activeUrl) {
+      // If plain is requested, do NOT fall back to printed graphics
+      if (isPlain) {
+        return (
+          (plainImages && plainImages[index] && !failedImages[`${plainImages[index]}_${index}`]
+            ? plainImages[index]
+            : '/products/placeholder.svg')
+        );
+      }
       return images[index] || '/products/placeholder.svg';
     }
-    return activeImageList[index];
+    return activeUrl;
   };
 
   const handleImageError = (index: number) => {
-    const key = `${activeImageList[index]}_${index}`;
-    setFailedImages((prev) => ({ ...prev, [key]: true }));
+    const activeUrl = activeImageList[index];
+    if (activeUrl) {
+      const key = `${activeUrl}_${index}`;
+      setFailedImages((prev) => ({ ...prev, [key]: true }));
+    }
   };
 
   return (

@@ -65,48 +65,152 @@ MIND YOUR BUSINESS. WEAR THIS.
 menance.wear
 `,
     html: `
-<div style="background-color: #0A0A0A; color: #F5F1E8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 40px 20px; max-width: 600px; margin: 0 auto; border: 1px solid #262626;">
-  <div style="border-bottom: 2px solid #C6FF00; padding-bottom: 20px; margin-bottom: 30px;">
-    <h1 style="color: #F5F1E8; margin: 0; font-size: 28px; letter-spacing: 2px;">MENANCE®</h1>
-    <p style="color: #C6FF00; font-family: monospace; font-size: 11px; margin: 5px 0 0 0; text-transform: uppercase;">NOT FOR EVERYONE.</p>
-  </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MENANCE // Order Confirmed</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #050505; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #F5F1E8;">
+  <div style="background-color: #050505; padding: 32px 16px; min-height: 100%;">
+    <table role="presentation" style="max-width: 600px; width: 100%; margin: 0 auto; background-color: #0D0D0D; border: 1px solid #1C1C1C; border-collapse: separate; border-spacing: 0;">
+      <!-- Header Banner -->
+      <tr>
+        <td style="padding: 32px 32px 24px 32px; border-bottom: 2px solid #C6FF00; background: linear-gradient(180deg, #141414 0%, #0D0D0D 100%);">
+          <table role="presentation" style="width: 100%;">
+            <tr>
+              <td>
+                <span style="font-size: 26px; font-weight: 900; letter-spacing: 3px; color: #F5F1E8; text-transform: uppercase; font-family: 'Courier New', Courier, monospace; display: block;">MENANCE®</span>
+                <span style="display: inline-block; margin-top: 6px; font-size: 10px; font-family: 'Courier New', Courier, monospace; letter-spacing: 2px; color: #C6FF00; text-transform: uppercase; font-weight: bold;">
+                  DROP 001 // NOT FOR EVERYONE.
+                </span>
+              </td>
+              <td style="text-align: right; vertical-align: top;">
+                <span style="display: inline-block; background-color: #C6FF00; color: #0A0A0A; font-family: 'Courier New', Courier, monospace; font-size: 9px; font-weight: bold; letter-spacing: 1.5px; padding: 4px 8px; text-transform: uppercase;">
+                  PAID &amp; LOCKED
+                </span>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
 
-  <h2 style="font-size: 20px; text-transform: uppercase; margin-bottom: 10px;">YOUR ORDER IS CONFIRMED.</h2>
-  <p style="color: #8A8A8A; font-size: 13px; line-height: 1.6; margin-bottom: 25px;">
-    Order <strong>#${data.orderId}</strong> is locked in. We have initiated prep at our fulfillment center.
-  </p>
+      <!-- Headline -->
+      <tr>
+        <td style="padding: 32px 32px 16px 32px;">
+          <h2 style="margin: 0 0 12px 0; font-size: 20px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: #F5F1E8; font-family: 'Courier New', Courier, monospace;">
+            ORDER CONFIRMED: #${data.orderId}
+          </h2>
+          <p style="margin: 0; color: #A0A0A0; font-size: 13px; line-height: 1.6;">
+            Peace <strong style="color: #F5F1E8;">${data.customerName}</strong>, your order is secured. Our fulfillment unit has initiated garment preparation and quality inspection.
+          </p>
+        </td>
+      </tr>
 
-  <div style="background-color: #141414; border: 1px solid #262626; padding: 20px; margin-bottom: 25px;">
-    <h3 style="font-size: 11px; font-family: monospace; color: #8A8A8A; text-transform: uppercase; margin-top: 0;">ORDER SUMMARY</h3>
-    <ul style="list-style: none; padding: 0; margin: 0 0 15px 0;">
-      ${data.items
-        .map(
-          (item) => `
-        <li style="border-bottom: 1px solid #202020; padding: 8px 0; font-size: 13px; display: flex; justify-content: space-between;">
-          <span>${item.name} (${item.color} / ${item.size}) x${item.quantity}</span>
-          <span style="font-family: monospace; font-weight: bold;">₹${(item.price * item.quantity).toLocaleString('en-IN')}</span>
-        </li>`
-        )
-        .join('')}
-    </ul>
-    <div style="font-family: monospace; font-size: 13px; border-top: 1px solid #333; padding-top: 10px;">
-      <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #8A8A8A;">
-        <span>Subtotal</span><span>₹${data.subtotalInr.toLocaleString('en-IN')}</span>
-      </div>
-      <div style="display: flex; justify-content: space-between; margin-bottom: 6px; color: #8A8A8A;">
-        <span>Shipping</span><span>${data.shippingInr === 0 ? 'FREE EXPRESS' : `₹${data.shippingInr}`}</span>
-      </div>
-      <div style="display: flex; justify-content: space-between; font-size: 16px; color: #C6FF00; font-weight: bold; padding-top: 6px; border-top: 1px dashed #333;">
-        <span>Total Paid</span><span>₹${data.totalInr.toLocaleString('en-IN')}</span>
-      </div>
-    </div>
-  </div>
+      <!-- Order Items Table -->
+      <tr>
+        <td style="padding: 16px 32px 24px 32px;">
+          <table role="presentation" style="width: 100%; border: 1px solid #1C1C1C; background-color: #111111; border-collapse: collapse;">
+            <thead>
+              <tr style="border-bottom: 1px solid #222222; background-color: #161616;">
+                <th style="padding: 12px 16px; text-align: left; font-size: 10px; font-family: 'Courier New', Courier, monospace; color: #8A8A8A; letter-spacing: 1.5px; text-transform: uppercase;">SILHOUETTE</th>
+                <th style="padding: 12px 16px; text-align: center; font-size: 10px; font-family: 'Courier New', Courier, monospace; color: #8A8A8A; letter-spacing: 1.5px; text-transform: uppercase;">QTY</th>
+                <th style="padding: 12px 16px; text-align: right; font-size: 10px; font-family: 'Courier New', Courier, monospace; color: #8A8A8A; letter-spacing: 1.5px; text-transform: uppercase;">PRICE</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.items
+                .map(
+                  (item) => `
+              <tr style="border-bottom: 1px solid #1A1A1A;">
+                <td style="padding: 14px 16px; vertical-align: middle;">
+                  <div style="font-size: 13px; font-weight: 700; color: #F5F1E8; text-transform: uppercase; letter-spacing: 0.5px;">${item.name}</div>
+                  <div style="font-size: 11px; font-family: 'Courier New', Courier, monospace; color: #8A8A8A; margin-top: 4px;">
+                    COLOR: <span style="color: #F5F1E8;">${item.color}</span> // SIZE: <span style="color: #C6FF00; font-weight: bold;">${item.size}</span>
+                  </div>
+                </td>
+                <td style="padding: 14px 16px; text-align: center; vertical-align: middle; font-family: 'Courier New', Courier, monospace; font-size: 12px; color: #F5F1E8;">
+                  x${item.quantity}
+                </td>
+                <td style="padding: 14px 16px; text-align: right; vertical-align: middle; font-family: 'Courier New', Courier, monospace; font-size: 13px; font-weight: bold; color: #F5F1E8;">
+                  ₹${(item.price * item.quantity).toLocaleString('en-IN')}
+                </td>
+              </tr>`
+                )
+                .join('')}
+            </tbody>
+            <!-- Financial Breakdown -->
+            <tfoot>
+              <tr>
+                <td colspan="2" style="padding: 12px 16px 4px 16px; font-size: 11px; font-family: 'Courier New', Courier, monospace; color: #8A8A8A; text-transform: uppercase;">SUBTOTAL</td>
+                <td style="padding: 12px 16px 4px 16px; text-align: right; font-size: 12px; font-family: 'Courier New', Courier, monospace; color: #F5F1E8;">₹${data.subtotalInr.toLocaleString('en-IN')}</td>
+              </tr>
+              <tr>
+                <td colspan="2" style="padding: 4px 16px 8px 16px; font-size: 11px; font-family: 'Courier New', Courier, monospace; color: #8A8A8A; text-transform: uppercase;">EXPRESS SHIPPING</td>
+                <td style="padding: 4px 16px 8px 16px; text-align: right; font-size: 12px; font-family: 'Courier New', Courier, monospace; color: #C6FF00; font-weight: bold;">
+                  ${data.shippingInr === 0 ? 'FREE' : `₹${data.shippingInr}`}
+                </td>
+              </tr>
+              <tr style="border-top: 1px dashed #333333; background-color: #0E0E0E;">
+                <td colspan="2" style="padding: 14px 16px; font-size: 13px; font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #F5F1E8; text-transform: uppercase;">
+                  TOTAL PAID
+                </td>
+                <td style="padding: 14px 16px; text-align: right; font-size: 18px; font-family: 'Courier New', Courier, monospace; font-weight: 900; color: #C6FF00;">
+                  ₹${data.totalInr.toLocaleString('en-IN')}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </td>
+      </tr>
 
-  <div style="border-top: 1px solid #262626; padding-top: 20px; font-size: 11px; font-family: monospace; color: #8A8A8A;">
-    <p>Dispatched to: ${data.shippingAddress.line1}, ${data.shippingAddress.city}, ${data.shippingAddress.state} - ${data.shippingAddress.pincode}</p>
-    <p style="color: #666; margin-top: 20px;">Questions? DM us @menance.wear or reply directly.</p>
+      <!-- Shipping Destination -->
+      <tr>
+        <td style="padding: 0 32px 24px 32px;">
+          <div style="background-color: #111111; border-left: 2px solid #C6FF00; border-top: 1px solid #1C1C1C; border-right: 1px solid #1C1C1C; border-bottom: 1px solid #1C1C1C; padding: 18px 20px;">
+            <div style="font-size: 10px; font-family: 'Courier New', Courier, monospace; color: #C6FF00; letter-spacing: 1.5px; text-transform: uppercase; font-weight: bold; margin-bottom: 8px;">
+              DISPATCH DESTINATION
+            </div>
+            <div style="font-size: 13px; color: #F5F1E8; font-weight: 700; margin-bottom: 4px;">${data.customerName}</div>
+            <div style="font-size: 12px; color: #A0A0A0; line-height: 1.5;">
+              ${data.shippingAddress.line1}${data.shippingAddress.line2 ? `, ${data.shippingAddress.line2}` : ''}<br>
+              ${data.shippingAddress.city}, ${data.shippingAddress.state} - ${data.shippingAddress.pincode}<br>
+              ${data.shippingAddress.country || 'India'}
+            </div>
+          </div>
+        </td>
+      </tr>
+
+      <!-- Dispatch Timeline Notice -->
+      <tr>
+        <td style="padding: 0 32px 32px 32px;">
+          <div style="background-color: #141414; border: 1px solid #222222; padding: 16px 20px;">
+            <div style="font-size: 10px; font-family: 'Courier New', Courier, monospace; color: #8A8A8A; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px;">
+              FULFILLMENT PROTOCOL
+            </div>
+            <p style="margin: 0; font-size: 12px; color: #CCCCCC; line-height: 1.5;">
+              All silhouettes are hand-inspected and packed in discrete brutalist packaging within 24 hours. You will receive an airway tracking number via email as soon as the courier dispatches.
+            </p>
+          </div>
+        </td>
+      </tr>
+
+      <!-- Footer -->
+      <tr>
+        <td style="padding: 24px 32px; border-top: 1px solid #1C1C1C; background-color: #0A0A0A; text-align: center;">
+          <p style="margin: 0 0 8px 0; font-size: 11px; font-family: 'Courier New', Courier, monospace; color: #8A8A8A; letter-spacing: 1px;">
+            MENANCE® // NOT FOR EVERYONE.
+          </p>
+          <p style="margin: 0; font-size: 10px; color: #555555; line-height: 1.6;">
+            Questions regarding this order? Reply directly to this email or reach us at <a href="mailto:support@menance.store" style="color: #C6FF00; text-decoration: none;">support@menance.store</a>.
+          </p>
+        </td>
+      </tr>
+    </table>
   </div>
-</div>
+</body>
+</html>
 `,
   };
 }
@@ -132,19 +236,28 @@ Prepare to wear.
 `,
     html: `
 <div style="background-color: #0A0A0A; color: #F5F1E8; font-family: sans-serif; padding: 40px 20px; max-width: 600px; margin: 0 auto; border: 1px solid #262626;">
-  <h1 style="color: #F5F1E8; margin: 0; font-size: 24px;">MENANCE®</h1>
+  <h1 style="color: #F5F1E8; margin: 0; font-size: 24px; font-family: monospace;">MENANCE®</h1>
   <p style="color: #C6FF00; font-family: monospace; font-size: 12px; margin-top: 4px;">YOUR ORDER JUST LEFT THE BUILDING.</p>
   <p style="color: #8A8A8A; font-size: 14px; margin-top: 20px;">
     Airway Bill Tracking: <strong style="color: #C6FF00; font-family: monospace;">${trackingNumber}</strong>
+  </p>
+  <p style="color: #8A8A8A; font-size: 12px; margin-top: 16px;">
+    Destination: ${data.shippingAddress.line1}, ${data.shippingAddress.city}, ${data.shippingAddress.state} - ${data.shippingAddress.pincode}
   </p>
 </div>
 `,
   };
 }
 
+export interface SendOrderEmailResult {
+  success: boolean;
+  messageId?: string;
+  error?: string;
+}
+
 /**
- * Stub function to send order confirmation / shipping notifications.
- * Currently logs to console; can be wired to Resend/Klaviyo without breaking logic.
+ * Sends order confirmation / shipping notifications via Resend HTTP REST API.
+ * Compatible with Node.js, Next.js, and Cloudflare Workers / Edge runtimes without TCP socket dependencies.
  */
 export async function sendOrderEmail({
   to,
@@ -156,23 +269,109 @@ export async function sendOrderEmail({
   type: 'confirmation' | 'shipping';
   data: OrderEmailData;
   trackingNumber?: string;
-}): Promise<boolean> {
+}): Promise<SendOrderEmailResult> {
+  const recipientEmail = (to || data.customerEmail || '').trim();
+  if (!recipientEmail || !recipientEmail.includes('@')) {
+    console.warn('[sendOrderEmail] Invalid recipient email address:', to);
+    return { success: false, error: 'Invalid recipient email' };
+  }
+
+  const template =
+    type === 'confirmation'
+      ? getOrderConfirmationTemplate(data)
+      : getShippingNotificationTemplate(data, trackingNumber || 'TRK-MNC-EXPRESS');
+
+  const apiKey =
+    process.env.RESEND_API_KEY ||
+    (typeof globalThis !== 'undefined' && (globalThis as any).RESEND_API_KEY);
+
+  // If no API key is set yet, log informative dev message
+  if (!apiKey) {
+    console.warn(
+      `[sendOrderEmail] RESEND_API_KEY is not configured in environment. ` +
+      `Simulated ${type.toUpperCase()} email for order ${data.orderId} to <${recipientEmail}>. ` +
+      `Subject: "${template.subject}"`
+    );
+    return {
+      success: true,
+      messageId: `sim_${Date.now()}`,
+      error: 'RESEND_API_KEY_NOT_CONFIGURED_SIMULATED',
+    };
+  }
+
+  // Sender address: defaults to custom domain or onboarding testing sender
+  const fromEmail =
+    process.env.RESEND_FROM_EMAIL ||
+    (typeof globalThis !== 'undefined' && (globalThis as any).RESEND_FROM_EMAIL) ||
+    'MENANCE <orders@menance.store>';
+
   try {
-    const template =
-      type === 'confirmation'
-        ? getOrderConfirmationTemplate(data)
-        : getShippingNotificationTemplate(data, trackingNumber || 'TRK-MNC-EXPRESS');
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey.trim()}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: fromEmail,
+        to: [recipientEmail],
+        reply_to: 'support@menance.store',
+        subject: template.subject,
+        html: template.html,
+        text: template.text,
+      }),
+    });
 
-    console.log(`[EMAIL DISPATCH STUB] Sending ${type.toUpperCase()} to: ${to}`);
-    console.log(`[EMAIL DISPATCH STUB] Subject: ${template.subject}`);
-    console.log(`[EMAIL DISPATCH STUB] Order Total: ₹${data.totalInr}`);
+    const resData: any = await res.json().catch(() => ({}));
 
-    // When ready to wire Resend:
-    // await resend.emails.send({ from: 'orders@menance.wear', to, subject: template.subject, html: template.html });
+    if (!res.ok) {
+      console.error(
+        `[sendOrderEmail] Resend API error (${res.status}):`,
+        resData?.message || resData?.error || resData
+      );
 
-    return true;
-  } catch (err) {
-    console.error('[EMAIL DISPATCH STUB] Failed to dispatch email stub:', err);
-    return false;
+      // Helpful fallback if unverified domain error occurs with custom domain on free tier:
+      // If error is about unverified domain and using custom sender, retry once with onboarding@resend.dev
+      if (
+        resData?.message?.includes('domain') &&
+        !fromEmail.includes('onboarding@resend.dev')
+      ) {
+        console.warn(
+          '[sendOrderEmail] Attempting fallback with onboarding@resend.dev (domain verification pending)...'
+        );
+        const retryRes = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey.trim()}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: 'MENANCE <onboarding@resend.dev>',
+            to: [recipientEmail],
+            reply_to: 'support@menance.store',
+            subject: template.subject,
+            html: template.html,
+            text: template.text,
+          }),
+        });
+        const retryData: any = await retryRes.json().catch(() => ({}));
+        if (retryRes.ok) {
+          console.log(`[sendOrderEmail] Email sent successfully via fallback: ${retryData?.id}`);
+          return { success: true, messageId: retryData?.id };
+        }
+      }
+
+      return {
+        success: false,
+        error: resData?.message || `HTTP ${res.status}`,
+      };
+    }
+
+    console.log(`[sendOrderEmail] Order confirmation sent successfully to ${recipientEmail}: ${resData?.id}`);
+    return { success: true, messageId: resData?.id };
+  } catch (networkErr: any) {
+    console.error('[sendOrderEmail] Network exception sending email via Resend:', networkErr);
+    return { success: false, error: networkErr?.message || 'Network error' };
   }
 }
+

@@ -4,6 +4,9 @@ import { getCustomerById } from '@/lib/admin/queries';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, User, ShoppingBag, CreditCard, Calendar } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function AdminCustomerDetailPage({
   params,
 }: {

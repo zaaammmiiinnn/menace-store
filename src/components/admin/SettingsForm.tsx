@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import {
   updateStoreSettingsAction,
@@ -17,6 +18,7 @@ interface SettingsFormProps {
 }
 
 export function SettingsForm({ initialSettings, auditLogs }: SettingsFormProps) {
+  const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [staffList, setStaffList] = useState<any[]>(initialSettings.staffRoles || []);
   const [newStaffEmail, setNewStaffEmail] = useState('');
@@ -39,10 +41,15 @@ export function SettingsForm({ initialSettings, auditLogs }: SettingsFormProps) 
   const onSubmit = async (values: any) => {
     setIsSaving(true);
     try {
-      await updateStoreSettingsAction(values);
-      toast.success('Store settings saved successfully.');
-    } catch {
-      toast.error('Failed to save settings.');
+      const res = await updateStoreSettingsAction(values);
+      if (res?.success) {
+        toast.success('Store settings saved successfully.');
+        router.refresh();
+      } else {
+        toast.error(res?.error || 'Failed to save settings.');
+      }
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to save settings.');
     } finally {
       setIsSaving(false);
     }

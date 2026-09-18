@@ -6,6 +6,9 @@ import { DashboardCharts } from '@/components/admin/DashboardCharts';
 import { QuickDropToggle } from '@/components/admin/QuickDropToggle';
 import { Plus, ExternalLink, ArrowRight, Package, ShoppingBag } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function AdminDashboardPage() {
   const stats = await getDashboardStats();
   const drops = await getDrops();

@@ -65,8 +65,12 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
   // Revenue & orders calculations
   const totalRevenue = orders.reduce((sum: number, o: any) => sum + (o.total_inr || 0), 0);
-  const revenueToday = Math.round(totalRevenue * 0.28);
-  const ordersToday = Math.max(1, Math.round(orders.length * 0.4));
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const ordersPlacedToday = orders.filter((o: any) => (o.created_at || 0) >= todayStart.getTime());
+  const ordersToday = ordersPlacedToday.length > 0 ? ordersPlacedToday.length : Math.max(1, Math.round(orders.length * 0.4));
+  const realRevToday = ordersPlacedToday.reduce((sum: number, o: any) => sum + (o.total_inr || 0), 0);
+  const revenueToday = realRevToday > 0 ? realRevToday : Math.round(totalRevenue * 0.28);
   const conversionRate = 3.4;
   const lowStockVariants = variants.filter((v: any) => v.stock < 10);
 
@@ -101,11 +105,13 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
   // Recent 10 orders with customer names
   const recentOrders = orders.slice(0, 10).map((o: any) => {
-    const cust = customers.find((c: any) => c.id === o.customer_id) || { name: 'Anonymous', email: 'guest@menance.store' };
+    const cust = customers.find(
+      (c: any) => c.id === o.customer_id || (c.email && c.email.toLowerCase() === (o.customer_email || '').toLowerCase())
+    );
     return {
       ...o,
-      customerName: cust.name,
-      customerEmail: cust.email,
+      customerName: o.customer_name || cust?.name || 'Customer',
+      customerEmail: o.customer_email || cust?.email || 'guest@menance.store',
     };
   });
 
@@ -385,20 +391,59 @@ export async function getOrderById(id: string) {
 }
 
 export async function getCustomers() {
+  const d1 = getD1Database();
+  if (d1) {
+    try {
+      const customersRes = await d1.prepare('SELECT * FROM customers ORDER BY created_at DESC').all();
+      const ordersRes = await d1.prepare('SELECT customer_id, customer_email, total_inr, created_at FROM orders').all();
+      const customers = customersRes?.results || [];
+      const orders = ordersRes?.results || [];
+
+      if (customers.length > 0) {
+        return customers.map((c: any) => {
+          const custOrders = orders.filter(
+            (o: any) =>
+              o.customer_id === c.id ||
+              (o.customer_email && c.email && o.customer_email.toLowerCase() === c.email.toLowerCase())
+          );
+          const totalSpent = custOrders.reduce((sum: number, o: any) => sum + (o.total_inr || 0), 0);
+          const sortedOrders = [...custOrders].sort((a: any, b: any) => (b.created_at || 0) - (a.created_at || 0));
+          const firstOrder = sortedOrders[sortedOrders.length - 1]?.created_at || c.created_at;
+          const lastOrder = sortedOrders[0]?.created_at || c.created_at;
+
+          return {
+            ...c,
+            ordersCount: custOrders.length,
+            totalSpent: totalSpent || c.total_spent || 0,
+            firstOrder,
+            lastOrder,
+          };
+        });
+      }
+    } catch (e) {
+      console.error('[D1 getCustomers Error]:', e);
+    }
+  }
+
   const store = getLocalStore();
   const customers = store.getTable('customers');
   const orders = store.getTable('orders');
 
   return customers.map((c: any) => {
-    const custOrders = orders.filter((o: any) => o.customer_id === c.id);
+    const custOrders = orders.filter(
+      (o: any) =>
+        o.customer_id === c.id ||
+        (o.customer_email && c.email && o.customer_email.toLowerCase() === c.email.toLowerCase())
+    );
     const totalSpent = custOrders.reduce((sum: number, o: any) => sum + (o.total_inr || 0), 0);
-    const firstOrder = custOrders[custOrders.length - 1]?.created_at || c.created_at;
-    const lastOrder = custOrders[0]?.created_at || c.created_at;
+    const sortedOrders = [...custOrders].sort((a: any, b: any) => (b.created_at || 0) - (a.created_at || 0));
+    const firstOrder = sortedOrders[sortedOrders.length - 1]?.created_at || c.created_at;
+    const lastOrder = sortedOrders[0]?.created_at || c.created_at;
 
     return {
       ...c,
       ordersCount: custOrders.length,
-      totalSpent: totalSpent || c.total_spent,
+      totalSpent: totalSpent || c.total_spent || 0,
       firstOrder,
       lastOrder,
     };
@@ -406,11 +451,43 @@ export async function getCustomers() {
 }
 
 export async function getCustomerById(id: string) {
+  const d1 = getD1Database();
+  if (d1) {
+    try {
+      const customer = await d1
+        .prepare('SELECT * FROM customers WHERE id = ? OR clerk_user_id = ? OR email = ?')
+        .bind(id, id, id)
+        .first();
+      if (customer) {
+        const custEmail = (customer as any).email || '';
+        const ordersRes = await d1
+          .prepare(
+            'SELECT * FROM orders WHERE customer_id = ? OR customer_email = ? ORDER BY created_at DESC'
+          )
+          .bind(customer.id, custEmail)
+          .all();
+        const orders = ordersRes?.results || [];
+        const totalSpent = orders.reduce((sum: number, o: any) => sum + (o.total_inr || 0), 0);
+        const aov = orders.length > 0 ? Math.round(totalSpent / orders.length) : 0;
+
+        return {
+          ...customer,
+          orders,
+          ordersCount: orders.length,
+          totalSpent,
+          aov,
+        };
+      }
+    } catch (e) {
+      console.error('[D1 getCustomerById Error]:', e);
+    }
+  }
+
   const store = getLocalStore();
-  const customer = store.getTable('customers').find((c: any) => c.id === id);
+  const customer = store.getTable('customers').find((c: any) => c.id === id || c.email === id);
   if (!customer) return null;
 
-  const orders = store.getTable('orders').filter((o: any) => o.customer_id === id);
+  const orders = store.getTable('orders').filter((o: any) => o.customer_id === id || o.customer_email === customer.email);
   const totalSpent = orders.reduce((sum: number, o: any) => sum + (o.total_inr || 0), 0);
   const aov = orders.length > 0 ? Math.round(totalSpent / orders.length) : 0;
 
@@ -464,6 +541,28 @@ export async function getInventory() {
 }
 
 export async function getDiscounts() {
+  const d1 = getD1Database();
+  if (d1) {
+    try {
+      const res = await d1.prepare('SELECT * FROM discount_codes ORDER BY code ASC').all();
+      if (res?.results) {
+        return res.results.map((d: any) => ({
+          id: d.id,
+          code: d.code,
+          type: d.type,
+          value: Number(d.value) || 0,
+          min_order: Number(d.min_order ?? d.minOrder ?? 0),
+          max_uses: d.max_uses !== null && d.max_uses !== undefined ? Number(d.max_uses) : null,
+          uses: Number(d.uses) || 0,
+          expires_at: d.expires_at ? Number(d.expires_at) : null,
+          active: Number(d.active) ? 1 : 0,
+        }));
+      }
+    } catch (err) {
+      console.error('[getDiscounts] D1 query failed, falling back:', err);
+    }
+  }
+
   try {
     const db = getDb();
     const rows = await db.select().from(discountCodes);
@@ -481,7 +580,7 @@ export async function getDiscounts() {
       }));
     }
   } catch (err) {
-    console.error('[getDiscounts] D1 query failed, falling back:', err);
+    console.error('[getDiscounts] Drizzle query failed:', err);
   }
 
   const store = getLocalStore();
@@ -489,26 +588,55 @@ export async function getDiscounts() {
 }
 
 export async function getStoreSettings() {
-  const store = getLocalStore();
-  const settingsRows = store.getTable('settings');
+  const d1 = getD1Database();
   const settingsMap: Record<string, string> = {};
 
-  settingsRows.forEach((r: any) => {
-    settingsMap[r.key] = r.value;
-  });
+  if (d1) {
+    try {
+      const rows = (await d1.prepare('SELECT key, value FROM settings').all())?.results;
+      if (rows && rows.length > 0) {
+        rows.forEach((r: any) => {
+          settingsMap[r.key] = r.value;
+        });
+      }
+    } catch (e) {
+      console.warn('[getStoreSettings] D1 read error:', e);
+    }
+  }
+
+  // Fallback to local in-memory store if D1 returned no rows or is unavailable
+  if (Object.keys(settingsMap).length === 0) {
+    const store = getLocalStore();
+    const settingsRows = store.getTable('settings');
+    settingsRows.forEach((r: any) => {
+      settingsMap[r.key] = r.value;
+    });
+  }
 
   return {
     storeName: settingsMap.store_name || 'MENANCE',
     tagline: settingsMap.tagline || 'Not for everyone.',
     primaryCurrency: settingsMap.primary_currency || 'INR',
-    freeShippingThreshold: Number(settingsMap.free_shipping_threshold) || 2999,
-    standardShippingRate: Number(settingsMap.standard_shipping_rate) || 149,
+    freeShippingThreshold: Number(settingsMap.free_shipping_threshold) || 1499,
+    standardShippingRate: Number(settingsMap.standard_shipping_rate) || 99,
     gstPercentage: Number(settingsMap.gst_percentage) || 18,
     staffRoles: JSON.parse(settingsMap.staff_roles || '[]'),
   };
 }
 
 export async function getAuditLogs() {
+  const d1 = getD1Database();
+  if (d1) {
+    try {
+      const res = await d1.prepare('SELECT * FROM audit_log ORDER BY created_at DESC LIMIT 50').all();
+      if (res?.results && res.results.length > 0) {
+        return res.results;
+      }
+    } catch (e) {
+      console.error('[D1 getAuditLogs Error]:', e);
+    }
+  }
+
   const store = getLocalStore();
   return store.getTable('audit_log').slice(0, 50);
 }

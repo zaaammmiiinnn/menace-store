@@ -608,57 +608,118 @@ export async function deleteDiscountAction(id: string) {
 
 // --- SETTINGS ---
 export async function updateStoreSettingsAction(data: any) {
-  await requireAdmin();
-  const parsed = storeSettingsSchema.parse(data);
-  const store = getLocalStore();
-  const settings = store.getTable('settings');
+  try {
+    await requireAdmin();
+    const parsed = storeSettingsSchema.parse(data);
+    const now = Date.now();
 
-  const upsertSetting = (key: string, value: string) => {
-    const existing = settings.find((s: any) => s.key === key);
-    if (existing) {
-      existing.value = value;
-      existing.updated_at = Date.now();
-    } else {
-      settings.push({ key, value, updated_at: Date.now() });
+    const settingsToSave = [
+      { key: 'store_name', value: parsed.storeName },
+      { key: 'tagline', value: parsed.tagline },
+      { key: 'primary_currency', value: parsed.primaryCurrency },
+      { key: 'free_shipping_threshold', value: String(parsed.freeShippingThreshold) },
+      { key: 'standard_shipping_rate', value: String(parsed.standardShippingRate) },
+      { key: 'gst_percentage', value: String(parsed.gstPercentage) },
+    ];
+
+    // 1. Write to Cloudflare D1
+    const d1 = getD1Database();
+    if (d1) {
+      try {
+        for (const item of settingsToSave) {
+          await d1
+            .prepare(
+              'INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at'
+            )
+            .bind(item.key, item.value, now)
+            .run();
+        }
+        console.log('[updateStoreSettingsAction] Successfully persisted settings to D1');
+      } catch (err) {
+        console.error('[updateStoreSettingsAction] D1 persistence error:', err);
+      }
     }
-  };
 
-  upsertSetting('store_name', parsed.storeName);
-  upsertSetting('tagline', parsed.tagline);
-  upsertSetting('primary_currency', parsed.primaryCurrency);
-  upsertSetting('free_shipping_threshold', String(parsed.freeShippingThreshold));
-  upsertSetting('standard_shipping_rate', String(parsed.standardShippingRate));
-  upsertSetting('gst_percentage', String(parsed.gstPercentage));
+    // 2. In-memory fallback
+    const store = getLocalStore();
+    const settings = store.getTable('settings');
 
-  await logAuditAction({
-    action: 'UPDATE_SETTINGS',
-    entity: 'settings',
-    details: `Updated store configuration. Free shipping threshold: ₹${parsed.freeShippingThreshold}.`,
-  });
+    const upsertSetting = (key: string, value: string) => {
+      const existing = settings.find((s: any) => s.key === key);
+      if (existing) {
+        existing.value = value;
+        existing.updated_at = now;
+      } else {
+        settings.push({ key, value, updated_at: now });
+      }
+    };
 
-  revalidatePath('/admin/settings');
-  return { success: true };
+    settingsToSave.forEach((item) => upsertSetting(item.key, item.value));
+
+    await logAuditAction({
+      action: 'UPDATE_SETTINGS',
+      entity: 'settings',
+      details: `Updated store configuration. Free shipping threshold: ₹${parsed.freeShippingThreshold}, Standard shipping: ₹${parsed.standardShippingRate}.`,
+    });
+
+    revalidatePath('/admin/settings');
+    return { success: true };
+  } catch (err: any) {
+    console.error('[updateStoreSettingsAction Fatal Error]:', err);
+    return { success: false, error: err?.message || 'Failed to update store settings.' };
+  }
 }
 
 export async function inviteStaffAction(data: { name: string; email: string; role: 'staff' | 'admin' }) {
   await requireAdmin();
-  const store = getLocalStore();
-  const settings = store.getTable('settings');
-  const existing = settings.find((s: any) => s.key === 'staff_roles');
-  const list = existing ? JSON.parse(existing.value || '[]') : [];
+  const now = Date.now();
+  const d1 = getD1Database();
+  let list: any[] = [];
+
+  if (d1) {
+    try {
+      const row: any = await d1.prepare('SELECT value FROM settings WHERE key = ?').bind('staff_roles').first();
+      list = row ? JSON.parse(row.value || '[]') : [];
+    } catch {}
+  }
+
+  if (list.length === 0) {
+    const store = getLocalStore();
+    const settings = store.getTable('settings');
+    const existing = settings.find((s: any) => s.key === 'staff_roles');
+    list = existing ? JSON.parse(existing.value || '[]') : [];
+  }
 
   list.push({
     name: data.name,
     email: data.email.toLowerCase(),
     role: data.role,
-    invitedAt: Date.now(),
+    invitedAt: now,
   });
 
+  const jsonVal = JSON.stringify(list);
+
+  if (d1) {
+    try {
+      await d1
+        .prepare(
+          'INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at'
+        )
+        .bind('staff_roles', jsonVal, now)
+        .run();
+    } catch (e) {
+      console.error('[inviteStaffAction] D1 error:', e);
+    }
+  }
+
+  const store = getLocalStore();
+  const settings = store.getTable('settings');
+  const existing = settings.find((s: any) => s.key === 'staff_roles');
   if (existing) {
-    existing.value = JSON.stringify(list);
-    existing.updated_at = Date.now();
+    existing.value = jsonVal;
+    existing.updated_at = now;
   } else {
-    settings.push({ key: 'staff_roles', value: JSON.stringify(list), updated_at: Date.now() });
+    settings.push({ key: 'staff_roles', value: jsonVal, updated_at: now });
   }
 
   await logAuditAction({
@@ -673,14 +734,46 @@ export async function inviteStaffAction(data: { name: string; email: string; rol
 
 export async function revokeStaffAction(email: string) {
   await requireAdmin();
+  const now = Date.now();
+  const d1 = getD1Database();
+  let list: any[] = [];
+
+  if (d1) {
+    try {
+      const row: any = await d1.prepare('SELECT value FROM settings WHERE key = ?').bind('staff_roles').first();
+      list = row ? JSON.parse(row.value || '[]') : [];
+    } catch {}
+  }
+
+  if (list.length === 0) {
+    const store = getLocalStore();
+    const settings = store.getTable('settings');
+    const existing = settings.find((s: any) => s.key === 'staff_roles');
+    list = existing ? JSON.parse(existing.value || '[]') : [];
+  }
+
+  const updated = list.filter((m: any) => m.email.toLowerCase() !== email.toLowerCase());
+  const jsonVal = JSON.stringify(updated);
+
+  if (d1) {
+    try {
+      await d1
+        .prepare(
+          'INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at'
+        )
+        .bind('staff_roles', jsonVal, now)
+        .run();
+    } catch (e) {
+      console.error('[revokeStaffAction] D1 error:', e);
+    }
+  }
+
   const store = getLocalStore();
   const settings = store.getTable('settings');
   const existing = settings.find((s: any) => s.key === 'staff_roles');
   if (existing) {
-    const list = JSON.parse(existing.value || '[]');
-    const updated = list.filter((m: any) => m.email.toLowerCase() !== email.toLowerCase());
-    existing.value = JSON.stringify(updated);
-    existing.updated_at = Date.now();
+    existing.value = jsonVal;
+    existing.updated_at = now;
   }
 
   await logAuditAction({
