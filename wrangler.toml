@@ -22,7 +22,7 @@ PAYU_CLIENT_SECRET = "96c95faae059ad654cb59b0c12efa4865d18809e570e9fdffe018b0497
 PAYU_MODE = "live"
 NEXT_PUBLIC_PAYU_KEY = "5AZJMt"
 NEXT_PUBLIC_PAYU_MODE = "live"
-RESEND_FROM_EMAIL = "MENANCE <orders@menance.store>"
+RESEND_FROM_EMAIL = "MENANCE <orders@wearmenance.in>"
 
 [[d1_databases]]
 binding = "DB"
