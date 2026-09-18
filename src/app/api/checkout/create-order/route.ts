@@ -257,12 +257,15 @@ export async function POST(req: NextRequest) {
     }
 
     // 4. Initialize PayU payment request
-    const payUConfig = getPayUConfig();
+    const host = req.headers.get('x-forwarded-host') || req.headers.get('host');
+    const proto = req.headers.get('x-forwarded-proto') || 'https';
+    const origin = req.headers.get('origin');
     const baseUrl =
-      req.headers.get('origin') ||
-      (req.headers.get('host')
-        ? `${req.headers.get('x-forwarded-proto') || 'https'}://${req.headers.get('host')}`
-        : 'http://localhost:3000');
+      (origin && !origin.includes('payu.in') && !origin.includes('payu.com'))
+        ? origin
+        : (host && !host.includes('payu.in') && !host.includes('payu.com')
+            ? `${proto}://${host}`
+            : process.env.NEXT_PUBLIC_APP_URL || 'https://wearmenance.in');
 
     const surl = `${baseUrl}/api/checkout/payu/response`;
     const furl = `${baseUrl}/api/checkout/payu/response`;
@@ -276,6 +279,7 @@ export async function POST(req: NextRequest) {
     const formattedAmount = totalInr.toFixed(2);
 
     let payuData: { action: string; params: Record<string, string> } | null = null;
+    const payUConfig = getPayUConfig();
     if (payUConfig.key && payUConfig.salt) {
       try {
         const payuHash = await generatePayURequestHash(

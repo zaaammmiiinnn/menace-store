@@ -5,6 +5,15 @@ import { eq } from 'drizzle-orm';
 import { getPayUConfig, verifyPayUResponseHash, type PayUCallbackPayload } from '@/lib/payu/client';
 import { sendOrderEmail } from '@/lib/email/templates';
 
+function getStoreBaseUrl(req: NextRequest): string {
+  const host = req.headers.get('x-forwarded-host') || req.headers.get('host');
+  const proto = req.headers.get('x-forwarded-proto') || 'https';
+  if (host && !host.includes('payu.in') && !host.includes('payu.com')) {
+    return `${proto}://${host}`;
+  }
+  return process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://wearmenance.in';
+}
+
 export async function POST(req: NextRequest) {
   try {
     const contentType = req.headers.get('content-type') || '';
@@ -40,11 +49,7 @@ export async function POST(req: NextRequest) {
     const orderId = payload.txnid || payload.udf1 || '';
     const isSuccess = payload.status === 'success';
 
-    const baseUrl =
-      req.headers.get('origin') ||
-      (req.headers.get('host')
-        ? `${req.headers.get('x-forwarded-proto') || 'https'}://${req.headers.get('host')}`
-        : 'http://localhost:3000');
+    const baseUrl = getStoreBaseUrl(req);
 
     if (!isSignatureValid) {
       console.error('[PayU Callback] Signature mismatch / hash verification failed for order:', orderId);
@@ -205,11 +210,7 @@ export async function POST(req: NextRequest) {
     }
   } catch (err: any) {
     console.error('[PayU Callback] Unhandled error in response handler:', err);
-    const baseUrl =
-      req.headers.get('origin') ||
-      (req.headers.get('host')
-        ? `${req.headers.get('x-forwarded-proto') || 'https'}://${req.headers.get('host')}`
-        : 'http://localhost:3000');
+    const baseUrl = getStoreBaseUrl(req);
 
     return NextResponse.redirect(
       new URL(
@@ -223,10 +224,6 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   // If user navigates via GET, redirect to checkout
-  const baseUrl =
-    req.headers.get('origin') ||
-    (req.headers.get('host')
-      ? `${req.headers.get('x-forwarded-proto') || 'https'}://${req.headers.get('host')}`
-      : 'http://localhost:3000');
+  const baseUrl = getStoreBaseUrl(req);
   return NextResponse.redirect(new URL('/checkout', baseUrl), 303);
 }
