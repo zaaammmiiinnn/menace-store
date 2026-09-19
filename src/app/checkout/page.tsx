@@ -127,15 +127,28 @@ export default function CheckoutPage() {
 
   const onFormInvalid = (fieldErrors: any) => {
     console.warn('[checkout] Validation errors:', fieldErrors);
-    setErrorMessage(
-      'Please complete all required fields (Name, Email, Mobile Number, Street Address, City, PIN code, and State) before proceeding to payment.'
-    );
+    const missing: string[] = [];
+    if (fieldErrors?.customer?.name) missing.push('Full Name');
+    if (fieldErrors?.customer?.email) missing.push('Email Address');
+    if (fieldErrors?.customer?.phone) missing.push('10-digit Mobile Number');
+    if (fieldErrors?.shipping?.line1) missing.push('Address Line 1');
+    if (fieldErrors?.shipping?.pincode) missing.push('6-digit PIN Code');
+    if (fieldErrors?.shipping?.city) missing.push('City');
+    if (fieldErrors?.shipping?.state) missing.push('State');
+
+    const msg =
+      missing.length > 0
+        ? `Please fill in required fields: ${missing.join(', ')}.`
+        : 'Please fill in all required delivery details before proceeding.';
+
+    setErrorMessage(msg);
 
     setTimeout(() => {
       const firstInvalid =
         document.querySelector('.border-red-500') ||
         document.querySelector('input:invalid') ||
-        document.querySelector('input[name*="customer"]');
+        document.querySelector('input[name*="customer"]') ||
+        document.querySelector('input[name*="shipping"]');
       if (firstInvalid) {
         firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
         (firstInvalid as HTMLElement).focus?.();
@@ -436,12 +449,13 @@ export default function CheckoutPage() {
               </div>
 
               {/* Customer Identity */}
-              <CustomerForm register={register} errors={errors} />
+              <CustomerForm register={register} setValue={setValue} errors={errors} />
 
               {/* Shipping Destination & Payment Mode */}
               <AddressForm
                 register={register}
                 setValue={setValue}
+                watch={watch}
                 errors={errors}
                 paymentMethod={paymentMethod}
                 onSelectPaymentMethod={handleSelectPaymentMethod}

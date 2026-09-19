@@ -6,10 +6,13 @@ import type { CustomerInfo } from '@/lib/validation/checkout';
 
 interface CustomerFormProps {
   register: UseFormRegister<any>;
+  setValue?: (name: any, value: any, options?: any) => void;
   errors: FieldErrors<any>;
 }
 
-export function CustomerForm({ register, errors }: CustomerFormProps) {
+export function CustomerForm({ register, setValue, errors }: CustomerFormProps) {
+  const phoneRegister = register('customer.phone');
+
   return (
     <div className="border border-[#1C1C1C] bg-[#0A0A0A] p-5 sm:p-6 space-y-4">
       <div className="flex items-center justify-between border-b border-[#1C1C1C] pb-3">
@@ -77,9 +80,21 @@ export function CustomerForm({ register, errors }: CustomerFormProps) {
               </span>
               <input
                 type="tel"
-                maxLength={10}
+                maxLength={14}
                 placeholder="9876543210"
-                {...register('customer.phone')}
+                {...phoneRegister}
+                onChange={(e) => {
+                  phoneRegister.onChange(e);
+                  let val = e.target.value.replace(/\D/g, '');
+                  if (val.startsWith('91') && val.length > 10) {
+                    val = val.slice(2);
+                  } else if (val.startsWith('0') && val.length > 10) {
+                    val = val.slice(1);
+                  }
+                  if (setValue) {
+                    setValue('customer.phone', val, { shouldValidate: true });
+                  }
+                }}
                 className={`w-full bg-[#121212] border px-3.5 py-3 text-xs text-[#F5F1E8] placeholder-[#444444] rounded-none outline-none transition-colors ${
                   errors?.customer && (errors.customer as any)?.phone
                     ? 'border-red-500'

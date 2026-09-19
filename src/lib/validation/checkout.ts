@@ -46,9 +46,11 @@ export const CustomerInfoSchema = z.object({
     .string()
     .trim()
     .transform((val) => {
-      const digits = val.replace(/\D/g, '');
+      let digits = val.replace(/\D/g, '');
       if (digits.length === 12 && digits.startsWith('91')) {
-        return digits.slice(2);
+        digits = digits.slice(2);
+      } else if (digits.length === 11 && digits.startsWith('0')) {
+        digits = digits.slice(1);
       }
       return digits;
     })
@@ -58,7 +60,7 @@ export const CustomerInfoSchema = z.object({
 });
 
 export const ShippingAddressSchema = z.object({
-  line1: z.string().trim().min(5, 'Street address is required (min 5 characters)'),
+  line1: z.string().trim().min(3, 'Street address is required'),
   line2: z.string().trim().optional(),
   city: z.string().trim().min(2, 'City is required'),
   state: z.string().trim().min(2, 'State is required'),

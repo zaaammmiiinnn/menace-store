@@ -6,6 +6,7 @@ import { CreditCard, Banknote, ShieldCheck, Zap, Info, CheckCircle2 } from 'luci
 interface AddressFormProps {
   register: UseFormRegister<CreateOrderInput>;
   setValue: UseFormSetValue<CreateOrderInput>;
+  watch?: UseFormWatch<CreateOrderInput>;
   errors: FieldErrors<CreateOrderInput>;
   paymentMethod?: 'prepaid' | 'cod';
   onSelectPaymentMethod?: (method: 'prepaid' | 'cod') => void;
@@ -38,21 +39,25 @@ const PINCODE_MAP: Record<string, { city: string; state: string }> = {
 export function AddressForm({
   register,
   setValue,
+  watch,
   errors,
   paymentMethod = 'prepaid',
   onSelectPaymentMethod,
 }: AddressFormProps) {
   const [sameAsShipping, setSameAsShipping] = useState(true);
 
+  const pincodeRegister = register('shipping.pincode');
+  const stateVal = watch ? watch('shipping.state') : undefined;
+
   const handlePincodeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawVal = e.target.value.replace(/\D/g, '').slice(0, 6);
-    setValue('shipping.pincode', rawVal, { shouldValidate: true });
+    setValue('shipping.pincode', rawVal, { shouldValidate: true, shouldDirty: true });
 
     if (rawVal.length >= 2) {
       const prefix = rawVal.substring(0, 2);
       if (PINCODE_MAP[prefix]) {
-        setValue('shipping.city', PINCODE_MAP[prefix].city, { shouldValidate: true });
-        setValue('shipping.state', PINCODE_MAP[prefix].state, { shouldValidate: true });
+        setValue('shipping.city', PINCODE_MAP[prefix].city, { shouldValidate: true, shouldDirty: true });
+        setValue('shipping.state', PINCODE_MAP[prefix].state, { shouldValidate: true, shouldDirty: true });
       }
     }
   };
@@ -118,8 +123,11 @@ export function AddressForm({
               type="text"
               maxLength={6}
               placeholder="400050"
-              {...register('shipping.pincode')}
-              onChange={handlePincodeInput}
+              {...pincodeRegister}
+              onChange={(e) => {
+                pincodeRegister.onChange(e);
+                handlePincodeInput(e);
+              }}
               className={`w-full bg-[#121212] border px-3.5 py-3 text-xs text-[#F5F1E8] placeholder-[#444444] rounded-none outline-none transition-colors ${
                 errors?.shipping && (errors.shipping as any)?.pincode
                   ? 'border-red-500'
@@ -162,6 +170,10 @@ export function AddressForm({
             </label>
             <select
               {...register('shipping.state')}
+              value={stateVal || ''}
+              onChange={(e) => {
+                setValue('shipping.state', e.target.value, { shouldValidate: true, shouldDirty: true });
+              }}
               className={`w-full bg-[#121212] border px-3.5 py-3 text-xs text-[#F5F1E8] rounded-none outline-none transition-colors cursor-pointer ${
                 errors?.shipping && (errors.shipping as any)?.state
                   ? 'border-red-500'
