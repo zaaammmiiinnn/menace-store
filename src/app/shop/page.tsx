@@ -36,7 +36,7 @@ export default async function ShopPage() {
               DROP 001
             </h1>
             <p className="font-mono text-xs sm:text-sm text-[#8A8A8A] mt-2 tracking-wider">
-              240 GSM HEAVYWEIGHT WAFFLE KNIT SILHOUETTES // 8 UNIQUE EDITIONS
+              HEAVYWEIGHT 240 GSM SILHOUETTES // ARCHIVAL EDITIONS
             </p>
           </div>
           <div className="font-mono text-xs text-[#C6FF00] tracking-widest uppercase">

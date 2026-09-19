@@ -84,6 +84,7 @@ export const CheckoutItemSchema = z.object({
   customArtworkUrl: z.string().optional(),
   customPlacement: z.string().optional(),
   customScale: z.string().optional(),
+  customQuoteText: z.string().optional(),
 });
 
 
@@ -91,6 +92,7 @@ export const CreateOrderSchema = z.object({
   items: z.array(CheckoutItemSchema).min(1, 'Your cart is empty'),
   customer: CustomerInfoSchema,
   shipping: ShippingAddressSchema,
+  paymentMethod: z.enum(['prepaid', 'cod']).default('prepaid'),
   clerkUserId: z.string().optional().nullable(),
   promoCode: z.string().optional().nullable(),
 });

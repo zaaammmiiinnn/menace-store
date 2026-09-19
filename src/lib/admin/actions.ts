@@ -471,6 +471,68 @@ export async function updateOrderStatusAction(
     details: `Set status to "${status}". Tracking: ${trackingNumber || 'N/A'}.`,
   });
 
+  // Automated packed confirmation email dispatch
+  if (status === 'paid') {
+    try {
+      const { sendOrderEmail } = await import('@/lib/email/templates');
+      let orderObj: any = null;
+      let itemsList: any[] = [];
+
+      if (d1) {
+        orderObj = await d1.prepare('SELECT * FROM orders WHERE id = ?').bind(orderId).first();
+        itemsList = (await d1.prepare('SELECT * FROM order_items WHERE order_id = ?').bind(orderId).all())?.results || [];
+      }
+
+      if (!orderObj && order) {
+        orderObj = order;
+        const storeItems = store.getTable('order_items');
+        itemsList = storeItems.filter((i: any) => i.order_id === orderId);
+      }
+
+      if (orderObj) {
+        const customerEmail = orderObj.customer_email || orderObj.customerEmail || '';
+        const customerName = orderObj.customer_name || orderObj.customerName || 'Customer';
+        const rawShipping = orderObj.shipping_address || orderObj.shippingAddress;
+        let shippingAddress = { line1: '', city: '', state: '', pincode: '', country: 'India' };
+        try {
+          if (typeof rawShipping === 'string') {
+            shippingAddress = JSON.parse(rawShipping);
+          } else if (rawShipping && typeof rawShipping === 'object') {
+            shippingAddress = rawShipping;
+          }
+        } catch {}
+
+        const formattedItems = itemsList.map((item: any) => ({
+          name: item.product_name || item.productName || 'MENANCE Silhouette',
+          size: item.size || 'M',
+          color: item.color || 'Black',
+          quantity: Number(item.quantity) || 1,
+          price: Number(item.price_inr || item.priceInr || 0),
+        }));
+
+        if (customerEmail) {
+          await sendOrderEmail({
+            to: customerEmail,
+            type: 'packed',
+            data: {
+              orderId,
+              customerName,
+              customerEmail,
+              items: formattedItems,
+              subtotalInr: Number(orderObj.total_inr || orderObj.totalInr || 0),
+              shippingInr: 0,
+              totalInr: Number(orderObj.total_inr || orderObj.totalInr || 0),
+              shippingAddress,
+            },
+          });
+          console.log(`[Store Admin Action] Dispatched packed notification email to ${customerEmail} for order ${orderId}`);
+        }
+      }
+    } catch (emailErr) {
+      console.error('[Store Admin Action] Failed to dispatch packed notification email:', emailErr);
+    }
+  }
+
   // Automated shipping confirmation email dispatch
   if (status === 'shipped') {
     try {

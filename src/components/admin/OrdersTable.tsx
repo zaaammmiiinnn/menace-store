@@ -19,6 +19,9 @@ interface OrderRow {
   itemsCount: number;
   created_at: number;
   tracking_number?: string | null;
+  hasCustomPrint?: boolean;
+  notes?: string | null;
+  paymentMethod?: string | null;
 }
 
 interface OrdersTableProps {
@@ -68,13 +71,20 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
       accessorKey: 'id',
       header: 'Order ID',
       cell: ({ row }) => (
-        <Link
-          href={`/admin/orders/${row.original.id}`}
-          prefetch={false}
-          className="font-mono font-bold text-[#F5F1E8] hover:text-[#C6FF00] transition-colors"
-        >
-          {row.original.id}
-        </Link>
+        <div className="flex flex-col gap-1 items-start">
+          <Link
+            href={`/admin/orders/${row.original.id}`}
+            prefetch={false}
+            className="font-mono font-bold text-[#F5F1E8] hover:text-[#C6FF00] transition-colors"
+          >
+            {row.original.id}
+          </Link>
+          {row.original.hasCustomPrint && (
+            <span className="inline-flex items-center gap-1 text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#C6FF00]/15 text-[#C6FF00] border border-[#C6FF00]/30 font-semibold tracking-wider">
+              ⚡ CUSTOM PRINT
+            </span>
+          )}
+        </div>
       ),
     },
     {
@@ -95,6 +105,23 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
           ₹{Number(row.getValue('total_inr')).toLocaleString()}
         </span>
       ),
+    },
+    {
+      id: 'paymentMethod',
+      header: 'Payment Mode',
+      cell: ({ row }) => {
+        const notes = (row.original.notes || '').toUpperCase();
+        const isCod = notes.includes('CASH ON DELIVERY') || notes.includes('COD') || row.original.paymentMethod === 'cod';
+        return isCod ? (
+          <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">
+            COD
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+            ONLINE PAID
+          </span>
+        );
+      },
     },
     {
       accessorKey: 'itemsCount',

@@ -19,6 +19,22 @@ export const SIZES = ['S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'] as const;
 
 export const SEED_PRODUCTS: SeedProductDef[] = [
   {
+    id: 'prod_pink_sunfade_ombre_tee',
+    slug: 'pink-sunfade-ombre-wash-boxy-fit-tshirt',
+    name: 'The Pink Sunfade Ombre Boxy Tee',
+    category: 'Tees',
+    priceInr: 1699,
+    priceUsd: 22,
+    backQuote: 'NOT FOR EVERYONE.',
+    frontLogo: 'MENANCE®',
+    fabricGsm: 240,
+    fabricType: '100% French Terry Cotton',
+    fit: 'Boxy Fit',
+    sleeveType: 'Half Sleeve',
+    color: 'Pink Ombre',
+    description: '240 GSM 100% French terry cotton heavy boxy fit tee with an artisanal pink sunfade ombre wash gradient. Features an architectural drape, thick crew rib collar, dropped shoulders, and ultra-soft brushed finish.',
+  },
+  {
     id: 'prod_henley_black',
     slug: 'the-henley-black',
     name: 'The Henley — Black',

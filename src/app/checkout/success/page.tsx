@@ -20,6 +20,8 @@ interface OrderDetails {
 function SuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('order') || 'MNC-CONFIRMED';
+  const method = searchParams.get('method');
+  const isCod = method === 'cod';
   const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
 
   // Confetti canvas animation (acid green #C6FF00 and off-white #F5F1E8)
@@ -114,13 +116,15 @@ function SuccessContent() {
         {/* Hero title */}
         <div className="space-y-3">
           <span className="font-mono text-xs uppercase tracking-widest text-[#C6FF00] bg-[#C6FF00]/10 px-3 py-1 border border-[#C6FF00]/30 inline-block">
-            ALLOCATION LOCKED // {orderId}
+            {isCod ? `COD ALLOCATION CONFIRMED // ${orderId}` : `ALLOCATION LOCKED // ${orderId}`}
           </span>
           <h1 className="font-display text-4xl sm:text-6xl uppercase tracking-tight text-[#F5F1E8]">
             YOU&apos;RE IN.
           </h1>
           <p className="font-sans text-xs sm:text-sm text-[#8A8A8A] max-w-md mx-auto leading-relaxed">
-            Your payment is verified. Your 240 GSM waffle silhouettes are allocated and queued for dispatch.
+            {isCod
+              ? 'Your Cash on Delivery order is confirmed. Your 240 GSM waffle silhouettes are allocated and queued for dispatch.'
+              : 'Your payment is verified. Your 240 GSM waffle silhouettes are allocated and queued for dispatch.'}
           </p>
         </div>
 
@@ -145,10 +149,20 @@ function SuccessContent() {
           </div>
 
           <div className="flex justify-between items-center pt-1 text-sm font-bold">
-            <span className="text-[#8A8A8A]">PAYMENT VERIFIED:</span>
-            <span className="text-[#C6FF00]">PAID VIA PAYU</span>
+            <span className="text-[#8A8A8A]">PAYMENT METHOD:</span>
+            <span className="text-[#C6FF00] uppercase">
+              {isCod ? 'CASH ON DELIVERY (COD)' : 'PAID VIA PAYU'}
+            </span>
           </div>
 
+          {isCod && (
+            <div className="mt-2 p-3 bg-[#141414] border border-[#262626] text-[11px] text-[#8A8A8A] font-sans leading-relaxed">
+              <span className="text-[#F5F1E8] font-mono font-bold block mb-1">
+                DOORSTEP CASH SETTLEMENT
+              </span>
+              Please keep the exact cash amount ready for the delivery courier upon arrival.
+            </div>
+          )}
         </div>
 
         <p className="font-mono text-xs text-[#8A8A8A]">

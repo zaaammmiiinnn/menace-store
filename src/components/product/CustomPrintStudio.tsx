@@ -123,6 +123,12 @@ export function CustomPrintStudio({
     });
   };
 
+  useEffect(() => {
+    if (!config) {
+      applyQuote(typedQuote || defaultQuote, quoteColor);
+    }
+  }, []);
+
   const handleSelectPreset = (quote: string) => {
     setTypedQuote(quote);
     applyQuote(quote, quoteColor);

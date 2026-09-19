@@ -34,7 +34,7 @@ export interface CheckoutSession {
 
 export interface PaymentMethod {
   id: string;
-  type: 'razorpay' | 'upi' | 'card';
+  type: 'razorpay' | 'upi' | 'card' | 'cod';
   label: string;
   icon: string;
 }

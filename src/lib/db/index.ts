@@ -205,10 +205,18 @@ class LocalD1Fallback {
         total_inr: 4198,
         shipping_address: 'Civil Lines, Jaipur, RJ 302006',
         tracking_number: null,
-        notes: null,
+        notes: 'CUSTOM PRINT: "NOT FOR EVERYONE." across rear shoulders',
         created_at: 1789212000000,
         fulfilled_at: null,
       },
+    ];
+
+    this.tables.order_items = [
+      { id: 'item_001', order_id: 'MNC-8821', product_id: 'prod_001', variant_id: 'var_001_m_blk', product_name: 'The Quiet Menance Tee', size: 'M', color: 'Black', quantity: 1, price_inr: 1299, price_at_purchase: 1299, edition: 'archive' },
+      { id: 'item_002', order_id: 'MNC-8821', product_id: 'prod_002', variant_id: 'var_002_m_acid', product_name: 'The Loud Menance Tee', size: 'M', color: 'Acid Green', quantity: 1, price_inr: 1499, price_at_purchase: 1499, edition: 'archive' },
+      { id: 'item_003', order_id: 'MNC-8822', product_id: 'prod_003', variant_id: 'var_003_m_mid', product_name: 'The Midnight Menance Tee', size: 'M', color: 'Midnight Black', quantity: 2, price_inr: 1399, price_at_purchase: 1399, edition: 'plain' },
+      { id: 'item_004', order_id: 'MNC-8823', product_id: 'prod_006', variant_id: 'var_006_m_waf', product_name: 'The Oversized Heavy Waffle Tee', size: 'M', color: 'Base Black', quantity: 1, price_inr: 1599, price_at_purchase: 1599, edition: 'archive' },
+      { id: 'item_005', order_id: 'MNC-8824', product_id: 'prod_006', variant_id: 'var_006_m_waf', product_name: 'The Oversized Heavy Waffle Tee (Custom)', size: 'M', color: 'Base Black', quantity: 1, price_inr: 1599, price_at_purchase: 1599, edition: 'custom', custom_placement: 'back', custom_scale: 'large', custom_quote_text: 'NOT FOR EVERYONE.', custom_artwork_url: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 360" width="800" height="360"><text x="400" y="210" font-size="94" font-family="Arial Black" font-weight="900" letter-spacing="5" fill="%23F0EBE1" text-anchor="middle">NOT FOR EVERYONE.</text></svg>' },
     ];
 
     this.tables.discount_codes = [

@@ -9,7 +9,7 @@ import { playClickSound } from "@/lib/sound";
 
 export function FeaturedDrop() {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [dropProducts, setDropProducts] = useState(products.slice(0, 12));
+  const [dropProducts, setDropProducts] = useState(products);
 
   useEffect(() => {
     fetch('/api/products')
@@ -18,7 +18,7 @@ export function FeaturedDrop() {
         if (data?.products && data.products.length > 0) {
           const active = data.products.filter((p: any) => p.status === 'active');
           if (active.length > 0) {
-            setDropProducts(active.slice(0, 12));
+            setDropProducts(active);
           }
         }
       })
@@ -47,7 +47,7 @@ export function FeaturedDrop() {
             <span>DROP 001 // LAUNCH COLLECTION</span>
           </div>
           <h2 className="font-display text-3xl sm:text-5xl md:text-7xl uppercase tracking-tighter text-off-white">
-            THE 8 DROP 001 SILHOUETTES
+            DROP 001 SILHOUETTES
           </h2>
         </div>
 

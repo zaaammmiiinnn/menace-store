@@ -126,7 +126,13 @@ export function NotifyMeButton({
     const variantId = `${currentVariant?.id || `${cartProd.id}-${selectedColor}-${selectedSize}`}${customKeySuffix}`;
 
     // Add to legacy cart store
-    addItemToLegacyCart(cartProd, selectedColor, selectedSize);
+    addItemToLegacyCart(cartProd, selectedColor, selectedSize, {
+      edition,
+      customArtworkUrl: customDesign?.artworkUrl,
+      customPlacement: customDesign?.placement,
+      customScale: customDesign?.scale,
+      customQuoteText: customDesign?.customQuoteText,
+    });
 
     // Add to modern checkout cart store
     addItemToModernCart({
@@ -179,7 +185,13 @@ export function NotifyMeButton({
     const variantId = `${currentVariant?.id || `${cartProd.id}-${selectedColor}-${selectedSize}`}${customKeySuffix}`;
 
     // Add to legacy cart store
-    addItemToLegacyCart(cartProd, selectedColor, selectedSize);
+    addItemToLegacyCart(cartProd, selectedColor, selectedSize, {
+      edition,
+      customArtworkUrl: customDesign?.artworkUrl,
+      customPlacement: customDesign?.placement,
+      customScale: customDesign?.scale,
+      customQuoteText: customDesign?.customQuoteText,
+    });
 
     // Add to modern checkout cart store
     addItemToModernCart({

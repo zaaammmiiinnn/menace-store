@@ -1,13 +1,13 @@
-'use client';
-
 import React, { useState } from 'react';
-import { UseFormRegister, FieldErrors, UseFormSetValue } from 'react-hook-form';
-import { IndianStates, type ShippingAddress } from '@/lib/validation/checkout';
+import { UseFormRegister, FieldErrors, UseFormSetValue, UseFormWatch } from 'react-hook-form';
+import { IndianStates, type CreateOrderInput } from '@/lib/validation/checkout';
+import { CreditCard, Banknote, ShieldCheck, Zap, Info, CheckCircle2 } from 'lucide-react';
 
 interface AddressFormProps {
-  register: UseFormRegister<any>;
-  setValue: UseFormSetValue<any>;
-  errors: FieldErrors<any>;
+  register: UseFormRegister<CreateOrderInput>;
+  setValue: UseFormSetValue<CreateOrderInput>;
+  watch?: UseFormWatch<CreateOrderInput>;
+  errors: FieldErrors<CreateOrderInput>;
 }
 
 // 2-digit PIN code prefix mapper for major Indian cities
@@ -34,8 +34,9 @@ const PINCODE_MAP: Record<string, { city: string; state: string }> = {
   '70': { city: 'Kolkata', state: 'West Bengal' },
 };
 
-export function AddressForm({ register, setValue, errors }: AddressFormProps) {
+export function AddressForm({ register, setValue, watch, errors }: AddressFormProps) {
   const [sameAsShipping, setSameAsShipping] = useState(true);
+  const selectedMethod = watch ? watch('paymentMethod') || 'prepaid' : 'prepaid';
 
   const handlePincodeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawVal = e.target.value.replace(/\D/g, '').slice(0, 6);
@@ -51,10 +52,10 @@ export function AddressForm({ register, setValue, errors }: AddressFormProps) {
   };
 
   return (
-    <div className="border border-[#1C1C1C] bg-[#0A0A0A] p-5 sm:p-6 space-y-4">
+    <div className="border border-[#1C1C1C] bg-[#0A0A0A] p-5 sm:p-6 space-y-6">
       <div className="flex items-center justify-between border-b border-[#1C1C1C] pb-3">
         <h2 className="font-display text-xl uppercase tracking-wider text-[#F5F1E8]">
-          02 // SHIPPING DESTINATION
+          02 // SHIPPING & PAYMENT
         </h2>
         <span className="text-[10px] font-mono text-[#8A8A8A] uppercase">
           PAN-INDIA COURIER
@@ -191,7 +192,7 @@ export function AddressForm({ register, setValue, errors }: AddressFormProps) {
         </div>
 
         {/* Billing same as shipping checkbox */}
-        <div className="pt-2">
+        <div className="pt-1">
           <label className="flex items-center gap-2.5 cursor-pointer select-none">
             <input
               type="checkbox"
@@ -203,10 +204,118 @@ export function AddressForm({ register, setValue, errors }: AddressFormProps) {
               Billing address is same as shipping destination
             </span>
           </label>
+        </div>
 
-          {!sameAsShipping && (
-            <div className="mt-3 p-3.5 bg-[#141414] border border-[#262626] text-[11px] text-[#8A8A8A]">
-              GST invoice will be generated matching the customer name and contact details.
+        {/* --- PAYMENT OPTIONS (IMMEDIATELY AFTER ADDRESS) --- */}
+        <div className="pt-6 mt-6 border-t border-[#1C1C1C] space-y-3.5">
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-mono font-bold text-[#F5F1E8] uppercase tracking-wider flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-[#C6FF00]" />
+              <span>CHOOSE PAYMENT MODE *</span>
+            </div>
+            <span className="text-[10px] font-mono text-[#C6FF00] bg-[#C6FF00]/10 px-2 py-0.5 border border-[#C6FF00]/20 uppercase font-bold">
+              2 OPTIONS
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* 1. Pay Online */}
+            <div
+              onClick={() => setValue('paymentMethod', 'prepaid', { shouldValidate: true })}
+              className={`p-4 border transition-all cursor-pointer select-none relative ${
+                selectedMethod === 'prepaid'
+                  ? 'border-[#C6FF00] bg-[#141414] shadow-[0_0_20px_rgba(198,255,0,0.12)]'
+                  : 'border-[#242424] bg-[#0C0C0C] hover:border-[#383838] hover:bg-[#111111]'
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <div
+                  className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                    selectedMethod === 'prepaid'
+                      ? 'border-[#C6FF00] bg-[#C6FF00]'
+                      : 'border-[#444] bg-[#161616]'
+                  }`}
+                >
+                  {selectedMethod === 'prepaid' && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#0A0A0A]" />
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-[#F5F1E8] uppercase tracking-wider">
+                      1. PAY ONLINE
+                    </span>
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 bg-[#C6FF00] text-[#0A0A0A] uppercase">
+                      PAYU
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#8A8A8A]">
+                    UPI (GPay / PhonePe), Cards, NetBanking. Instant dispatch.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Cash on Delivery (COD) */}
+            <div
+              onClick={() => setValue('paymentMethod', 'cod', { shouldValidate: true })}
+              className={`p-4 border transition-all cursor-pointer select-none relative ${
+                selectedMethod === 'cod'
+                  ? 'border-[#C6FF00] bg-[#141414] shadow-[0_0_20px_rgba(198,255,0,0.12)]'
+                  : 'border-[#242424] bg-[#0C0C0C] hover:border-[#383838] hover:bg-[#111111]'
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                <div
+                  className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                    selectedMethod === 'cod'
+                      ? 'border-[#C6FF00] bg-[#C6FF00]'
+                      : 'border-[#444] bg-[#161616]'
+                  }`}
+                >
+                  {selectedMethod === 'cod' && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#0A0A0A]" />
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-[#F5F1E8] uppercase tracking-wider">
+                      2. CASH ON DELIVERY
+                    </span>
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 bg-[#1F1F1F] text-[#F5F1E8] border border-[#333] uppercase">
+                      COD
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#8A8A8A]">
+                    Pay in cash upon parcel delivery at your doorstep.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Context Advisory Notice */}
+          {selectedMethod === 'cod' ? (
+            <div className="p-3 bg-[#131313] border border-[#C6FF00]/40 text-[11px] text-[#8A8A8A] flex items-start gap-2.5">
+              <Banknote size={15} className="text-[#C6FF00] shrink-0 mt-0.5" />
+              <div>
+                <span className="text-[#F5F1E8] font-bold uppercase block mb-0.5">
+                  CASH ON DELIVERY (COD) SELECTED
+                </span>
+                Your order will be booked directly without online prepayment. Please keep exact cash ready for the courier partner at delivery.
+              </div>
+            </div>
+          ) : (
+            <div className="p-3 bg-[#131313] border border-[#262626] text-[11px] text-[#8A8A8A] flex items-start gap-2.5">
+              <ShieldCheck size={15} className="text-[#C6FF00] shrink-0 mt-0.5" />
+              <div>
+                <span className="text-[#F5F1E8] font-bold uppercase block mb-0.5">
+                  ONLINE PAYMENT SELECTED
+                </span>
+                Clicking Proceed will securely open the PayU payment portal for fast, zero-fee UPI, Debit/Credit Card, or NetBanking checkout.
+              </div>
             </div>
           )}
         </div>
@@ -214,3 +323,4 @@ export function AddressForm({ register, setValue, errors }: AddressFormProps) {
     </div>
   );
 }
+

@@ -106,6 +106,11 @@ export const orderItems = sqliteTable('order_items', {
   quantity: integer('quantity').notNull(),
   priceInr: integer('price_inr').notNull(),
   imageUrl: text('image_url'),
+  customArtworkUrl: text('custom_artwork_url'),
+  customPlacement: text('custom_placement'),
+  customScale: text('custom_scale'),
+  customQuoteText: text('custom_quote_text'),
+  edition: text('edition'),
   // Legacy field
   priceAtPurchase: integer('price_at_purchase'),
 }, (table) => [

@@ -12,6 +12,7 @@ import { ProgressIndicator } from '@/components/checkout/ProgressIndicator';
 import { CartSummary } from '@/components/checkout/CartSummary';
 import { CustomerForm } from '@/components/checkout/CustomerForm';
 import { AddressForm } from '@/components/checkout/AddressForm';
+import { PaymentMethodForm } from '@/components/checkout/PaymentMethodForm';
 import { OrderSummary } from '@/components/checkout/OrderSummary';
 import { CreateOrderSchema, type CreateOrderInput } from '@/lib/validation/checkout';
 import { useAuth } from '@/lib/auth';
@@ -33,10 +34,15 @@ export default function CheckoutPage() {
           name: legacyItem.product.name,
           size: legacyItem.size,
           color: legacyItem.color,
-          price: legacyItem.product.price,
+          price: legacyItem.product.price || (legacyItem.product as any).priceInr || 1499,
           quantity: legacyItem.quantity,
           imageUrl: legacyItem.product.images?.[0] || '/products/placeholder.svg',
           slug: legacyItem.product.slug,
+          edition: legacyItem.edition,
+          customArtworkUrl: legacyItem.customArtworkUrl,
+          customPlacement: legacyItem.customPlacement,
+          customScale: legacyItem.customScale,
+          customQuoteText: legacyItem.customQuoteText,
         });
       });
     }
@@ -71,9 +77,12 @@ export default function CheckoutPage() {
         pincode: '',
         country: 'India',
       },
+      paymentMethod: 'prepaid',
       items: [],
     },
   });
+
+  const selectedPaymentMethod = watch('paymentMethod') || 'prepaid';
 
   // Keep items synced to react-hook-form value
   useEffect(() => {
@@ -92,6 +101,7 @@ export default function CheckoutPage() {
         customArtworkUrl: item.customArtworkUrl,
         customPlacement: item.customPlacement,
         customScale: item.customScale,
+        customQuoteText: item.customQuoteText,
       })),
 
       { shouldValidate: true }
@@ -175,6 +185,7 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          paymentMethod: formData.paymentMethod || 'prepaid',
           clerkUserId: user?.id || null,
           promoCode: legacyCart.promoCode || null,
           items: cart.items.map((i) => ({
@@ -190,19 +201,35 @@ export default function CheckoutPage() {
             customArtworkUrl: i.customArtworkUrl,
             customPlacement: i.customPlacement,
             customScale: i.customScale,
+            customQuoteText: i.customQuoteText,
           })),
         }),
       });
 
-
-      if (!createRes.ok) {
-        const errorData = await createRes.json();
-        throw new Error(errorData.error || 'Failed to create order on server.');
+      const responseText = await createRes.text();
+      let resData: any = {};
+      try {
+        resData = JSON.parse(responseText);
+      } catch (parseErr) {
+        console.error('[checkout] Server returned non-JSON:', responseText);
+        throw new Error('Order creation service is momentarily unreachable. Please verify your connection or try again.');
       }
 
-      const { orderId, gateway, payu, razorpayOrderId, amount, currency } = await createRes.json();
+      if (!createRes.ok || resData.error) {
+        throw new Error(resData.error || 'Failed to create order on server.');
+      }
 
-      // 2. PayU Hosted Payment Flow (Live Gateway)
+      const { orderId, gateway, payu, razorpayOrderId, amount, currency } = resData;
+
+      // 2. Cash on Delivery (COD) Flow
+      if (gateway === 'cod' || formData.paymentMethod === 'cod') {
+        cart.clearCart();
+        legacyCart.clearCart();
+        router.push(`/checkout/success?order=${orderId}&method=cod`);
+        return;
+      }
+
+      // 3. PayU Hosted Payment Flow (Live Gateway)
       if (gateway === 'payu' && payu?.action && payu?.params) {
         // Clear cart stores before transitioning to PayU
         cart.clearCart();
@@ -235,9 +262,8 @@ export default function CheckoutPage() {
         !razorpayKey.includes('placeholder') &&
         !razorpayOrderId.includes('sim');
 
-      // 3. Fallback: Open Razorpay Checkout Modal if configured
+      // 4. Fallback: Open Razorpay Checkout Modal if configured
       if ((window as any).Razorpay && isRealRazorpayKey) {
-
         const options = {
           key: razorpayKey,
           amount,
@@ -260,7 +286,7 @@ export default function CheckoutPage() {
             razorpay_signature: string;
           }) => {
             try {
-              // 3. Verify signature on backend
+              // Verify signature on backend
               const verifyRes = await fetch('/api/checkout/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -414,10 +440,11 @@ export default function CheckoutPage() {
               {/* Customer Identity */}
               <CustomerForm register={register} errors={errors} />
 
-              {/* Shipping Destination */}
+              {/* Shipping Destination & Payment Mode */}
               <AddressForm
                 register={register}
                 setValue={setValue}
+                watch={watch}
                 errors={errors}
               />
             </div>
@@ -428,6 +455,10 @@ export default function CheckoutPage() {
                 isProcessing={isProcessing}
                 onSubmit={handleSubmit(onFormSubmit, onFormInvalid)}
                 error={errorMessage}
+                paymentMethod={selectedPaymentMethod}
+                onSelectPaymentMethod={(method) =>
+                  setValue('paymentMethod', method, { shouldValidate: true })
+                }
               />
             </div>
           </div>

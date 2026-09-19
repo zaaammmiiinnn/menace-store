@@ -285,6 +285,7 @@ export async function getOrders() {
           const cust = customers.find((c: any) => c.id === o.customer_id || c.email === o.customer_email);
           const items = orderItems.filter((i: any) => i.order_id === o.id);
           const itemsCount = items.reduce((acc: number, i: any) => acc + (i.quantity || 1), 0);
+          const hasCustomPrint = items.some((i: any) => i.edition === 'custom' || !!i.custom_artwork_url || !!i.customArtworkUrl);
           return {
             ...o,
             customerName: o.customer_name || cust?.name || 'Guest User',
@@ -293,6 +294,7 @@ export async function getOrders() {
             total_inr: o.total_inr !== undefined ? o.total_inr : (o.totalInr || 0),
             created_at: o.created_at !== undefined ? o.created_at : (o.createdAt || Date.now()),
             tracking_number: o.tracking_number || o.trackingNumber || null,
+            hasCustomPrint,
           };
         });
       }
@@ -310,6 +312,7 @@ export async function getOrders() {
     const cust = customers.find((c: any) => c.id === o.customer_id);
     const items = orderItems.filter((i: any) => i.order_id === o.id);
     const itemsCount = items.reduce((acc: number, i: any) => acc + (i.quantity || 1), 0);
+    const hasCustomPrint = items.some((i: any) => i.edition === 'custom' || !!i.custom_artwork_url || !!i.customArtworkUrl);
 
     return {
       ...o,
@@ -319,6 +322,7 @@ export async function getOrders() {
       total_inr: o.total_inr !== undefined ? o.total_inr : (o.totalInr || 0),
       created_at: o.created_at !== undefined ? o.created_at : (o.createdAt || Date.now()),
       tracking_number: o.tracking_number || null,
+      hasCustomPrint,
     };
   });
 }
@@ -354,6 +358,12 @@ export async function getOrderById(id: string) {
             quantity: i.quantity || 1,
             size: i.size || 'M',
             color: i.color || 'Black',
+            edition: i.edition || (i.custom_artwork_url ? 'custom' : 'archive'),
+            customArtworkUrl: i.custom_artwork_url || i.customArtworkUrl || null,
+            customPlacement: i.custom_placement || i.customPlacement || null,
+            customScale: i.custom_scale || i.customScale || null,
+            customQuoteText: i.custom_quote_text || i.customQuoteText || null,
+            imageUrl: i.image_url || i.imageUrl || null,
           })),
         };
       }
@@ -380,6 +390,15 @@ export async function getOrderById(id: string) {
       productName: product?.name || i.product_name || 'Menance Tee',
       productSlug: product?.slug || 'quiet-menance',
       price: i.price_at_purchase || i.price_inr || 0,
+      quantity: i.quantity || 1,
+      size: i.size || variant?.size || 'M',
+      color: i.color || variant?.color || 'Black',
+      edition: i.edition || (i.custom_artwork_url ? 'custom' : 'archive'),
+      customArtworkUrl: i.custom_artwork_url || i.customArtworkUrl || null,
+      customPlacement: i.custom_placement || i.customPlacement || null,
+      customScale: i.custom_scale || i.customScale || null,
+      customQuoteText: i.custom_quote_text || i.customQuoteText || null,
+      imageUrl: i.image_url || i.imageUrl || null,
     };
   });
 

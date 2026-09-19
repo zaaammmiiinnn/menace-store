@@ -149,6 +149,11 @@ export async function GET(req: NextRequest) {
         quantity: Number(item.quantity) || 1,
         price: Number(item.price_inr ?? item.priceInr ?? item.price_at_purchase ?? 0),
         image: item.image_url || item.imageUrl || '/images/products/quiet-menance-1.jpg',
+        edition: item.edition || (item.custom_artwork_url || item.customArtworkUrl ? 'custom' : 'archive'),
+        customArtworkUrl: item.custom_artwork_url || item.customArtworkUrl || null,
+        customPlacement: item.custom_placement || item.customPlacement || null,
+        customScale: item.custom_scale || item.customScale || null,
+        customQuoteText: item.custom_quote_text || item.customQuoteText || null,
         sku: item.sku || `MNC-${item.size || 'M'}-${item.color || 'BLK'}`,
         slug: (item.product_name || item.productName || 'quiet-menance')
           .toLowerCase()
@@ -166,6 +171,15 @@ export async function GET(req: NextRequest) {
       const trackingNumber = o.tracking_number || o.trackingNumber || null;
       const statusRaw = (o.status || 'pending').toUpperCase();
 
+      const isCodOrder =
+        (o.notes || '').toUpperCase().includes('CASH ON DELIVERY') ||
+        (o.notes || '').toUpperCase().includes('COD') ||
+        (o.paymentMethod || '').toUpperCase().includes('COD');
+
+      const paymentMethodLabel = isCodOrder
+        ? 'Cash on Delivery (COD)'
+        : (o.razorpay_payment_id || o.razorpayPaymentId ? 'Online Payment (Verified)' : 'PayU Express');
+
       return {
         id: orderId,
         date: dateFormatted,
@@ -178,7 +192,7 @@ export async function GET(req: NextRequest) {
         subtotal: Number(o.subtotal_inr ?? o.subtotalInr ?? 0),
         shipping: Number(o.shipping_inr ?? o.shippingInr ?? 0) === 0 ? 'FREE' : `₹${o.shipping_inr ?? o.shippingInr}`,
         shippingAddress,
-        paymentMethod: o.razorpay_payment_id || o.razorpayPaymentId ? 'Online Payment (Verified)' : 'PayU Express',
+        paymentMethod: paymentMethodLabel,
         items: formattedItems,
       };
     });

@@ -54,14 +54,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { items, customer, shipping, clerkUserId, promoCode } = validationResult.data;
+    const { items, customer, shipping, paymentMethod = 'prepaid', clerkUserId, promoCode } = validationResult.data;
 
     // 1. Calculate financial breakdown
     const subtotalInr = items.reduce(
       (acc, item) => acc + item.price * item.quantity,
       0
     );
-    const storeSettings = await getStoreSettings();
+    let storeSettings = { shippingType: 'free', standardShippingRate: 0, freeShippingThreshold: 1499 };
+    try {
+      storeSettings = await getStoreSettings();
+    } catch (sErr) {
+      console.warn('[create-order] getStoreSettings fallback:', sErr);
+    }
+
     const isFreeShipping = storeSettings.shippingType === 'free' || storeSettings.standardShippingRate === 0;
     const shippingInr = isFreeShipping ? 0 : (subtotalInr >= storeSettings.freeShippingThreshold ? 0 : storeSettings.standardShippingRate);
     let discountInr = 0;
@@ -112,9 +118,10 @@ export async function POST(req: NextRequest) {
 
     // 3. Create pending order in D1
     const customItems = items.filter((i) => i.edition === 'custom' || i.customArtworkUrl);
-    const orderNotes = customItems.length > 0
-      ? `CUSTOM PRINT ORDER: ${customItems.map((c) => `${c.name} [Placement: ${c.customPlacement || 'front'}, Scale: ${c.customScale || 'medium'}]`).join(' | ')}`
-      : null;
+    let orderNotes = `Payment: ${paymentMethod === 'cod' ? 'CASH ON DELIVERY (COD)' : 'ONLINE PREPAID'} | Promo: ${promoCode || 'NONE'} | Phone: ${customer.phone.trim()}`;
+    if (customItems.length > 0) {
+      orderNotes = `CUSTOM PRINT ORDER: ${customItems.map((c) => `${c.name} [Placement: ${c.customPlacement || 'front'}, Scale: ${c.customScale || 'medium'}]`).join(' | ')} | ${orderNotes}`;
+    }
 
     let customerId = `cust_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 
@@ -174,12 +181,14 @@ export async function POST(req: NextRequest) {
 
         for (const item of items) {
           const itemId = `item_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+          const itemEdition = item.edition || (item.customArtworkUrl ? 'custom' : 'archive');
           await d1
             .prepare(
               `INSERT INTO order_items (
                 id, order_id, product_id, variant_id, product_name,
-                size, color, quantity, price_inr, price_at_purchase, image_url
-              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+                size, color, quantity, price_inr, price_at_purchase, image_url,
+                custom_artwork_url, custom_placement, custom_scale, custom_quote_text, edition
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
             )
             .bind(
               itemId,
@@ -192,7 +201,12 @@ export async function POST(req: NextRequest) {
               item.quantity,
               item.price,
               item.price,
-              item.imageUrl || null
+              item.imageUrl || null,
+              item.customArtworkUrl || null,
+              item.customPlacement || null,
+              item.customScale || null,
+              item.customQuoteText || null,
+              itemEdition
             )
             .run();
         }
@@ -226,6 +240,7 @@ export async function POST(req: NextRequest) {
       // Insert associated line items
       for (const item of items) {
         const itemId = `item_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        const itemEdition = item.edition || (item.customArtworkUrl ? 'custom' : 'archive');
         await db.insert(orderItems).values({
           id: itemId,
           orderId,
@@ -238,6 +253,11 @@ export async function POST(req: NextRequest) {
           priceInr: item.price,
           priceAtPurchase: item.price,
           imageUrl: item.imageUrl || null,
+          customArtworkUrl: item.customArtworkUrl || null,
+          customPlacement: item.customPlacement || null,
+          customScale: item.customScale || null,
+          customQuoteText: item.customQuoteText || null,
+          edition: itemEdition,
         }).catch(() => {});
       }
 
@@ -252,11 +272,123 @@ export async function POST(req: NextRequest) {
           console.warn('[create-order] Failed to increment promo usage:', incErr);
         }
       }
+
+      // Sync to in-memory local fallback store
+      try {
+        const { getLocalStore } = await import('@/lib/db');
+        const store = getLocalStore();
+        const ordersTable = store.getTable('orders');
+        const itemsTable = store.getTable('order_items');
+        const existingIdx = ordersTable.findIndex((o: any) => o.id === orderId);
+        const orderRecord = {
+          id: orderId,
+          customer_id: customerId,
+          customer_name: customer.name,
+          customer_email: customer.email,
+          customer_phone: customer.phone,
+          shipping_address: JSON.stringify(shipping),
+          subtotal_inr: subtotalInr,
+          shipping_inr: shippingInr,
+          discount_inr: discountInr,
+          total_inr: totalInr,
+          status: 'pending',
+          created_at: nowTimestamp,
+          notes: orderNotes,
+          clerk_user_id: clerkUserId || null,
+        };
+        if (existingIdx >= 0) {
+          ordersTable[existingIdx] = { ...ordersTable[existingIdx], ...orderRecord };
+        } else {
+          ordersTable.unshift(orderRecord);
+        }
+
+        for (const item of items) {
+          const itemId = `item_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+          const itemEdition = item.edition || (item.customArtworkUrl ? 'custom' : 'archive');
+          itemsTable.push({
+            id: itemId,
+            order_id: orderId,
+            product_id: item.productId,
+            variant_id: item.variantId || null,
+            product_name: item.name,
+            size: item.size,
+            color: item.color,
+            quantity: item.quantity,
+            price_inr: item.price,
+            price_at_purchase: item.price,
+            image_url: item.imageUrl || null,
+            custom_artwork_url: item.customArtworkUrl || null,
+            custom_placement: item.customPlacement || null,
+            custom_scale: item.customScale || null,
+            custom_quote_text: item.customQuoteText || null,
+            edition: itemEdition,
+          });
+        }
+      } catch (localErr) {
+        console.warn('[create-order] Local fallback sync note:', localErr);
+      }
     } catch (dbErr) {
       console.error('[create-order] D1 insert error:', dbErr);
     }
 
-    // 4. Initialize PayU payment request
+    // 4. Sync order to Admin Panel in background
+    try {
+      const adminUrl = process.env.NEXT_PUBLIC_ADMIN_URL || 'https://menace-admin.vercel.app';
+      fetch(`${adminUrl}/api/orders/sync`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order: {
+            id: orderId,
+            customerId,
+            status: 'pending',
+            totalInr,
+            shippingAddress: typeof shipping === 'string' ? shipping : JSON.stringify(shipping),
+            paymentMethod: paymentMethod === 'cod' ? 'Cash on Delivery (COD)' : 'Online (PayU)',
+            notes: orderNotes,
+            createdAt: nowTimestamp,
+          },
+          items: items.map((i) => ({
+            ...i,
+            priceInr: i.price,
+            price_at_purchase: i.price,
+            customArtworkUrl: i.customArtworkUrl || null,
+            custom_artwork_url: i.customArtworkUrl || null,
+            customPlacement: i.customPlacement || null,
+            custom_placement: i.customPlacement || null,
+            customScale: i.customScale || null,
+            custom_scale: i.customScale || null,
+            customQuoteText: i.customQuoteText || null,
+            custom_quote_text: i.customQuoteText || null,
+            edition: i.edition || (i.customArtworkUrl ? 'custom' : 'archive'),
+          })),
+          customer: {
+            id: customerId,
+            name: customer.name.trim(),
+            email: customer.email.trim().toLowerCase(),
+            phone: customer.phone.trim(),
+          },
+        }),
+      }).catch((syncErr) => {
+        console.warn('[create-order] Admin sync logged note:', syncErr?.message);
+      });
+    } catch (e) {
+      // ignore background sync error
+    }
+
+    if (paymentMethod === 'cod') {
+      return NextResponse.json({
+        success: true,
+        orderId,
+        gateway: 'cod',
+        paymentMethod: 'cod',
+        amount: totalPaise,
+        totalInr,
+        currency: 'INR',
+      });
+    }
+
+    // 5. Initialize PayU payment request (for online prepaid orders)
     const host = req.headers.get('x-forwarded-host') || req.headers.get('host');
     const proto = req.headers.get('x-forwarded-proto') || 'https';
     const origin = req.headers.get('origin');

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { updateOrderStatusAction, deleteOrderAction } from '@/lib/admin/actions';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 import { toast } from 'sonner';
+import { CustomPrintWorkshopCard } from '@/components/admin/CustomPrintWorkshopCard';
 import {
   ArrowLeft,
   Truck,
@@ -17,6 +18,10 @@ import {
   RotateCcw,
   Printer,
   Trash2,
+  Sparkles,
+  Banknote,
+  CreditCard,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface OrderDetailClientProps {
@@ -38,7 +43,13 @@ export function OrderDetailClient({ order: initialOrder }: OrderDetailClientProp
     try {
       await updateOrderStatusAction(order.id, newStatus, trackingNumber, internalNote);
       setOrder({ ...order, status: newStatus, tracking_number: trackingNumber, notes: internalNote });
-      toast.success(`Order status updated to ${newStatus}.`);
+      if (newStatus === 'paid') {
+        toast.success(`Order ${order.id} marked as Packed. Email sent to customer.`);
+      } else if (newStatus === 'shipped') {
+        toast.success(`Order ${order.id} marked as Shipped. Shipping email sent to customer.`);
+      } else {
+        toast.success(`Order status updated to ${newStatus}.`);
+      }
     } catch {
       toast.error('Failed to update order status.');
     } finally {
@@ -97,44 +108,54 @@ export function OrderDetailClient({ order: initialOrder }: OrderDetailClientProp
             <span>Back to Orders</span>
           </Link>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold font-mono tracking-tight text-[#F5F1E8]">{order.id}</h1>
+            <h1 className="text-xl font-bold font-mono text-[#F5F1E8]">Order #{order.id}</h1>
             <span
-              className={`text-[11px] font-mono uppercase px-2.5 py-0.5 rounded font-semibold ${
-                order.status === 'delivered'
-                  ? 'bg-[#C6FF00]/10 text-[#C6FF00] border border-[#C6FF00]/20'
+              className={`px-2.5 py-0.5 rounded text-[11px] font-mono uppercase tracking-wider ${
+                order.status === 'paid'
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                   : order.status === 'shipped'
                   ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                  : order.status === 'paid'
-                  ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
-                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                  : order.status === 'delivered'
+                  ? 'bg-[#C6FF00]/10 text-[#C6FF00] border border-[#C6FF00]/20'
+                  : order.status === 'cancelled'
+                  ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                  : 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
               }`}
             >
-              {order.status}
+              {order.status === 'paid' ? 'PACKED' : order.status}
             </span>
+            {((order.notes || '').includes('CASH ON DELIVERY') || (order.notes || '').includes('COD')) && (
+              <span className="px-2.5 py-0.5 rounded text-[11px] font-mono uppercase tracking-wider bg-amber-500/15 text-amber-300 border border-amber-500/30 font-bold">
+                CASH ON DELIVERY
+              </span>
+            )}
           </div>
         </div>
 
+        {/* Action Buttons */}
         <div className="flex items-center gap-2">
           <button
             onClick={() => window.print()}
-            className="flex items-center gap-1.5 h-9 px-3 bg-[#141414] hover:bg-[#1E1E1E] text-[#8A8A8A] hover:text-[#F5F1E8] border border-[#2B2B2B] rounded text-[12px] font-mono transition-colors"
+            className="px-3 py-1.5 bg-[#141414] hover:bg-[#1C1C1C] text-[#F5F1E8] text-[12px] font-mono rounded border border-[#262626] transition-colors flex items-center gap-1.5"
           >
-            <Printer className="w-3.5 h-3.5" />
-            <span>Packing Slip</span>
+            <Printer className="w-3.5 h-3.5 text-[#8A8A8A]" />
+            <span>Print Invoice</span>
           </button>
-          <button
-            onClick={() => setIsRefundModalOpen(true)}
-            className="flex items-center gap-1.5 h-9 px-3 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded text-[12px] font-mono transition-colors"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>Refund Order</span>
-          </button>
+          {order.status !== 'cancelled' && (
+            <button
+              onClick={() => setIsRefundModalOpen(true)}
+              className="px-3 py-1.5 bg-[#141414] hover:bg-[#1C1C1C] text-yellow-400 text-[12px] font-mono rounded border border-yellow-500/30 transition-colors flex items-center gap-1.5"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Refund</span>
+            </button>
+          )}
           <button
             onClick={() => setIsDeleteModalOpen(true)}
-            className="flex items-center gap-1.5 h-9 px-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded text-[12px] font-mono transition-colors"
+            className="px-3 py-1.5 bg-[#141414] hover:bg-red-950/40 text-red-400 text-[12px] font-mono rounded border border-red-500/30 transition-colors flex items-center gap-1.5"
           >
             <Trash2 className="w-3.5 h-3.5" />
-            <span>Delete Order</span>
+            <span>Delete</span>
           </button>
         </div>
       </div>
@@ -145,36 +166,56 @@ export function OrderDetailClient({ order: initialOrder }: OrderDetailClientProp
         <div className="lg:col-span-8 space-y-5">
           {/* Order Items List */}
           <div className="p-5 rounded-lg bg-[#0F0F0F] border border-[#1F1F1F] space-y-4">
-            <h2 className="text-[13px] font-mono uppercase tracking-wider text-[#8A8A8A] border-b border-[#1A1A1A] pb-2 flex items-center gap-2">
-              <Package className="w-4 h-4 text-[#C6FF00]" />
-              Purchased Items ({order.items?.length || 0})
+            <h2 className="text-[13px] font-mono uppercase tracking-wider text-[#8A8A8A] border-b border-[#1A1A1A] pb-2 flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Package className="w-4 h-4 text-[#C6FF00]" />
+                Purchased Items ({order.items?.length || 0})
+              </span>
             </h2>
 
-            <div className="divide-y divide-[#181818]">
-              {order.items?.map((item: any) => (
-                <div key={item.id} className="py-3 flex items-center justify-between text-[13px]">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded bg-[#181818] border border-[#282828] flex items-center justify-center font-mono text-[11px] text-[#C6FF00]">
-                      {item.variant?.size || 'M'}
-                    </div>
-                    <div>
-                      <div className="font-medium text-[#F5F1E8]">{item.productName}</div>
-                      <div className="text-[11px] font-mono text-[#666]">
-                        {item.variant?.color} • Size {item.variant?.size} • SKU: {item.variant?.sku}
+            <div className="divide-y divide-[#1A1A1A]">
+              {order.items?.map((item: any) => {
+                const isCustom = item.product_name?.toLowerCase().includes('custom') ||
+                  item.productName?.toLowerCase().includes('custom') ||
+                  item.name?.toLowerCase().includes('custom') ||
+                  !!item.custom_artwork_url || !!item.customArtworkUrl ||
+                  !!item.custom_quote_text || !!item.customQuoteText ||
+                  order.notes?.includes('CUSTOM PRINT') || item.edition === 'custom';
+
+                return (
+                  <div key={item.id} className="py-4 space-y-3">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-[#F5F1E8] text-[14px] flex items-center gap-2">
+                          <span>{item.productName || item.product_name || item.name || 'MENANCE Silhouette'}</span>
+                          {isCustom && (
+                            <span className="inline-flex items-center gap-1 text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#C6FF00]/10 text-[#C6FF00] border border-[#C6FF00]/30 font-semibold tracking-wider">
+                              <Sparkles className="w-2.5 h-2.5" /> CUSTOM PRINT
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[12px] font-mono text-[#8A8A8A] mt-0.5">
+                          {item.color || item.variant?.color || 'Black'} • Size {item.size || item.variant?.size || 'M'} • SKU: {item.variant?.sku || `MNC-${item.size || 'M'}`}
+                        </div>
+                      </div>
+
+                      <div className="text-right font-mono">
+                        <div className="text-[13px] text-[#F5F1E8]">
+                          {item.quantity || 1} × ₹{(item.price_inr || item.priceInr || item.price_at_purchase || item.price || 0).toLocaleString()}
+                        </div>
+                        <div className="text-[12px] font-bold text-[#C6FF00]">
+                          ₹{((item.quantity || 1) * (item.price_inr || item.priceInr || item.price_at_purchase || item.price || 0)).toLocaleString()}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="text-right font-mono">
-                    <div className="text-[#F5F1E8] font-semibold tabular-nums">
-                      ₹{(item.price_at_purchase * item.quantity).toLocaleString()}
-                    </div>
-                    <div className="text-[11px] text-[#8A8A8A]">
-                      Qty: {item.quantity} × ₹{item.price_at_purchase}
-                    </div>
+                    {/* Custom Print Workshop Card if custom print item */}
+                    {isCustom && (
+                      <CustomPrintWorkshopCard order={order} item={item} />
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Total Calculation Summary */}
@@ -215,16 +256,41 @@ export function OrderDetailClient({ order: initialOrder }: OrderDetailClientProp
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => handleUpdateStatus('shipped')}
-                    className="flex-1 py-2 bg-[#1A1A1A] hover:bg-[#252525] text-blue-400 text-[11px] font-mono rounded border border-blue-500/30 transition-colors"
+                    onClick={() => handleUpdateStatus('paid')}
+                    disabled={isUpdating}
+                    className={`flex-1 py-2 text-[11px] font-mono rounded border transition-colors flex items-center justify-center gap-1.5 ${
+                      order.status === 'paid'
+                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40 font-bold'
+                        : 'bg-[#1A1A1A] hover:bg-[#252525] text-emerald-400 border-emerald-500/30'
+                    }`}
                   >
+                    <Package className="w-3.5 h-3.5" />
+                    Mark Packed
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleUpdateStatus('shipped')}
+                    disabled={isUpdating}
+                    className={`flex-1 py-2 text-[11px] font-mono rounded border transition-colors flex items-center justify-center gap-1.5 ${
+                      order.status === 'shipped'
+                        ? 'bg-blue-500/20 text-blue-400 border-blue-500/40 font-bold'
+                        : 'bg-[#1A1A1A] hover:bg-[#252525] text-blue-400 border-blue-500/30'
+                    }`}
+                  >
+                    <Truck className="w-3.5 h-3.5" />
                     Mark Shipped
                   </button>
                   <button
                     type="button"
                     onClick={() => handleUpdateStatus('delivered')}
-                    className="flex-1 py-2 bg-[#1A1A1A] hover:bg-[#252525] text-[#C6FF00] text-[11px] font-mono rounded border border-[#C6FF00]/30 transition-colors"
+                    disabled={isUpdating}
+                    className={`flex-1 py-2 text-[11px] font-mono rounded border transition-colors flex items-center justify-center gap-1.5 ${
+                      order.status === 'delivered'
+                        ? 'bg-[#C6FF00]/20 text-[#C6FF00] border-[#C6FF00]/40 font-bold'
+                        : 'bg-[#1A1A1A] hover:bg-[#252525] text-[#C6FF00] border-[#C6FF00]/30'
+                    }`}
                   >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
                     Mark Delivered
                   </button>
                 </div>
@@ -272,6 +338,61 @@ export function OrderDetailClient({ order: initialOrder }: OrderDetailClientProp
               </div>
             </div>
           </div>
+
+          {/* Payment & Settlement Card */}
+          {(() => {
+            const notes = (order.notes || '').toUpperCase();
+            const isCod = notes.includes('CASH ON DELIVERY') || notes.includes('COD') || order.payment_method === 'cod' || order.paymentMethod === 'cod';
+            return (
+              <div className="p-5 rounded-lg bg-[#0F0F0F] border border-[#1F1F1F] space-y-3">
+                <h2 className="text-[13px] font-mono uppercase tracking-wider text-[#8A8A8A] border-b border-[#1A1A1A] pb-2 flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    {isCod ? <Banknote className="w-4 h-4 text-amber-400" /> : <CreditCard className="w-4 h-4 text-[#C6FF00]" />}
+                    Payment Mode
+                  </span>
+                  <span
+                    className={`text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded ${
+                      isCod
+                        ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+                        : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                    }`}
+                  >
+                    {isCod ? 'COD (CASH ON DELIVERY)' : 'ONLINE PREPAID'}
+                  </span>
+                </h2>
+
+                <div className="space-y-2 text-xs font-mono">
+                  {isCod ? (
+                    <div className="p-3 bg-amber-950/20 border border-amber-500/30 rounded space-y-1">
+                      <div className="text-amber-300 font-bold flex items-center gap-1.5">
+                        <Banknote className="w-3.5 h-3.5" />
+                        <span>COLLECT CASH AT DOORSTEP</span>
+                      </div>
+                      <div className="text-[#D4D4D4] text-[11px]">
+                        Courier partner must collect <span className="text-[#F5F1E8] font-bold">₹{order.total_inr.toLocaleString()}</span> in physical cash before handing over the parcel.
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-emerald-950/20 border border-emerald-500/30 rounded space-y-1">
+                      <div className="text-emerald-400 font-bold flex items-center gap-1.5">
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        <span>PRE-SETTLED ONLINE (PAYU)</span>
+                      </div>
+                      <div className="text-[#D4D4D4] text-[11px]">
+                        Payment of <span className="text-[#F5F1E8] font-bold">₹{order.total_inr.toLocaleString()}</span> has been captured and verified via secure gateway. Zero cash collection required.
+                      </div>
+                    </div>
+                  )}
+
+                  {order.notes && (
+                    <div className="text-[10px] text-[#666] pt-1">
+                      System Note: {order.notes}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Shipping Address Card */}
           <div className="p-5 rounded-lg bg-[#0F0F0F] border border-[#1F1F1F] space-y-3">

@@ -11,6 +11,8 @@ const defaultSizes: SizeOption[] = SIZES.map((size) => ({
 let dynamicProductsList: Product[] = SEED_PRODUCTS.map((p) => {
   const colorHex = p.color.toLowerCase().includes('white')
     ? '#F5F1E8'
+    : p.color.toLowerCase().includes('pink')
+    ? '#F06292'
     : p.color.toLowerCase().includes('brown')
     ? '#5A3D28'
     : p.color.toLowerCase().includes('grey') || p.color.toLowerCase().includes('acid')
@@ -26,7 +28,7 @@ let dynamicProductsList: Product[] = SEED_PRODUCTS.map((p) => {
     priceInr: p.priceInr,
     priceUsd: p.priceUsd,
     category: p.category,
-    status: 'draft',
+    status: 'active',
     colorways: [
       {
         name: p.color,

@@ -16,7 +16,18 @@ export interface CartState {
   discountValue: number;
 
   // Actions
-  addItem: (product: Product, color?: string, size?: string) => void;
+  addItem: (
+    product: Product,
+    color?: string,
+    size?: string,
+    customOptions?: {
+      edition?: 'archive' | 'plain' | 'custom';
+      customArtworkUrl?: string;
+      customPlacement?: 'front_chest' | 'front_center' | 'back';
+      customScale?: 'small' | 'medium' | 'large';
+      customQuoteText?: string;
+    }
+  ) => void;
   removeItem: (productId: string, color: string, size: string) => void;
   updateQuantity: (productId: string, color: string, size: string, quantity: number) => void;
   clearCart: () => void;
@@ -53,7 +64,7 @@ export const useCartStore = create<CartState>()(
       cartTotal: 0,
       totalItems: 0,
 
-      addItem: (product, colorName, sizeValue) => {
+      addItem: (product, colorName, sizeValue, customOptions) => {
         const currentItems = get().items;
         const colorways = product.colorways && product.colorways.length > 0 
           ? product.colorways 
@@ -63,14 +74,25 @@ export const useCartStore = create<CartState>()(
           : [{ value: 'M', label: 'M', scale: 1.0, inStock: true }];
         const color = colorName || colorways[0]?.name || 'Black';
         const size = sizeValue || sizes[0]?.value || 'M';
-        const id = `${product.id}-${color}-${size}`;
+        const customSuffix = customOptions?.customArtworkUrl
+          ? `-custom-${Date.now()}`
+          : customOptions?.edition === 'plain'
+          ? '-plain'
+          : '';
+        const id = `${product.id}-${color}-${size}${customSuffix}`;
 
         const existingItemIndex = currentItems.findIndex(
-          (item) => item.product.id === product.id && item.color === color && item.size === size
+          (item) =>
+            item.product.id === product.id &&
+            item.color === color &&
+            item.size === size &&
+            item.edition === customOptions?.edition &&
+            item.customArtworkUrl === customOptions?.customArtworkUrl &&
+            item.customQuoteText === customOptions?.customQuoteText
         );
 
         let updatedItems: CartItem[];
-        if (existingItemIndex > -1) {
+        if (existingItemIndex > -1 && !customOptions?.customArtworkUrl) {
           updatedItems = [...currentItems];
           updatedItems[existingItemIndex] = {
             ...updatedItems[existingItemIndex],
@@ -87,6 +109,11 @@ export const useCartStore = create<CartState>()(
             quantity: 1,
             selectedColor: selectedColor as any,
             selectedSize: selectedSize as any,
+            edition: customOptions?.edition,
+            customArtworkUrl: customOptions?.customArtworkUrl,
+            customPlacement: customOptions?.customPlacement,
+            customScale: customOptions?.customScale,
+            customQuoteText: customOptions?.customQuoteText,
           };
           updatedItems = [...currentItems, newItem];
         }
