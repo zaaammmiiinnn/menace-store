@@ -45,6 +45,7 @@ export function NotifyMeButton({
   // Store hooks
   const addToCart = useCartStore((state) => state.addItem);
   const openCartDrawer = useCartStore((state) => state.openCart);
+  const closeCartDrawer = useCartStore((state) => state.closeCart);
   const triggerConfetti = useUiStore((state) => state.triggerConfetti);
   const showToast = useUiStore((state) => state.showToast);
 
@@ -115,7 +116,7 @@ export function NotifyMeButton({
 
     const cartProd = getCartProduct();
 
-    // Add to unified cart store (quantity 1)
+    // Add to unified cart store (quantity 1, openDrawer: false)
     addToCart(
       cartProd,
       selectedColor,
@@ -127,9 +128,11 @@ export function NotifyMeButton({
         customScale: customDesign?.scale,
         customQuoteText: customDesign?.customQuoteText,
       },
-      1
+      1,
+      false
     );
 
+    closeCartDrawer();
     showToast(`Redirecting to checkout...`);
     router.push('/checkout');
   };

@@ -29,6 +29,12 @@ export default function CheckoutPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [mobileCartOpen, setMobileCartOpen] = useState(false);
 
+  // Ensure cart drawer is closed and scroll is unlocked when checkout mounts
+  useEffect(() => {
+    cart.closeCart();
+    document.body.style.overflow = '';
+  }, []);
+
   // Form setup using Zod resolver
   const {
     register,

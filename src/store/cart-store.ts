@@ -28,7 +28,8 @@ export interface CartState {
       customScale?: 'small' | 'medium' | 'large';
       customQuoteText?: string;
     },
-    quantity?: number
+    quantity?: number,
+    openDrawer?: boolean
   ) => void;
   removeItem: (productId: string, color: string, size: string) => void;
   removeItemById: (id: string) => void;
@@ -70,7 +71,7 @@ export const useCartStore = create<CartState>()(
       cartTotal: 0,
       totalItems: 0,
 
-      addItem: (product, colorName, sizeValue, customOptions, quantityToAdd = 1) => {
+      addItem: (product, colorName, sizeValue, customOptions, quantityToAdd = 1, openDrawer = true) => {
         const currentItems = get().items;
         const colorways = product.colorways && product.colorways.length > 0 
           ? product.colorways 
@@ -142,7 +143,7 @@ export const useCartStore = create<CartState>()(
 
         set({
           items: updatedItems,
-          isOpen: true,
+          isOpen: openDrawer ? true : get().isOpen,
           cartCount: count,
           totalItems: count,
           cartTotal: subtotal,

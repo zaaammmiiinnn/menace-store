@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { X, Trash2, Plus, Minus, Tag, Check, ArrowRight } from 'lucide-react';
 import { useCartStore, FREE_SHIPPING_THRESHOLD_INR } from '@/store/cart-store';
@@ -10,6 +11,9 @@ import { MagneticButton } from '@/components/ui/magnetic-button';
 import { playClickSound, playAddCartSound, playConfettiSound } from '@/lib/sound';
 
 export function CartDrawer() {
+  const pathname = usePathname();
+  const isCheckoutPage = pathname === '/checkout';
+
   const {
     isOpen,
     items,
@@ -39,8 +43,15 @@ export function CartDrawer() {
   const [promoError, setPromoError] = useState(false);
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
 
+  // Auto-close on checkout page to prevent overlay freeze
   useEffect(() => {
-    if (isOpen) {
+    if (isCheckoutPage && isOpen) {
+      closeCart();
+    }
+  }, [isCheckoutPage, isOpen, closeCart]);
+
+  useEffect(() => {
+    if (isOpen && !isCheckoutPage) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -48,7 +59,11 @@ export function CartDrawer() {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isOpen]);
+  }, [isOpen, isCheckoutPage]);
+
+  if (isCheckoutPage) {
+    return null;
+  }
 
   const handleApplyPromo = async (e: React.FormEvent) => {
     e.preventDefault();
