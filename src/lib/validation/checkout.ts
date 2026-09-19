@@ -91,7 +91,7 @@ export const CheckoutItemSchema = z.object({
 
 
 export const CreateOrderSchema = z.object({
-  items: z.array(CheckoutItemSchema).min(1, 'Your cart is empty'),
+  items: z.array(CheckoutItemSchema).optional().default([]),
   customer: CustomerInfoSchema,
   shipping: ShippingAddressSchema,
   paymentMethod: z.enum(['prepaid', 'cod']).default('prepaid'),

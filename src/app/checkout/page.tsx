@@ -66,35 +66,8 @@ export default function CheckoutPage() {
 
   const handleSelectPaymentMethod = (method: 'prepaid' | 'cod') => {
     setPaymentMethod(method);
-    setValue('paymentMethod', method, {
-      shouldValidate: true,
-      shouldDirty: true,
-      shouldTouch: true,
-    });
+    setValue('paymentMethod', method);
   };
-
-  // Keep items synced to react-hook-form value
-  useEffect(() => {
-    setValue(
-      'items',
-      cart.items.map((item) => ({
-        productId: item.productId,
-        variantId: item.variantId,
-        name: item.name,
-        size: item.size,
-        color: item.color,
-        quantity: item.quantity,
-        price: item.price,
-        imageUrl: item.imageUrl || '/products/placeholder.svg',
-        edition: item.edition,
-        customArtworkUrl: item.customArtworkUrl,
-        customPlacement: item.customPlacement,
-        customScale: item.customScale,
-        customQuoteText: item.customQuoteText,
-      })),
-      { shouldValidate: true }
-    );
-  }, [cart.items, setValue]);
 
   // Dynamically load Razorpay checkout script on mount
   useEffect(() => {

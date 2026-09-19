@@ -1,3 +1,4 @@
+import { useMemo, useCallback } from 'react';
 import { useCartStore, FREE_SHIPPING_THRESHOLD_INR, STANDARD_SHIPPING_INR } from '@/store/cart-store';
 import { Product } from '@/types';
 
@@ -24,27 +25,29 @@ export interface CartItem {
 export function useCart() {
   const store = useCartStore();
 
-  const normalizedItems: CartItem[] = store.items.map((item) => {
-    const price = item.product.price || (item.product as any).priceInr || 1499;
-    const imageUrl = item.product.images?.[0] || '/products/placeholder.svg';
-    return {
-      variantId: item.id,
-      id: item.id,
-      productId: item.product.id,
-      name: item.product.name,
-      size: item.size,
-      color: item.color,
-      price,
-      quantity: item.quantity,
-      imageUrl,
-      slug: item.product.slug,
-      edition: item.edition,
-      customArtworkUrl: item.customArtworkUrl,
-      customPlacement: item.customPlacement,
-      customScale: item.customScale,
-      customQuoteText: item.customQuoteText,
-    };
-  });
+  const normalizedItems: CartItem[] = useMemo(() => {
+    return store.items.map((item) => {
+      const price = item.product.price || (item.product as any).priceInr || 1499;
+      const imageUrl = item.product.images?.[0] || '/products/placeholder.svg';
+      return {
+        variantId: item.id,
+        id: item.id,
+        productId: item.product.id,
+        name: item.product.name,
+        size: item.size,
+        color: item.color,
+        price,
+        quantity: item.quantity,
+        imageUrl,
+        slug: item.product.slug,
+        edition: item.edition,
+        customArtworkUrl: item.customArtworkUrl,
+        customPlacement: item.customPlacement,
+        customScale: item.customScale,
+        customQuoteText: item.customQuoteText,
+      };
+    });
+  }, [store.items]);
 
   return {
     items: normalizedItems,
