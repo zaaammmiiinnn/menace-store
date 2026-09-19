@@ -6,8 +6,9 @@ import { CreditCard, Banknote, ShieldCheck, Zap, Info, CheckCircle2 } from 'luci
 interface AddressFormProps {
   register: UseFormRegister<CreateOrderInput>;
   setValue: UseFormSetValue<CreateOrderInput>;
-  watch?: UseFormWatch<CreateOrderInput>;
   errors: FieldErrors<CreateOrderInput>;
+  paymentMethod?: 'prepaid' | 'cod';
+  onSelectPaymentMethod?: (method: 'prepaid' | 'cod') => void;
 }
 
 // 2-digit PIN code prefix mapper for major Indian cities
@@ -34,9 +35,14 @@ const PINCODE_MAP: Record<string, { city: string; state: string }> = {
   '70': { city: 'Kolkata', state: 'West Bengal' },
 };
 
-export function AddressForm({ register, setValue, watch, errors }: AddressFormProps) {
+export function AddressForm({
+  register,
+  setValue,
+  errors,
+  paymentMethod = 'prepaid',
+  onSelectPaymentMethod,
+}: AddressFormProps) {
   const [sameAsShipping, setSameAsShipping] = useState(true);
-  const selectedMethod = watch ? watch('paymentMethod') || 'prepaid' : 'prepaid';
 
   const handlePincodeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawVal = e.target.value.replace(/\D/g, '').slice(0, 6);
@@ -214,29 +220,30 @@ export function AddressForm({ register, setValue, watch, errors }: AddressFormPr
               <span>CHOOSE PAYMENT MODE *</span>
             </div>
             <span className="text-[10px] font-mono text-[#C6FF00] bg-[#C6FF00]/10 px-2 py-0.5 border border-[#C6FF00]/20 uppercase font-bold">
-              2 OPTIONS
+              {paymentMethod === 'cod' ? 'CASH ON DELIVERY' : 'ONLINE (PAYU)'}
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* 1. Pay Online */}
-            <div
-              onClick={() => setValue('paymentMethod', 'prepaid', { shouldValidate: true })}
-              className={`p-4 border transition-all cursor-pointer select-none relative ${
-                selectedMethod === 'prepaid'
-                  ? 'border-[#C6FF00] bg-[#141414] shadow-[0_0_20px_rgba(198,255,0,0.12)]'
+            <button
+              type="button"
+              onClick={() => onSelectPaymentMethod?.('prepaid')}
+              className={`p-4 border transition-all cursor-pointer select-none text-left w-full ${
+                paymentMethod === 'prepaid'
+                  ? 'border-[#C6FF00] bg-[#141414] shadow-[0_0_20px_rgba(198,255,0,0.12)] ring-1 ring-[#C6FF00]'
                   : 'border-[#242424] bg-[#0C0C0C] hover:border-[#383838] hover:bg-[#111111]'
               }`}
             >
               <div className="flex items-start gap-3">
                 <div
                   className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
-                    selectedMethod === 'prepaid'
+                    paymentMethod === 'prepaid'
                       ? 'border-[#C6FF00] bg-[#C6FF00]'
                       : 'border-[#444] bg-[#161616]'
                   }`}
                 >
-                  {selectedMethod === 'prepaid' && (
+                  {paymentMethod === 'prepaid' && (
                     <div className="w-1.5 h-1.5 rounded-full bg-[#0A0A0A]" />
                   )}
                 </div>
@@ -255,26 +262,27 @@ export function AddressForm({ register, setValue, watch, errors }: AddressFormPr
                   </p>
                 </div>
               </div>
-            </div>
+            </button>
 
             {/* 2. Cash on Delivery (COD) */}
-            <div
-              onClick={() => setValue('paymentMethod', 'cod', { shouldValidate: true })}
-              className={`p-4 border transition-all cursor-pointer select-none relative ${
-                selectedMethod === 'cod'
-                  ? 'border-[#C6FF00] bg-[#141414] shadow-[0_0_20px_rgba(198,255,0,0.12)]'
+            <button
+              type="button"
+              onClick={() => onSelectPaymentMethod?.('cod')}
+              className={`p-4 border transition-all cursor-pointer select-none text-left w-full ${
+                paymentMethod === 'cod'
+                  ? 'border-[#C6FF00] bg-[#141414] shadow-[0_0_20px_rgba(198,255,0,0.12)] ring-1 ring-[#C6FF00]'
                   : 'border-[#242424] bg-[#0C0C0C] hover:border-[#383838] hover:bg-[#111111]'
               }`}
             >
               <div className="flex items-start gap-3">
                 <div
                   className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
-                    selectedMethod === 'cod'
+                    paymentMethod === 'cod'
                       ? 'border-[#C6FF00] bg-[#C6FF00]'
                       : 'border-[#444] bg-[#161616]'
                   }`}
                 >
-                  {selectedMethod === 'cod' && (
+                  {paymentMethod === 'cod' && (
                     <div className="w-1.5 h-1.5 rounded-full bg-[#0A0A0A]" />
                   )}
                 </div>
@@ -293,11 +301,11 @@ export function AddressForm({ register, setValue, watch, errors }: AddressFormPr
                   </p>
                 </div>
               </div>
-            </div>
+            </button>
           </div>
 
           {/* Context Advisory Notice */}
-          {selectedMethod === 'cod' ? (
+          {paymentMethod === 'cod' ? (
             <div className="p-3 bg-[#131313] border border-[#C6FF00]/40 text-[11px] text-[#8A8A8A] flex items-start gap-2.5">
               <Banknote size={15} className="text-[#C6FF00] shrink-0 mt-0.5" />
               <div>

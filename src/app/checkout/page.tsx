@@ -28,6 +28,7 @@ export default function CheckoutPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [mobileCartOpen, setMobileCartOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'prepaid' | 'cod'>('prepaid');
 
   // Ensure cart drawer is closed and scroll is unlocked when checkout mounts
   useEffect(() => {
@@ -63,7 +64,14 @@ export default function CheckoutPage() {
     },
   });
 
-  const selectedPaymentMethod = watch('paymentMethod') || 'prepaid';
+  const handleSelectPaymentMethod = (method: 'prepaid' | 'cod') => {
+    setPaymentMethod(method);
+    setValue('paymentMethod', method, {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+  };
 
   // Keep items synced to react-hook-form value
   useEffect(() => {
@@ -84,7 +92,6 @@ export default function CheckoutPage() {
         customScale: item.customScale,
         customQuoteText: item.customQuoteText,
       })),
-
       { shouldValidate: true }
     );
   }, [cart.items, setValue]);
@@ -193,7 +200,7 @@ export default function CheckoutPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          paymentMethod: formData.paymentMethod || 'prepaid',
+          paymentMethod: paymentMethod || formData.paymentMethod || 'prepaid',
           clerkUserId: user?.id || null,
           promoCode: promoCode || null,
           items: orderItemsPayload,
@@ -216,7 +223,7 @@ export default function CheckoutPage() {
       const { orderId, gateway, payu, razorpayOrderId, amount, currency } = resData;
 
       // 2. Cash on Delivery (COD) Flow
-      if (gateway === 'cod' || formData.paymentMethod === 'cod') {
+      if (gateway === 'cod' || paymentMethod === 'cod' || formData.paymentMethod === 'cod') {
         cart.clearCart();
         router.push(`/checkout/success?order=${orderId}&method=cod`);
         return;
@@ -412,13 +419,14 @@ export default function CheckoutPage() {
       {/* Main Two-Column Layout */}
       <main className="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-12">
         {errorMessage && (
-          <div className="mb-6 p-4 bg-red-950/40 border border-red-500/40 text-red-200 text-xs font-mono flex items-center gap-3">
+          <div className="mb-6 p-4 bg-red-950/60 border border-red-500 text-red-200 text-xs font-mono flex items-center gap-3">
             <AlertCircle size={16} className="text-red-400 shrink-0" />
             <span>{errorMessage}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit(onFormSubmit, onFormInvalid)}>
+          <input type="hidden" {...register('paymentMethod')} value={paymentMethod} />
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
             {/* Left Column (60% on desktop): Forms */}
             <div className="lg:col-span-7 space-y-8">
@@ -434,8 +442,9 @@ export default function CheckoutPage() {
               <AddressForm
                 register={register}
                 setValue={setValue}
-                watch={watch}
                 errors={errors}
+                paymentMethod={paymentMethod}
+                onSelectPaymentMethod={handleSelectPaymentMethod}
               />
             </div>
 
@@ -445,10 +454,8 @@ export default function CheckoutPage() {
                 isProcessing={isProcessing}
                 onSubmit={handleSubmit(onFormSubmit, onFormInvalid)}
                 error={errorMessage}
-                paymentMethod={selectedPaymentMethod}
-                onSelectPaymentMethod={(method) =>
-                  setValue('paymentMethod', method, { shouldValidate: true })
-                }
+                paymentMethod={paymentMethod}
+                onSelectPaymentMethod={handleSelectPaymentMethod}
               />
             </div>
           </div>

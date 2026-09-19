@@ -227,7 +227,7 @@ export function OrderSummary({
             onClick={() => onSelectPaymentMethod?.('prepaid')}
             className={`p-3 text-left border font-mono transition-all cursor-pointer ${
               paymentMethod === 'prepaid'
-                ? 'border-[#C6FF00] bg-[#141414] shadow-[0_0_15px_rgba(198,255,0,0.1)]'
+                ? 'border-[#C6FF00] bg-[#141414] shadow-[0_0_15px_rgba(198,255,0,0.15)] ring-1 ring-[#C6FF00]'
                 : 'border-[#242424] bg-[#0E0E0E] hover:border-[#383838] opacity-70 hover:opacity-100'
             }`}
           >
@@ -244,7 +244,7 @@ export function OrderSummary({
             onClick={() => onSelectPaymentMethod?.('cod')}
             className={`p-3 text-left border font-mono transition-all cursor-pointer ${
               paymentMethod === 'cod'
-                ? 'border-[#C6FF00] bg-[#141414] shadow-[0_0_15px_rgba(198,255,0,0.1)]'
+                ? 'border-[#C6FF00] bg-[#141414] shadow-[0_0_15px_rgba(198,255,0,0.15)] ring-1 ring-[#C6FF00]'
                 : 'border-[#242424] bg-[#0E0E0E] hover:border-[#383838] opacity-70 hover:opacity-100'
             }`}
           >
@@ -257,9 +257,10 @@ export function OrderSummary({
         </div>
       </div>
 
-      {/* Error alert */}
+      {/* Error alert directly in Order Summary */}
       {error && (
-        <div className="p-3 bg-red-950/40 border border-red-500/40 text-red-300 font-mono text-[11px]">
+        <div className="p-3 bg-red-950/60 border border-red-500 text-red-200 font-mono text-xs leading-relaxed">
+          <p className="font-bold uppercase mb-1 text-red-400">⚠️ Required Info Missing:</p>
           {error}
         </div>
       )}
