@@ -377,6 +377,44 @@ export async function POST(req: NextRequest) {
     }
 
     if (paymentMethod === 'cod') {
+      // Dispatch order confirmation email for Cash on Delivery (COD) orders
+      try {
+        const { sendOrderEmail } = await import('@/lib/email/templates');
+        const formattedItems = items.map((item) => ({
+          name: item.name,
+          size: item.size,
+          color: item.color,
+          quantity: item.quantity,
+          price: item.price,
+        }));
+
+        await sendOrderEmail({
+          to: customer.email.trim().toLowerCase(),
+          type: 'confirmation',
+          data: {
+            orderId,
+            customerName: customer.name.trim(),
+            customerEmail: customer.email.trim().toLowerCase(),
+            items: formattedItems,
+            subtotalInr,
+            shippingInr,
+            totalInr,
+            shippingAddress: {
+              line1: shipping.line1,
+              line2: shipping.line2 || '',
+              city: shipping.city,
+              state: shipping.state,
+              pincode: shipping.pincode,
+              country: shipping.country || 'India',
+            },
+            paymentMethod: 'Cash on Delivery (COD)',
+          },
+        });
+        console.log('[create-order] COD order confirmation email dispatched for order:', orderId);
+      } catch (emailErr) {
+        console.error('[create-order] Failed to dispatch COD confirmation email:', emailErr);
+      }
+
       return NextResponse.json({
         success: true,
         orderId,
