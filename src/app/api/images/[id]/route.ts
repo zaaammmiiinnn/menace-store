@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCloudflareContext } from '@opennextjs/cloudflare';
+import { getKVDatabase, getD1Database } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,16 +9,8 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    let kv: any = null;
-    let db: any = null;
-
-    try {
-      const ctx = getCloudflareContext();
-      kv = (ctx.env as any)?.MENACE_KV;
-      db = (ctx.env as any)?.DB;
-    } catch {
-      // Ignore
-    }
+    const kv = getKVDatabase();
+    const d1 = getD1Database();
 
     if (kv) {
       const [imageBuffer, mimeType] = await Promise.all([
@@ -38,9 +30,9 @@ export async function GET(
     }
 
     // Fallback: check D1 for legacy base64 and auto-cache to KV
-    if (db) {
+    if (d1) {
       try {
-        const row: any = await db.prepare('SELECT url FROM product_images WHERE id = ?').bind(id).first();
+        const row: any = await d1.prepare('SELECT url FROM product_images WHERE id = ? OR id LIKE ?').bind(id, `%${id}%`).first();
         if (row && row.url && typeof row.url === 'string' && row.url.startsWith('data:image/')) {
           const match = row.url.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
           if (match) {
@@ -69,7 +61,7 @@ export async function GET(
           }
         }
       } catch (dbErr) {
-        console.error('[API Image D1 Fallback Error]:', dbErr);
+        console.error('[Store Image D1 Fallback Error]:', dbErr);
       }
     }
 
