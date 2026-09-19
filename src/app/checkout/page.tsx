@@ -20,33 +20,8 @@ import { useAuth } from '@/lib/auth';
 export default function CheckoutPage() {
   const router = useRouter();
   const { user } = useAuth();
-
   const cart = useCart();
-  const legacyCart = useCartStore();
-
-  // Sync legacy cart items to modern cart store on mount if modern cart is empty
-  useEffect(() => {
-    if (cart.items.length === 0 && legacyCart.items.length > 0) {
-      legacyCart.items.forEach((legacyItem) => {
-        cart.addItem({
-          variantId: legacyItem.id,
-          productId: legacyItem.product.id,
-          name: legacyItem.product.name,
-          size: legacyItem.size,
-          color: legacyItem.color,
-          price: legacyItem.product.price || (legacyItem.product as any).priceInr || 1499,
-          quantity: legacyItem.quantity,
-          imageUrl: legacyItem.product.images?.[0] || '/products/placeholder.svg',
-          slug: legacyItem.product.slug,
-          edition: legacyItem.edition,
-          customArtworkUrl: legacyItem.customArtworkUrl,
-          customPlacement: legacyItem.customPlacement,
-          customScale: legacyItem.customScale,
-          customQuoteText: legacyItem.customQuoteText,
-        });
-      });
-    }
-  }, [cart, legacyCart]);
+  const { promoCode } = useCartStore();
 
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(2);
   const [isScriptReady, setIsScriptReady] = useState(false);
@@ -179,6 +154,33 @@ export default function CheckoutPage() {
     setCurrentStep(3);
 
     try {
+      // Aggregate line items to guarantee strict quantity summation without duplicate rows
+      const itemsMap = new Map<string, any>();
+      cart.items.forEach((item) => {
+        const key = `${item.productId}_${item.color}_${item.size}_${item.edition || 'archive'}_${item.customArtworkUrl || ''}_${item.customPlacement || ''}_${item.customScale || ''}_${item.customQuoteText || ''}`;
+        if (itemsMap.has(key)) {
+          const prev = itemsMap.get(key);
+          prev.quantity += item.quantity;
+        } else {
+          itemsMap.set(key, {
+            productId: item.productId,
+            variantId: item.variantId || item.id,
+            name: item.name,
+            size: item.size,
+            color: item.color,
+            quantity: item.quantity,
+            price: item.price,
+            imageUrl: item.imageUrl,
+            edition: item.edition,
+            customArtworkUrl: item.customArtworkUrl,
+            customPlacement: item.customPlacement,
+            customScale: item.customScale,
+            customQuoteText: item.customQuoteText,
+          });
+        }
+      });
+      const orderItemsPayload = Array.from(itemsMap.values());
+
       // 1. Create order on server
       const createRes = await fetch('/api/checkout/create-order', {
         method: 'POST',
@@ -187,22 +189,8 @@ export default function CheckoutPage() {
           ...formData,
           paymentMethod: formData.paymentMethod || 'prepaid',
           clerkUserId: user?.id || null,
-          promoCode: legacyCart.promoCode || null,
-          items: cart.items.map((i) => ({
-            productId: i.productId,
-            variantId: i.variantId,
-            name: i.name,
-            size: i.size,
-            color: i.color,
-            quantity: i.quantity,
-            price: i.price,
-            imageUrl: i.imageUrl,
-            edition: i.edition,
-            customArtworkUrl: i.customArtworkUrl,
-            customPlacement: i.customPlacement,
-            customScale: i.customScale,
-            customQuoteText: i.customQuoteText,
-          })),
+          promoCode: promoCode || null,
+          items: orderItemsPayload,
         }),
       });
 
@@ -224,16 +212,14 @@ export default function CheckoutPage() {
       // 2. Cash on Delivery (COD) Flow
       if (gateway === 'cod' || formData.paymentMethod === 'cod') {
         cart.clearCart();
-        legacyCart.clearCart();
         router.push(`/checkout/success?order=${orderId}&method=cod`);
         return;
       }
 
       // 3. PayU Hosted Payment Flow (Live Gateway)
       if (gateway === 'payu' && payu?.action && payu?.params) {
-        // Clear cart stores before transitioning to PayU
+        // Clear cart store before transitioning to PayU
         cart.clearCart();
-        legacyCart.clearCart();
 
         // Construct and auto-submit hidden PayU form
         const form = document.createElement('form');
@@ -302,9 +288,8 @@ export default function CheckoutPage() {
                 throw new Error(verifyData.error || 'Payment verification failed');
               }
 
-              // Clear cart stores
+              // Clear cart store
               cart.clearCart();
-              legacyCart.clearCart();
 
               // Redirect to success page
               router.push(`/checkout/success?order=${orderId || verifyData.orderId}`);
@@ -355,7 +340,6 @@ export default function CheckoutPage() {
         }
 
         cart.clearCart();
-        legacyCart.clearCart();
         router.push(`/checkout/success?order=${orderId}`);
       }
     } catch (err: any) {

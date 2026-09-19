@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bell, Check, ShoppingBag, Lock, Zap, ArrowRight, ShieldCheck, Truck } from 'lucide-react';
 import { useCartStore } from '@/store/cart-store';
-import { useCart } from '@/lib/store/cart';
 import { useUiStore } from '@/store/ui-store';
 import { playClickSound } from '@/lib/sound';
 import { FormattedProduct } from '@/lib/products/queries';
@@ -44,11 +43,10 @@ export function NotifyMeButton({
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Store hooks
-  const addItemToLegacyCart = useCartStore((state) => state.addItem);
+  const addToCart = useCartStore((state) => state.addItem);
   const openCartDrawer = useCartStore((state) => state.openCart);
   const triggerConfetti = useUiStore((state) => state.triggerConfetti);
   const showToast = useUiStore((state) => state.showToast);
-  const addItemToModernCart = useCart((state) => state.addItem);
 
   // Determine variant stock if variants are passed
   const currentVariant = product?.variants?.find(
@@ -60,15 +58,27 @@ export function NotifyMeButton({
 
   // Helper to build typed cart product
   const getCartProduct = (): Product => {
+    const rawImages =
+      edition === 'plain' || edition === 'custom'
+        ? product?.plainImages || product?.images || ['/products/placeholder.svg']
+        : product?.images || ['/products/placeholder.svg'];
+
+    const displayName =
+      edition === 'plain'
+        ? `${product?.name || productName} (Plain Blank)`
+        : edition === 'custom' && customDesign?.artworkUrl
+        ? `${product?.name || productName} (Custom: ${customDesign.customQuoteText ? `"${customDesign.customQuoteText}"` : customDesign.placement.replace('_', ' ').toUpperCase()})`
+        : product?.name || productName;
+
     return {
       id: product?.id || `prod_${productName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`,
       slug: product?.slug || productName.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-      name: product?.name || productName,
+      name: displayName,
       description: product?.description || '',
       price: product?.priceInr || 1499,
       priceInr: product?.priceInr || 1499,
       priceUsd: product?.priceUsd || 49,
-      images: product?.images || ['/products/placeholder.svg'],
+      images: rawImages,
       category: product?.category || 'tees',
       tags: ['tees', 'drop_001'],
       isBestSeller: false,
@@ -104,53 +114,21 @@ export function NotifyMeButton({
     setIsRedirecting(true);
 
     const cartProd = getCartProduct();
-    const displayName =
-      edition === 'plain'
-        ? `${cartProd.name} (Plain Blank)`
-        : edition === 'custom' && customDesign?.artworkUrl
-        ? `${cartProd.name} (Custom: ${customDesign.placement.replace('_', ' ').toUpperCase()})`
-        : cartProd.name;
 
-    const displayImage =
-      edition === 'plain' || edition === 'custom'
-        ? product?.plainImages?.[0] || cartProd.images?.[0] || '/products/placeholder.svg'
-        : cartProd.images?.[0] || '/products/placeholder.svg';
-
-    const customKeySuffix =
-      edition === 'plain'
-        ? '-plain'
-        : edition === 'custom' && customDesign?.artworkUrl
-        ? `-custom-${Date.now()}`
-        : '';
-
-    const variantId = `${currentVariant?.id || `${cartProd.id}-${selectedColor}-${selectedSize}`}${customKeySuffix}`;
-
-    // Add to legacy cart store
-    addItemToLegacyCart(cartProd, selectedColor, selectedSize, {
-      edition,
-      customArtworkUrl: customDesign?.artworkUrl,
-      customPlacement: customDesign?.placement,
-      customScale: customDesign?.scale,
-      customQuoteText: customDesign?.customQuoteText,
-    });
-
-    // Add to modern checkout cart store
-    addItemToModernCart({
-      variantId,
-      productId: cartProd.id,
-      name: displayName,
-      size: selectedSize,
-      color: selectedColor,
-      price: cartProd.priceInr || 1499,
-      quantity: 1,
-      imageUrl: displayImage,
-      slug: cartProd.slug,
-      edition,
-      customArtworkUrl: customDesign?.artworkUrl,
-      customPlacement: customDesign?.placement,
-      customScale: customDesign?.scale,
-      customQuoteText: customDesign?.customQuoteText,
-    });
+    // Add to unified cart store (quantity 1)
+    addToCart(
+      cartProd,
+      selectedColor,
+      selectedSize,
+      {
+        edition,
+        customArtworkUrl: customDesign?.artworkUrl,
+        customPlacement: customDesign?.placement,
+        customScale: customDesign?.scale,
+        customQuoteText: customDesign?.customQuoteText,
+      },
+      1
+    );
 
     showToast(`Redirecting to checkout...`);
     router.push('/checkout');
@@ -163,57 +141,24 @@ export function NotifyMeButton({
     playClickSound();
 
     const cartProd = getCartProduct();
-    const displayName =
-      edition === 'plain'
-        ? `${cartProd.name} (Plain Blank)`
-        : edition === 'custom' && customDesign?.artworkUrl
-        ? `${cartProd.name} (Custom: ${customDesign.customQuoteText ? `"${customDesign.customQuoteText}"` : customDesign.placement.replace('_', ' ').toUpperCase()})`
-        : cartProd.name;
 
-    const displayImage =
-      edition === 'plain' || edition === 'custom'
-        ? product?.plainImages?.[0] || cartProd.images?.[0] || '/products/placeholder.svg'
-        : cartProd.images?.[0] || '/products/placeholder.svg';
-
-    const customKeySuffix =
-      edition === 'plain'
-        ? '-plain'
-        : edition === 'custom' && customDesign?.artworkUrl
-        ? `-custom-${Date.now()}`
-        : '';
-
-    const variantId = `${currentVariant?.id || `${cartProd.id}-${selectedColor}-${selectedSize}`}${customKeySuffix}`;
-
-    // Add to legacy cart store
-    addItemToLegacyCart(cartProd, selectedColor, selectedSize, {
-      edition,
-      customArtworkUrl: customDesign?.artworkUrl,
-      customPlacement: customDesign?.placement,
-      customScale: customDesign?.scale,
-      customQuoteText: customDesign?.customQuoteText,
-    });
-
-    // Add to modern checkout cart store
-    addItemToModernCart({
-      variantId,
-      productId: cartProd.id,
-      name: displayName,
-      size: selectedSize,
-      color: selectedColor,
-      price: cartProd.priceInr || 1499,
-      quantity: 1,
-      imageUrl: displayImage,
-      slug: cartProd.slug,
-      edition,
-      customArtworkUrl: customDesign?.artworkUrl,
-      customPlacement: customDesign?.placement,
-      customScale: customDesign?.scale,
-      customQuoteText: customDesign?.customQuoteText,
-    });
-
+    // Add to unified cart store (quantity 1)
+    addToCart(
+      cartProd,
+      selectedColor,
+      selectedSize,
+      {
+        edition,
+        customArtworkUrl: customDesign?.artworkUrl,
+        customPlacement: customDesign?.placement,
+        customScale: customDesign?.scale,
+        customQuoteText: customDesign?.customQuoteText,
+      },
+      1
+    );
 
     triggerConfetti();
-    showToast(`Added ${displayName} (${selectedSize}) to bag`);
+    showToast(`Added ${cartProd.name} (${selectedSize}) to bag`);
     openCartDrawer();
   };
 

@@ -54,7 +54,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { items, customer, shipping, paymentMethod = 'prepaid', clerkUserId, promoCode } = validationResult.data;
+    const { items: rawItems, customer, shipping, paymentMethod = 'prepaid', clerkUserId, promoCode } = validationResult.data;
+
+    // Server-side consolidation: aggregate duplicate line items so quantities are strictly combined
+    const consolidatedMap = new Map<string, typeof rawItems[0]>();
+    for (const rawItem of rawItems) {
+      const art = rawItem.customArtworkUrl || '';
+      const quote = rawItem.customQuoteText || '';
+      const place = rawItem.customPlacement || '';
+      const scale = rawItem.customScale || '';
+      const edition = rawItem.edition || (art ? 'custom' : 'archive');
+      const key = `${rawItem.productId}_${rawItem.color}_${rawItem.size}_${edition}_${art}_${place}_${scale}_${quote}`;
+
+      if (consolidatedMap.has(key)) {
+        const existing = consolidatedMap.get(key)!;
+        existing.quantity += (rawItem.quantity > 0 ? rawItem.quantity : 1);
+      } else {
+        consolidatedMap.set(key, { ...rawItem, edition, quantity: rawItem.quantity > 0 ? rawItem.quantity : 1 });
+      }
+    }
+    const items = Array.from(consolidatedMap.values());
 
     // 1. Calculate financial breakdown
     const subtotalInr = items.reduce(

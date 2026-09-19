@@ -15,7 +15,9 @@ export function CartDrawer() {
     items,
     closeCart,
     updateQuantity,
+    updateQuantityById,
     removeItem,
+    removeItemById,
     cartTotal,
     cartCount,
     getFormattedPrice,
@@ -245,7 +247,7 @@ export function CartDrawer() {
                             <div className="flex items-center border border-border rounded bg-base-black">
                               <button
                                 onClick={() => {
-                                  updateQuantity(item.product.id, item.color, item.size, item.quantity - 1);
+                                  updateQuantityById(item.id, item.quantity - 1);
                                   playClickSound();
                                 }}
                                 className="p-1.5 text-muted-grey hover:text-acid-green transition-colors cursor-pointer"
@@ -258,7 +260,7 @@ export function CartDrawer() {
                               </span>
                               <button
                                 onClick={() => {
-                                  updateQuantity(item.product.id, item.color, item.size, item.quantity + 1);
+                                  updateQuantityById(item.id, item.quantity + 1);
                                   playAddCartSound();
                                 }}
                                 className="p-1.5 text-muted-grey hover:text-acid-green transition-colors cursor-pointer"
@@ -270,7 +272,7 @@ export function CartDrawer() {
 
                             <button
                               onClick={() => {
-                                removeItem(item.product.id, item.color, item.size);
+                                removeItemById(item.id);
                                 playClickSound();
                               }}
                               className="p-1.5 text-muted-grey hover:text-red-400 transition-colors cursor-pointer"

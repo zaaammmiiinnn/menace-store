@@ -1,11 +1,11 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { useCartStore, FREE_SHIPPING_THRESHOLD_INR, STANDARD_SHIPPING_INR } from '@/store/cart-store';
+import { Product } from '@/types';
 
-export const FREE_SHIPPING_THRESHOLD_INR = 1499;
-export const STANDARD_SHIPPING_INR = 99;
+export { FREE_SHIPPING_THRESHOLD_INR, STANDARD_SHIPPING_INR };
 
 export interface CartItem {
   variantId: string;
+  id?: string;
   productId: string;
   name: string;
   size: string;
@@ -21,115 +21,82 @@ export interface CartItem {
   customQuoteText?: string;
 }
 
+export function useCart() {
+  const store = useCartStore();
 
+  const normalizedItems: CartItem[] = store.items.map((item) => {
+    const price = item.product.price || (item.product as any).priceInr || 1499;
+    const imageUrl = item.product.images?.[0] || '/products/placeholder.svg';
+    return {
+      variantId: item.id,
+      id: item.id,
+      productId: item.product.id,
+      name: item.product.name,
+      size: item.size,
+      color: item.color,
+      price,
+      quantity: item.quantity,
+      imageUrl,
+      slug: item.product.slug,
+      edition: item.edition,
+      customArtworkUrl: item.customArtworkUrl,
+      customPlacement: item.customPlacement,
+      customScale: item.customScale,
+      customQuoteText: item.customQuoteText,
+    };
+  });
 
-export interface CartStoreState {
-  items: CartItem[];
-  isOpen: boolean;
+  return {
+    items: normalizedItems,
+    isOpen: store.isOpen,
+    addItem: (incomingItem: Omit<CartItem, 'quantity'> & { quantity?: number }) => {
+      const pseudoProduct: Product = {
+        id: incomingItem.productId,
+        slug: incomingItem.slug || incomingItem.productId,
+        name: incomingItem.name,
+        description: '',
+        price: incomingItem.price,
+        priceInr: incomingItem.price,
+        priceUsd: 49,
+        images: [incomingItem.imageUrl || '/products/placeholder.svg'],
+        category: 'tees',
+        tags: ['tees'],
+        isBestSeller: false,
+        isNew: true,
+        vibeName: 'DROP 001',
+        colorways: [{ name: incomingItem.color, hex: '#0A0A0A', materialColor: '#0A0A0A' }],
+        sizes: [{ value: incomingItem.size as any, label: incomingItem.size, scale: 1, inStock: true }],
+      };
 
-  // Actions
-  addItem: (item: Omit<CartItem, 'quantity'> & { quantity?: number }) => void;
-  removeItem: (variantId: string) => void;
-  updateQuantity: (variantId: string, quantity: number) => void;
-  clearCart: () => void;
-  openCart: () => void;
-  closeCart: () => void;
-  toggleCart: () => void;
-
-  // Computed Helpers
-  getSubtotal: () => number;
-  getShippingFee: () => number;
-  getTotal: () => number;
-  getItemCount: () => number;
-  getFreeShippingDifference: () => number;
+      store.addItem(
+        pseudoProduct,
+        incomingItem.color,
+        incomingItem.size,
+        {
+          edition: incomingItem.edition,
+          customArtworkUrl: incomingItem.customArtworkUrl,
+          customPlacement: incomingItem.customPlacement,
+          customScale: incomingItem.customScale,
+          customQuoteText: incomingItem.customQuoteText,
+        },
+        incomingItem.quantity || 1
+      );
+    },
+    removeItem: (variantId: string) => {
+      store.removeItemById(variantId);
+    },
+    updateQuantity: (variantId: string, quantity: number) => {
+      store.updateQuantityById(variantId, quantity);
+    },
+    clearCart: () => store.clearCart(),
+    openCart: () => store.openCart(),
+    closeCart: () => store.closeCart(),
+    toggleCart: () => store.toggleCart(),
+    getSubtotal: () => store.getSubtotal(),
+    getShippingFee: () => store.getShippingFee(),
+    getTotal: () => store.getTotal(),
+    getItemCount: () => store.getItemCount(),
+    getFreeShippingDifference: () => store.getFreeShippingDifference(),
+  };
 }
 
-export const useCart = create<CartStoreState>()(
-  persist(
-    (set, get) => ({
-      items: [],
-      isOpen: false,
-
-      addItem: (incomingItem) => {
-        const currentItems = get().items;
-        const quantityToAdd = incomingItem.quantity && incomingItem.quantity > 0 ? incomingItem.quantity : 1;
-
-        const existingIndex = currentItems.findIndex(
-          (item) => item.variantId === incomingItem.variantId
-        );
-
-        if (existingIndex > -1) {
-          const updated = [...currentItems];
-          updated[existingIndex] = {
-            ...updated[existingIndex],
-            quantity: updated[existingIndex].quantity + quantityToAdd,
-          };
-          set({ items: updated, isOpen: true });
-        } else {
-          const newItem: CartItem = {
-            ...incomingItem,
-            quantity: quantityToAdd,
-            imageUrl: incomingItem.imageUrl || '/products/placeholder.svg',
-          };
-          set({ items: [...currentItems, newItem], isOpen: true });
-        }
-      },
-
-      removeItem: (variantId) => {
-        set({
-          items: get().items.filter((item) => item.variantId !== variantId),
-        });
-      },
-
-      updateQuantity: (variantId, quantity) => {
-        if (quantity <= 0) {
-          get().removeItem(variantId);
-          return;
-        }
-
-        set({
-          items: get().items.map((item) =>
-            item.variantId === variantId ? { ...item, quantity } : item
-          ),
-        });
-      },
-
-      clearCart: () => {
-        set({ items: [], isOpen: false });
-      },
-
-      openCart: () => set({ isOpen: true }),
-      closeCart: () => set({ isOpen: false }),
-      toggleCart: () => set({ isOpen: !get().isOpen }),
-
-      getSubtotal: () => {
-        return get().items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-      },
-
-      getShippingFee: () => {
-        const subtotal = get().getSubtotal();
-        if (subtotal === 0) return 0;
-        return subtotal >= FREE_SHIPPING_THRESHOLD_INR ? 0 : STANDARD_SHIPPING_INR;
-      },
-
-      getTotal: () => {
-        const subtotal = get().getSubtotal();
-        if (subtotal === 0) return 0;
-        return subtotal + get().getShippingFee();
-      },
-
-      getItemCount: () => {
-        return get().items.reduce((acc, item) => acc + item.quantity, 0);
-      },
-
-      getFreeShippingDifference: () => {
-        const subtotal = get().getSubtotal();
-        return Math.max(0, FREE_SHIPPING_THRESHOLD_INR - subtotal);
-      },
-    }),
-    {
-      name: 'menance_cart_v2',
-      partialize: (state) => ({ items: state.items }),
-    }
-  )
-);

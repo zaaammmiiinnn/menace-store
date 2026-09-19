@@ -5,6 +5,7 @@ import { CartItem, Product } from '@/types';
 // INR to USD exchange rate approx 1 USD = 85 INR
 export const USD_EXCHANGE_RATE = 0.0118;
 export const FREE_SHIPPING_THRESHOLD_INR = 1499;
+export const STANDARD_SHIPPING_INR = 99;
 
 export interface CartState {
   items: CartItem[];
@@ -26,10 +27,13 @@ export interface CartState {
       customPlacement?: 'front_chest' | 'front_center' | 'back';
       customScale?: 'small' | 'medium' | 'large';
       customQuoteText?: string;
-    }
+    },
+    quantity?: number
   ) => void;
   removeItem: (productId: string, color: string, size: string) => void;
+  removeItemById: (id: string) => void;
   updateQuantity: (productId: string, color: string, size: string, quantity: number) => void;
+  updateQuantityById: (id: string, quantity: number) => void;
   clearCart: () => void;
   openCart: () => void;
   closeCart: () => void;
@@ -42,6 +46,8 @@ export interface CartState {
   // Computed helpers
   getItemCount: () => number;
   getSubtotal: () => number;
+  getShippingFee: () => number;
+  getFreeShippingDifference: () => number;
   getDiscountAmount: () => number;
   getTotal: () => number;
   getFormattedPrice: (priceInInr: number) => string;
@@ -64,7 +70,7 @@ export const useCartStore = create<CartState>()(
       cartTotal: 0,
       totalItems: 0,
 
-      addItem: (product, colorName, sizeValue, customOptions) => {
+      addItem: (product, colorName, sizeValue, customOptions, quantityToAdd = 1) => {
         const currentItems = get().items;
         const colorways = product.colorways && product.colorways.length > 0 
           ? product.colorways 
@@ -74,9 +80,15 @@ export const useCartStore = create<CartState>()(
           : [{ value: 'M', label: 'M', scale: 1.0, inStock: true }];
         const color = colorName || colorways[0]?.name || 'Black';
         const size = sizeValue || sizes[0]?.value || 'M';
-        const customSuffix = customOptions?.customArtworkUrl
-          ? `-custom-${Date.now()}`
-          : customOptions?.edition === 'plain'
+        const edition = customOptions?.edition || (customOptions?.customArtworkUrl ? 'custom' : 'archive');
+        const customQuote = customOptions?.customQuoteText || '';
+        const customArt = customOptions?.customArtworkUrl || '';
+        const customPlacement = customOptions?.customPlacement || 'front_center';
+        const customScale = customOptions?.customScale || 'medium';
+
+        const customSuffix = customArt
+          ? `-custom-${customArt.slice(-12).replace(/[^a-zA-Z0-9]/g, '')}-${customPlacement}`
+          : edition === 'plain'
           ? '-plain'
           : '';
         const id = `${product.id}-${color}-${size}${customSuffix}`;
@@ -86,17 +98,21 @@ export const useCartStore = create<CartState>()(
             item.product.id === product.id &&
             item.color === color &&
             item.size === size &&
-            item.edition === customOptions?.edition &&
-            item.customArtworkUrl === customOptions?.customArtworkUrl &&
-            item.customQuoteText === customOptions?.customQuoteText
+            (item.edition || 'archive') === edition &&
+            (item.customArtworkUrl || '') === customArt &&
+            (item.customQuoteText || '') === customQuote &&
+            (item.customPlacement || 'front_center') === customPlacement &&
+            (item.customScale || 'medium') === customScale
         );
 
         let updatedItems: CartItem[];
-        if (existingItemIndex > -1 && !customOptions?.customArtworkUrl) {
+        const qty = quantityToAdd > 0 ? quantityToAdd : 1;
+
+        if (existingItemIndex > -1) {
           updatedItems = [...currentItems];
           updatedItems[existingItemIndex] = {
             ...updatedItems[existingItemIndex],
-            quantity: updatedItems[existingItemIndex].quantity + 1,
+            quantity: updatedItems[existingItemIndex].quantity + qty,
           };
         } else {
           const selectedColor = colorways.find((c) => c.name === color) || colorways[0];
@@ -106,10 +122,10 @@ export const useCartStore = create<CartState>()(
             product,
             color,
             size,
-            quantity: 1,
+            quantity: qty,
             selectedColor: selectedColor as any,
             selectedSize: selectedSize as any,
-            edition: customOptions?.edition,
+            edition,
             customArtworkUrl: customOptions?.customArtworkUrl,
             customPlacement: customOptions?.customPlacement,
             customScale: customOptions?.customScale,
@@ -119,7 +135,10 @@ export const useCartStore = create<CartState>()(
         }
 
         const count = updatedItems.reduce((acc, item) => acc + item.quantity, 0);
-        const subtotal = updatedItems.reduce((acc, item) => acc + (item.product.price || item.product.priceInr || 0) * item.quantity, 0);
+        const subtotal = updatedItems.reduce(
+          (acc, item) => acc + (item.product.price || item.product.priceInr || 0) * item.quantity,
+          0
+        );
 
         set({
           items: updatedItems,
@@ -135,7 +154,26 @@ export const useCartStore = create<CartState>()(
           (item) => !(item.product.id === productId && item.color === color && item.size === size)
         );
         const count = filtered.reduce((acc, item) => acc + item.quantity, 0);
-        const subtotal = filtered.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+        const subtotal = filtered.reduce(
+          (acc, item) => acc + (item.product.price || item.product.priceInr || 0) * item.quantity,
+          0
+        );
+
+        set({
+          items: filtered,
+          cartCount: count,
+          totalItems: count,
+          cartTotal: subtotal,
+        });
+      },
+
+      removeItemById: (id: string) => {
+        const filtered = get().items.filter((item) => item.id !== id);
+        const count = filtered.reduce((acc, item) => acc + item.quantity, 0);
+        const subtotal = filtered.reduce(
+          (acc, item) => acc + (item.product.price || item.product.priceInr || 0) * item.quantity,
+          0
+        );
 
         set({
           items: filtered,
@@ -156,7 +194,32 @@ export const useCartStore = create<CartState>()(
             : item
         );
         const count = updated.reduce((acc, item) => acc + item.quantity, 0);
-        const subtotal = updated.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+        const subtotal = updated.reduce(
+          (acc, item) => acc + (item.product.price || item.product.priceInr || 0) * item.quantity,
+          0
+        );
+
+        set({
+          items: updated,
+          cartCount: count,
+          totalItems: count,
+          cartTotal: subtotal,
+        });
+      },
+
+      updateQuantityById: (id: string, quantity: number) => {
+        if (quantity < 1) {
+          get().removeItemById(id);
+          return;
+        }
+        const updated = get().items.map((item) =>
+          item.id === id ? { ...item, quantity } : item
+        );
+        const count = updated.reduce((acc, item) => acc + item.quantity, 0);
+        const subtotal = updated.reduce(
+          (acc, item) => acc + (item.product.price || item.product.priceInr || 0) * item.quantity,
+          0
+        );
 
         set({
           items: updated,
@@ -255,7 +318,21 @@ export const useCartStore = create<CartState>()(
       },
 
       getSubtotal: () => {
-        return get().items.reduce((total, item) => total + (item.product.price || item.product.priceInr || 0) * item.quantity, 0);
+        return get().items.reduce(
+          (total, item) => total + (item.product.price || item.product.priceInr || 0) * item.quantity,
+          0
+        );
+      },
+
+      getShippingFee: () => {
+        const subtotal = get().getSubtotal();
+        if (subtotal === 0) return 0;
+        return subtotal >= FREE_SHIPPING_THRESHOLD_INR ? 0 : STANDARD_SHIPPING_INR;
+      },
+
+      getFreeShippingDifference: () => {
+        const subtotal = get().getSubtotal();
+        return Math.max(0, FREE_SHIPPING_THRESHOLD_INR - subtotal);
       },
 
       getDiscountAmount: () => {
@@ -271,8 +348,10 @@ export const useCartStore = create<CartState>()(
 
       getTotal: () => {
         const subtotal = get().getSubtotal();
+        if (subtotal === 0) return 0;
+        const shipping = get().getShippingFee();
         const discount = get().getDiscountAmount();
-        return Math.max(0, subtotal - discount);
+        return Math.max(0, subtotal + shipping - discount);
       },
 
       getFormattedPrice: (priceInInr: number) => {
