@@ -1,150 +1,83 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { motion, useSpring, useMotionValue } from 'framer-motion';
 import { useUiStore } from '@/store/ui-store';
 
-interface Particle {
-  id: number;
-  x: number;
-  y: number;
-  timestamp: number;
-}
-
 export function CustomCursor() {
+  const pathname = usePathname();
   const { cursorType, cursorVisible } = useUiStore();
   const [isPointerFine, setIsPointerFine] = useState(false);
-  const [isReduced, setIsReduced] = useState(false);
-  const [particles, setParticles] = useState<Particle[]>([]);
-  const particleIdRef = useRef(0);
-  
   const [isOverInteractive, setIsOverInteractive] = useState(false);
+  
   const mouseX = useMotionValue(-100);
   const mouseY = useMotionValue(-100);
   
-  const springX = useSpring(mouseX, { stiffness: 450, damping: 32, mass: 0.4 });
-  const springY = useSpring(mouseY, { stiffness: 450, damping: 32, mass: 0.4 });
+  const springX = useSpring(mouseX, { stiffness: 600, damping: 35, mass: 0.2 });
+  const springY = useSpring(mouseY, { stiffness: 600, damping: 35, mass: 0.2 });
+
+  const isCheckout = pathname?.startsWith('/checkout');
 
   useEffect(() => {
-    // Only enable on desktop pointer: fine devices
     const fineQuery = window.matchMedia('(pointer: fine)');
     setIsPointerFine(fineQuery.matches);
     const fineListener = (e: MediaQueryListEvent) => setIsPointerFine(e.matches);
     fineQuery.addEventListener('change', fineListener);
 
-    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setIsReduced(motionQuery.matches);
-    const motionListener = (e: MediaQueryListEvent) => setIsReduced(e.matches);
-    motionQuery.addEventListener('change', motionListener);
-    
     return () => {
       fineQuery.removeEventListener('change', fineListener);
-      motionQuery.removeEventListener('change', motionListener);
     };
   }, []);
 
   useEffect(() => {
-    if (!isPointerFine) return;
+    if (!isPointerFine || isCheckout) return;
+
+    let lastOverInteractive = false;
 
     const handleMouseMove = (e: MouseEvent) => {
+      // Direct motion values update without triggering React component re-renders
       mouseX.set(e.clientX);
       mouseY.set(e.clientY);
 
       const target = e.target as HTMLElement | null;
-      const isClerkOrInput = !!target?.closest?.(
-        '.cl-rootBox, .cl-modalBackdrop, .cl-card, [data-clerk-portal], input, textarea, select, [contenteditable="true"], [class*="cl-"]'
+      const isInteractive = !!target?.closest?.(
+        'input, textarea, select, [contenteditable="true"], .cl-rootBox, .cl-card, [data-clerk-portal], [class*="cl-"]'
       );
-      setIsOverInteractive(isClerkOrInput);
 
-      if (!isReduced && !isClerkOrInput && (cursorType === 'default' || !cursorType)) {
-        particleIdRef.current += 1;
-        const newParticle = {
-          id: particleIdRef.current,
-          x: e.clientX,
-          y: e.clientY,
-          timestamp: Date.now(),
-        };
-        
-        setParticles((prev) => {
-          const updated = [...prev, newParticle];
-          if (updated.length > 15) return updated.slice(updated.length - 15);
-          return updated;
-        });
+      if (isInteractive !== lastOverInteractive) {
+        lastOverInteractive = isInteractive;
+        setIsOverInteractive(isInteractive);
       }
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [isPointerFine, isReduced, mouseX, mouseY, cursorType]);
+  }, [isPointerFine, isCheckout, mouseX, mouseY]);
 
-  useEffect(() => {
-    if (!isPointerFine || isReduced) return;
-    const interval = setInterval(() => {
-      const now = Date.now();
-      setParticles((prev) => prev.filter((p) => now - p.timestamp < 350));
-    }, 60);
-    return () => clearInterval(interval);
-  }, [isPointerFine, isReduced]);
-
-  if (!isPointerFine || !cursorVisible) return null;
+  // Don't render custom cursor on checkout or mobile touch devices
+  if (!isPointerFine || !cursorVisible || isCheckout) return null;
 
   const hasLabel = cursorType && cursorType !== 'default';
-  const width = hasLabel ? 72 : 12;
-  const height = hasLabel ? 26 : 12;
+  const width = hasLabel ? 72 : 10;
+  const height = hasLabel ? 26 : 10;
 
   return (
     <>
       <style>{`
         @media (pointer: fine) {
           body, a, button, [role="button"] {
-            cursor: none !important;
+            cursor: auto;
           }
           input, textarea, select, [contenteditable="true"] {
             cursor: text !important;
           }
-          .cl-rootBox,
-          .cl-rootBox *,
-          .cl-modalBackdrop,
-          .cl-modalBackdrop *,
-          .cl-card,
-          .cl-card *,
-          [data-clerk-portal],
-          [data-clerk-portal] *,
-          [class*="cl-"] {
-            cursor: auto !important;
-          }
-          .cl-rootBox input,
-          .cl-modalBackdrop input,
-          .cl-card input,
-          [data-clerk-portal] input,
-          input[class*="cl-"] {
-            cursor: text !important;
-          }
-          .cl-rootBox button,
-          .cl-modalBackdrop button,
-          .cl-card button,
-          [data-clerk-portal] button,
-          button[class*="cl-"] {
-            cursor: pointer !important;
-          }
         }
       `}</style>
       
-      {/* Particle Trail */}
-      {!isReduced && !isOverInteractive && particles.map((p) => (
-        <motion.div
-          key={p.id}
-          initial={{ opacity: 0.6, scale: 1 }}
-          animate={{ opacity: 0, scale: 0 }}
-          transition={{ duration: 0.35, ease: 'easeOut' }}
-          className="fixed top-0 left-0 w-1.5 h-1.5 rounded-full bg-acid-green pointer-events-none z-[2147483646]"
-          style={{ x: p.x - 3, y: p.y - 3 }}
-        />
-      ))}
-
-      {/* Main Custom Cursor */}
+      {/* Main Custom Cursor Dot */}
       <motion.div
-        className={`fixed top-0 left-0 flex items-center justify-center rounded-full pointer-events-none z-[2147483647] overflow-hidden bg-acid-green text-base-black font-display text-[10px] tracking-widest uppercase font-bold shadow-lg transition-opacity duration-150 ${
+        className={`fixed top-0 left-0 flex items-center justify-center rounded-full pointer-events-none z-[2147483647] overflow-hidden bg-acid-green text-base-black font-display text-[10px] tracking-widest uppercase font-bold shadow-[0_0_12px_rgba(198,255,0,0.5)] transition-opacity duration-150 ${
           isOverInteractive ? 'opacity-0 scale-50' : 'opacity-100 scale-100'
         }`}
         style={{
@@ -158,20 +91,16 @@ export function CustomCursor() {
           height,
           borderRadius: 9999,
         }}
-        transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
       >
         {hasLabel && (
-          <motion.span
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            className="select-none leading-none px-1"
-          >
+          <span className="select-none leading-none px-1">
             {cursorType}
-          </motion.span>
+          </span>
         )}
       </motion.div>
     </>
   );
 }
+
 export default CustomCursor;
