@@ -21,7 +21,10 @@ export async function generateMetadata({ params }: ProductPageProps) {
 
   const title = `${product.name} — MENANCE`;
   const description = `Heavyweight waffle knit. Boxy oversized fit. '${product.backQuote}'. Not for everyone.`;
-  const ogImage = product.images[0] || '/products/placeholder.svg';
+  const firstValidImage = product.images.find((img) => !img.startsWith('data:'));
+  const ogImage = firstValidImage
+    ? (firstValidImage.startsWith('http') ? firstValidImage : `https://wearmenance.in${firstValidImage}`)
+    : 'https://wearmenance.in/products/placeholder.svg';
 
   return {
     title,
@@ -62,15 +65,17 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   const isDropUpcoming = drop?.status === 'upcoming';
   const isDropLive = isBuyNowEnabled && !isDropUpcoming;
 
+  const validSchemaImages = product.images
+    .filter((img) => !img.startsWith('data:'))
+    .map((img) => (img.startsWith('http') ? img : `https://wearmenance.in${img}`));
+
   // JSON-LD structured data for Google & rich results
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
     description: `Heavyweight waffle knit. Boxy oversized fit. '${product.backQuote}'. Not for everyone.`,
-    image: product.images.map((img) =>
-      img.startsWith('http') ? img : `https://menance.store${img}`
-    ),
+    image: validSchemaImages.length > 0 ? validSchemaImages : ['https://wearmenance.in/products/placeholder.svg'],
     brand: {
       '@type': 'Brand',
       name: 'MENANCE',
@@ -81,7 +86,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       price: product.priceInr,
       priceCurrency: 'INR',
       availability: isDropLive ? 'https://schema.org/InStock' : 'https://schema.org/PreOrder',
-      url: `https://menance.store/shop/${product.slug}`,
+      url: `https://wearmenance.in/shop/${product.slug}`,
       seller: {
         '@type': 'Organization',
         name: 'MENANCE',
