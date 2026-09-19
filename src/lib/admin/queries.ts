@@ -283,7 +283,19 @@ export async function getOrders() {
       if (orders.length > 0) {
         return orders.map((o: any) => {
           const cust = customers.find((c: any) => c.id === o.customer_id || c.email === o.customer_email);
-          const items = orderItems.filter((i: any) => i.order_id === o.id);
+          const rawItems = orderItems.filter((i: any) => i.order_id === o.id);
+          
+          // Deduplicate if duplicate DB rows exist
+          const seenKeys = new Set<string>();
+          const items: any[] = [];
+          for (const it of rawItems) {
+            const key = `${it.product_id || it.product_name}_${it.size}_${it.color}_${it.edition || ''}_${it.custom_artwork_url || ''}`;
+            if (!seenKeys.has(key)) {
+              seenKeys.add(key);
+              items.push(it);
+            }
+          }
+
           const itemsCount = items.reduce((acc: number, i: any) => acc + (i.quantity || 1), 0);
           const hasCustomPrint = items.some((i: any) => i.edition === 'custom' || !!i.custom_artwork_url || !!i.customArtworkUrl);
           return {
@@ -310,7 +322,16 @@ export async function getOrders() {
 
   return orders.map((o: any) => {
     const cust = customers.find((c: any) => c.id === o.customer_id);
-    const items = orderItems.filter((i: any) => i.order_id === o.id);
+    const rawItems = orderItems.filter((i: any) => i.order_id === o.id);
+    const seenKeys = new Set<string>();
+    const items: any[] = [];
+    for (const it of rawItems) {
+      const key = `${it.product_id || it.product_name}_${it.size}_${it.color}_${it.edition || ''}_${it.custom_artwork_url || ''}`;
+      if (!seenKeys.has(key)) {
+        seenKeys.add(key);
+        items.push(it);
+      }
+    }
     const itemsCount = items.reduce((acc: number, i: any) => acc + (i.quantity || 1), 0);
     const hasCustomPrint = items.some((i: any) => i.edition === 'custom' || !!i.custom_artwork_url || !!i.customArtworkUrl);
 
@@ -341,7 +362,16 @@ export async function getOrderById(id: string) {
           customer = await d1.prepare('SELECT * FROM customers WHERE email = ?').bind(order.customer_email).first();
         }
         const itemsRes = await d1.prepare('SELECT * FROM order_items WHERE order_id = ?').bind(id).all();
-        const items = itemsRes?.results || [];
+        const rawItems = itemsRes?.results || [];
+        const seenKeys = new Set<string>();
+        const items: any[] = [];
+        for (const it of rawItems) {
+          const key = `${it.product_id || it.product_name}_${it.size}_${it.color}_${it.edition || ''}_${it.custom_artwork_url || ''}`;
+          if (!seenKeys.has(key)) {
+            seenKeys.add(key);
+            items.push(it);
+          }
+        }
 
         return {
           ...order,
@@ -635,7 +665,7 @@ export async function getStoreSettings() {
   const parsedShippingRate =
     settingsMap.standard_shipping_rate !== undefined && settingsMap.standard_shipping_rate !== ''
       ? Number(settingsMap.standard_shipping_rate)
-      : 0;
+      : 99;
 
   const resolvedShippingType: 'free' | 'paid' =
     (settingsMap.shipping_type as 'free' | 'paid') ||

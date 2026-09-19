@@ -80,7 +80,11 @@ export async function POST(req: NextRequest) {
       (acc, item) => acc + item.price * item.quantity,
       0
     );
-    let storeSettings = { shippingType: 'free', standardShippingRate: 0, freeShippingThreshold: 1499 };
+    let storeSettings: {
+      shippingType: 'paid' | 'free';
+      standardShippingRate: number;
+      freeShippingThreshold: number;
+    } = { shippingType: 'paid', standardShippingRate: 99, freeShippingThreshold: 1499 };
     try {
       storeSettings = await getStoreSettings();
     } catch (sErr) {
@@ -143,6 +147,7 @@ export async function POST(req: NextRequest) {
     }
 
     let customerId = `cust_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    let d1Success = false;
 
     // A. Native Cloudflare D1 insertion
     const d1 = getD1Database();
@@ -229,125 +234,129 @@ export async function POST(req: NextRequest) {
             )
             .run();
         }
+
+        d1Success = true;
       } catch (d1Err) {
         console.error('[create-order] Native D1 insert error:', d1Err);
       }
     }
 
-    // B. Drizzle fallback insertion
-    try {
-      await db.insert(orders).values({
-        id: orderId,
-        customerId,
-        razorpayOrderId: null,
-        razorpayPaymentId: null,
-        clerkUserId: clerkUserId || null,
-        customerName: customer.name,
-        customerEmail: customer.email,
-        customerPhone: customer.phone,
-        shippingAddress: JSON.stringify(shipping),
-        subtotalInr,
-        shippingInr,
-        discountInr,
-        totalInr,
-        status: 'pending',
-        createdAt: nowTimestamp,
-        paidAt: null,
-        notes: orderNotes,
-      }).catch(() => {});
-
-      // Insert associated line items
-      for (const item of items) {
-        const itemId = `item_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-        const itemEdition = item.edition || (item.customArtworkUrl ? 'custom' : 'archive');
-        await db.insert(orderItems).values({
-          id: itemId,
-          orderId,
-          productId: item.productId,
-          variantId: item.variantId || null,
-          productName: item.name,
-          size: item.size,
-          color: item.color,
-          quantity: item.quantity,
-          priceInr: item.price,
-          priceAtPurchase: item.price,
-          imageUrl: item.imageUrl || null,
-          customArtworkUrl: item.customArtworkUrl || null,
-          customPlacement: item.customPlacement || null,
-          customScale: item.customScale || null,
-          customQuoteText: item.customQuoteText || null,
-          edition: itemEdition,
-        }).catch(() => {});
-      }
-
-      // Increment promo code usage if applied
-      if (appliedPromoId) {
-        try {
-          await db
-            .update(discountCodes)
-            .set({ uses: sql`${discountCodes.uses} + 1` })
-            .where(eq(discountCodes.id, appliedPromoId));
-        } catch (incErr) {
-          console.warn('[create-order] Failed to increment promo usage:', incErr);
-        }
-      }
-
-      // Sync to in-memory local fallback store
+    // B. Drizzle fallback insertion (ONLY if D1 was not used or failed)
+    if (!d1Success) {
       try {
-        const { getLocalStore } = await import('@/lib/db');
-        const store = getLocalStore();
-        const ordersTable = store.getTable('orders');
-        const itemsTable = store.getTable('order_items');
-        const existingIdx = ordersTable.findIndex((o: any) => o.id === orderId);
-        const orderRecord = {
+        await db.insert(orders).values({
           id: orderId,
-          customer_id: customerId,
-          customer_name: customer.name,
-          customer_email: customer.email,
-          customer_phone: customer.phone,
-          shipping_address: JSON.stringify(shipping),
-          subtotal_inr: subtotalInr,
-          shipping_inr: shippingInr,
-          discount_inr: discountInr,
-          total_inr: totalInr,
+          customerId,
+          razorpayOrderId: null,
+          razorpayPaymentId: null,
+          clerkUserId: clerkUserId || null,
+          customerName: customer.name,
+          customerEmail: customer.email,
+          customerPhone: customer.phone,
+          shippingAddress: JSON.stringify(shipping),
+          subtotalInr,
+          shippingInr,
+          discountInr,
+          totalInr,
           status: 'pending',
-          created_at: nowTimestamp,
+          createdAt: nowTimestamp,
+          paidAt: null,
           notes: orderNotes,
-          clerk_user_id: clerkUserId || null,
-        };
-        if (existingIdx >= 0) {
-          ordersTable[existingIdx] = { ...ordersTable[existingIdx], ...orderRecord };
-        } else {
-          ordersTable.unshift(orderRecord);
-        }
+        }).catch(() => {});
 
+        // Insert associated line items
         for (const item of items) {
           const itemId = `item_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
           const itemEdition = item.edition || (item.customArtworkUrl ? 'custom' : 'archive');
-          itemsTable.push({
+          await db.insert(orderItems).values({
             id: itemId,
-            order_id: orderId,
-            product_id: item.productId,
-            variant_id: item.variantId || null,
-            product_name: item.name,
+            orderId,
+            productId: item.productId,
+            variantId: item.variantId || null,
+            productName: item.name,
             size: item.size,
             color: item.color,
             quantity: item.quantity,
-            price_inr: item.price,
-            price_at_purchase: item.price,
-            image_url: item.imageUrl || null,
-            custom_artwork_url: item.customArtworkUrl || null,
-            custom_placement: item.customPlacement || null,
-            custom_scale: item.customScale || null,
-            custom_quote_text: item.customQuoteText || null,
+            priceInr: item.price,
+            priceAtPurchase: item.price,
+            imageUrl: item.imageUrl || null,
+            customArtworkUrl: item.customArtworkUrl || null,
+            customPlacement: item.customPlacement || null,
+            customScale: item.customScale || null,
+            customQuoteText: item.customQuoteText || null,
             edition: itemEdition,
-          });
+          }).catch(() => {});
         }
-      } catch (localErr) {
-        console.warn('[create-order] Local fallback sync note:', localErr);
+
+        // Increment promo code usage if applied
+        if (appliedPromoId) {
+          try {
+            await db
+              .update(discountCodes)
+              .set({ uses: sql`${discountCodes.uses} + 1` })
+              .where(eq(discountCodes.id, appliedPromoId));
+          } catch (incErr) {
+            console.warn('[create-order] Failed to increment promo usage:', incErr);
+          }
+        }
+
+        // Sync to in-memory local fallback store
+        try {
+          const { getLocalStore } = await import('@/lib/db');
+          const store = getLocalStore();
+          const ordersTable = store.getTable('orders');
+          const itemsTable = store.getTable('order_items');
+          const existingIdx = ordersTable.findIndex((o: any) => o.id === orderId);
+          const orderRecord = {
+            id: orderId,
+            customer_id: customerId,
+            customer_name: customer.name,
+            customer_email: customer.email,
+            customer_phone: customer.phone,
+            shipping_address: JSON.stringify(shipping),
+            subtotal_inr: subtotalInr,
+            shipping_inr: shippingInr,
+            discount_inr: discountInr,
+            total_inr: totalInr,
+            status: 'pending',
+            created_at: nowTimestamp,
+            notes: orderNotes,
+            clerk_user_id: clerkUserId || null,
+          };
+          if (existingIdx >= 0) {
+            ordersTable[existingIdx] = { ...ordersTable[existingIdx], ...orderRecord };
+          } else {
+            ordersTable.unshift(orderRecord);
+          }
+
+          for (const item of items) {
+            const itemId = `item_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+            const itemEdition = item.edition || (item.customArtworkUrl ? 'custom' : 'archive');
+            itemsTable.push({
+              id: itemId,
+              order_id: orderId,
+              product_id: item.productId,
+              variant_id: item.variantId || null,
+              product_name: item.name,
+              size: item.size,
+              color: item.color,
+              quantity: item.quantity,
+              price_inr: item.price,
+              price_at_purchase: item.price,
+              image_url: item.imageUrl || null,
+              custom_artwork_url: item.customArtworkUrl || null,
+              custom_placement: item.customPlacement || null,
+              custom_scale: item.customScale || null,
+              custom_quote_text: item.customQuoteText || null,
+              edition: itemEdition,
+            });
+          }
+        } catch (localErr) {
+          console.warn('[create-order] Local fallback sync note:', localErr);
+        }
+      } catch (dbErr) {
+        console.error('[create-order] D1 insert error:', dbErr);
       }
-    } catch (dbErr) {
-      console.error('[create-order] D1 insert error:', dbErr);
     }
 
     // 4. Sync order to Admin Panel in background
@@ -417,6 +426,8 @@ export async function POST(req: NextRequest) {
             items: formattedItems,
             subtotalInr,
             shippingInr,
+            discountInr,
+            promoCode: promoCode || undefined,
             totalInr,
             shippingAddress: {
               line1: shipping.line1,

@@ -72,7 +72,6 @@ export function CartSummary({ onContinue, collapsible = false }: CartSummaryProp
   const shippingFee = getShippingFee();
   const total = getTotal();
   const promoDiscount = getDiscountAmount();
-  const adjustedTotal = Math.max(0, total - promoDiscount);
   const diff = getFreeShippingDifference();
   const progressPercent = Math.min(
     100,
@@ -330,7 +329,7 @@ export function CartSummary({ onContinue, collapsible = false }: CartSummaryProp
         )}
         <div className="flex justify-between text-sm font-bold text-[#F5F1E8] pt-2 border-t border-[#1C1C1C]">
           <span>BAG TOTAL</span>
-          <span className="text-[#C6FF00]">₹{adjustedTotal.toLocaleString('en-IN')}</span>
+          <span className="text-[#C6FF00]">₹{total.toLocaleString('en-IN')}</span>
         </div>
       </div>
 

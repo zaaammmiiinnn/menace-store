@@ -11,6 +11,8 @@ export interface OrderEmailData {
   }[];
   subtotalInr: number;
   shippingInr: number;
+  discountInr?: number;
+  promoCode?: string;
   totalInr: number;
   shippingAddress: {
     line1: string;
@@ -55,7 +57,7 @@ ${itemsList}
 
 SUBTOTAL: ₹${data.subtotalInr.toLocaleString('en-IN')}
 SHIPPING: ${data.shippingInr === 0 ? 'FREE EXPRESS' : `₹${data.shippingInr}`}
-TOTAL ${isCod ? 'DUE AT DOORSTEP' : 'PAID'}: ₹${data.totalInr.toLocaleString('en-IN')}
+${data.discountInr && data.discountInr > 0 ? `PROMO DISCOUNT${data.promoCode ? ` (${data.promoCode})` : ''}: -₹${data.discountInr.toLocaleString('en-IN')}\n` : ''}TOTAL ${isCod ? 'DUE AT DOORSTEP' : 'PAID'}: ₹${data.totalInr.toLocaleString('en-IN')}
 
 DISPATCH ADDRESS:
 ${data.customerName}
@@ -184,6 +186,16 @@ wearmenance.in
                   ${data.shippingInr === 0 ? 'FREE' : `₹${data.shippingInr}`}
                 </td>
               </tr>
+              ${
+                data.discountInr && data.discountInr > 0
+                  ? `<tr>
+                <td colspan="2" style="padding: 4px 16px 8px 16px; font-size: 11px; font-family: 'Courier New', Courier, monospace; color: #C6FF00; text-transform: uppercase;">PROMO APPLIED ${data.promoCode ? `(${data.promoCode})` : ''}</td>
+                <td style="padding: 4px 16px 8px 16px; text-align: right; font-size: 12px; font-family: 'Courier New', Courier, monospace; color: #C6FF00; font-weight: bold;">
+                  -₹${data.discountInr.toLocaleString('en-IN')}
+                </td>
+              </tr>`
+                  : ''
+              }
               <tr style="border-top: 1px dashed #333333; background-color: #0E0E0E;">
                 <td colspan="2" style="padding: 14px 16px; font-size: 13px; font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #F5F1E8; text-transform: uppercase;">
                   ${isCod ? 'TOTAL DUE AT DELIVERY' : 'TOTAL PAID'}

@@ -43,7 +43,6 @@ export function OrderSummary({
   const shippingFee = getShippingFee();
   const total = getTotal();
   const promoDiscount = getDiscountAmount();
-  const adjustedTotal = Math.max(0, total - promoDiscount);
 
   const handleApplyPromo = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -204,7 +203,7 @@ export function OrderSummary({
             </span>
           </div>
           <span className="font-display text-2xl text-[#C6FF00]">
-            ₹{adjustedTotal.toLocaleString('en-IN')}
+            ₹{total.toLocaleString('en-IN')}
           </span>
         </div>
       </div>
@@ -293,7 +292,7 @@ export function OrderSummary({
 
         <p className="mt-3 text-center text-[10px] font-mono text-[#8A8A8A] leading-relaxed">
           {paymentMethod === 'cod'
-            ? `Pay ₹${adjustedTotal.toLocaleString('en-IN')} in cash upon parcel delivery. 100% verified courier dispatch.`
+            ? `Pay ₹${total.toLocaleString('en-IN')} in cash upon parcel delivery. 100% verified courier dispatch.`
             : '100% Secure live payment via PayU portal. Instant dispatch.'}
         </p>
       </div>
