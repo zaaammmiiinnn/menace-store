@@ -195,7 +195,9 @@ export async function getProducts(): Promise<FormattedProduct[]> {
             .filter((img: any) => (img.product_id || img.productId) === pId)
             .sort((a: any, b: any) => ((a.sort_order ?? a.sortOrder ?? 0) - (b.sort_order ?? b.sortOrder ?? 0)))
             .map((img: any) => ({
-              url: img.url,
+              url: (img.url?.startsWith('data:image/') || (img.url && img.url.length > 500)) && img.id
+                ? `/api/images/${img.id}`
+                : img.url,
               sortOrder: img.sort_order ?? img.sortOrder ?? 0,
             }));
 
@@ -306,7 +308,9 @@ export async function getProductBySlug(slug: string): Promise<FormattedProduct |
 
         const pVariants = variantsRes?.results || [];
         const pImages = (imagesRes?.results || []).map((img: any) => ({
-          url: img.url,
+          url: (img.url?.startsWith('data:image/') || (img.url && img.url.length > 500)) && img.id
+            ? `/api/images/${img.id}`
+            : img.url,
           sortOrder: img.sort_order ?? img.sortOrder ?? 0,
         }));
 
