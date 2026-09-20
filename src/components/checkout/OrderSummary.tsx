@@ -143,6 +143,10 @@ export function OrderSummary({
                     setPromoInput(e.target.value.toUpperCase());
                     setPromoMessage(null);
                   }}
+                  autoCapitalize="characters"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  autoComplete="off"
                   placeholder="ENTER PROMO (e.g. MENANCE10)"
                   className="w-full bg-[#141414] border border-[#242424] focus:border-[#C6FF00] text-[#F5F1E8] text-xs font-mono pl-8 pr-2.5 py-2 uppercase outline-none placeholder:text-[#555]"
                 />

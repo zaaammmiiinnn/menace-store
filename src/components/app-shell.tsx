@@ -29,9 +29,9 @@ function GlobalToast() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.95 }}
           onClick={hideToast}
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full bg-surface-elevated border border-acid-green/60 text-off-white text-xs font-mono shadow-[0_0_30px_rgba(198,255,0,0.2)] cursor-pointer"
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[99999] flex items-center gap-2 px-4 py-2.5 rounded-full bg-[#161616] border border-[#C6FF00]/80 text-[#F5F1E8] text-xs font-mono shadow-[0_0_30px_rgba(198,255,0,0.3)] cursor-pointer"
         >
-          <span className="w-2 h-2 rounded-full bg-acid-green animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-[#C6FF00] animate-pulse" />
           <span>{toastMessage}</span>
         </motion.div>
       )}

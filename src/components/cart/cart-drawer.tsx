@@ -38,10 +38,10 @@ export function CartDrawer() {
   const showToast = useUiStore((state) => state.showToast);
   const triggerConfetti = useUiStore((state) => state.triggerConfetti);
   const shouldReduceMotion = useReducedMotion();
-
   const [inputCode, setInputCode] = useState('');
   const [promoError, setPromoError] = useState(false);
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
+  const [promoMessage, setPromoMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   // Auto-close on checkout page to prevent overlay freeze
   useEffect(() => {
@@ -67,9 +67,11 @@ export function CartDrawer() {
 
   const handleApplyPromo = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputCode.trim() || isApplyingPromo) return;
+    const cleanCode = inputCode.trim().toUpperCase().replace(/\s+/g, '');
+    if (!cleanCode || isApplyingPromo) return;
     setIsApplyingPromo(true);
-    const result = await applyPromoCode(inputCode.trim());
+    setPromoMessage(null);
+    const result = await applyPromoCode(cleanCode);
     setIsApplyingPromo(false);
 
     if (result.success) {
@@ -78,11 +80,20 @@ export function CartDrawer() {
       showToast(result.message);
       setInputCode('');
       setPromoError(false);
+      setPromoMessage({ text: result.message, type: 'success' });
     } else {
       playClickSound();
       setPromoError(true);
       showToast(result.message);
+      setPromoMessage({ text: result.message, type: 'error' });
     }
+  };
+
+  const handleRemovePromo = () => {
+    playClickSound();
+    removePromoCode();
+    setPromoMessage(null);
+    showToast('Promo code removed.');
   };
 
   const freeShippingProgress = Math.min(100, Math.round((cartTotal / FREE_SHIPPING_THRESHOLD_INR) * 100));
@@ -307,48 +318,65 @@ export function CartDrawer() {
             {/* Footer with Subtotal, Promo, and Checkout */}
             {items.length > 0 && (
               <div className="border-t border-border bg-base-black p-6 space-y-4">
-                {/* Promo Code Form */}
-                <form onSubmit={handleApplyPromo} className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Tag size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-grey" />
-                    <input
-                      type="text"
-                      placeholder="Promo Code (e.g. MENANCE10)"
-                      value={inputCode}
-                      onChange={(e) => {
-                        setInputCode(e.target.value);
-                        setPromoError(false);
-                      }}
-                      className={`w-full pl-8 pr-3 py-2 bg-surface text-xs font-mono text-off-white rounded border outline-none ${
-                        promoError ? 'border-red-500' : 'border-border focus:border-acid-green'
-                      }`}
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    disabled={isApplyingPromo}
-                    className="px-4 py-2 bg-surface hover:bg-border text-xs font-display uppercase tracking-wider text-off-white rounded border border-border transition-colors cursor-pointer disabled:opacity-50"
-                  >
-                    {isApplyingPromo ? '...' : 'Apply'}
-                  </button>
-                </form>
-
-                {promoCode && (
-                  <div className="flex items-center justify-between text-xs font-mono text-acid-green bg-acid-green/10 border border-acid-green/20 px-3 py-1.5 rounded">
-                    <span className="flex items-center gap-1.5">
-                      <Check size={13} /> {promoCode} (
+                {/* Promo Code Section */}
+                {promoCode ? (
+                  <div className="flex items-center justify-between text-xs font-mono text-acid-green bg-acid-green/10 border border-acid-green/30 p-2.5 rounded">
+                    <span className="flex items-center gap-1.5 font-bold uppercase tracking-wider">
+                      <Check size={14} className="text-acid-green" /> {promoCode} (
                         {discountType === 'fixed'
                           ? `₹${discountValue} OFF`
                           : `${discountPercent || discountValue}% OFF`}
                       )
                     </span>
                     <button
-                      onClick={removePromoCode}
-                      className="text-muted-grey hover:text-off-white text-[10px] uppercase underline cursor-pointer"
+                      type="button"
+                      onClick={handleRemovePromo}
+                      className="text-muted-grey hover:text-red-400 text-xs uppercase underline cursor-pointer transition-colors"
                     >
                       Remove
                     </button>
                   </div>
+                ) : (
+                  <form onSubmit={handleApplyPromo} className="space-y-1.5">
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <Tag size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-grey" />
+                        <input
+                          type="text"
+                          placeholder="PROMO CODE (e.g. MENANCE10)"
+                          value={inputCode}
+                          onChange={(e) => {
+                            setInputCode(e.target.value.toUpperCase());
+                            setPromoError(false);
+                            setPromoMessage(null);
+                          }}
+                          autoCapitalize="characters"
+                          autoCorrect="off"
+                          spellCheck={false}
+                          autoComplete="off"
+                          className={`w-full pl-8 pr-3 py-2 bg-surface text-xs font-mono text-off-white rounded border uppercase outline-none transition-colors ${
+                            promoError ? 'border-red-500' : 'border-border focus:border-acid-green'
+                          }`}
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={isApplyingPromo || !inputCode.trim()}
+                        className="px-4 py-2 bg-surface hover:bg-acid-green hover:text-base-black text-xs font-display uppercase tracking-wider text-off-white rounded border border-border hover:border-acid-green transition-colors cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+                      >
+                        {isApplyingPromo ? '...' : 'Apply'}
+                      </button>
+                    </div>
+                    {promoMessage && (
+                      <p
+                        className={`text-[11px] font-mono leading-tight ${
+                          promoMessage.type === 'success' ? 'text-acid-green' : 'text-red-400'
+                        }`}
+                      >
+                        {promoMessage.text}
+                      </p>
+                    )}
+                  </form>
                 )}
 
                 {/* Subtotal Calculation */}

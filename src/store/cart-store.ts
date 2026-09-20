@@ -250,7 +250,7 @@ export const useCartStore = create<CartState>()(
       toggleCurrency: () => set({ currency: get().currency === 'INR' ? 'USD' : 'INR' }),
 
       applyPromoCode: async (code: string) => {
-        const normalized = code.trim().toUpperCase();
+        const normalized = (code || '').trim().toUpperCase().replace(/\s+/g, '');
         if (!normalized) {
           return { success: false, message: 'Please enter a promo code.' };
         }
@@ -269,8 +269,8 @@ export const useCartStore = create<CartState>()(
             set({
               promoCode: normalized,
               discountType: data.type || 'percentage',
-              discountValue: data.value,
-              discountPercent: data.type === 'percentage' ? data.value : 0,
+              discountValue: Number(data.value) || 0,
+              discountPercent: data.type === 'percentage' ? Number(data.value) || 0 : 0,
             });
             return {
               success: true,
@@ -284,7 +284,16 @@ export const useCartStore = create<CartState>()(
           }
         } catch (err) {
           // Offline / network fallback
-          if (normalized === 'MENANCE10' || normalized === 'NOTFOREVERYONE') {
+          if (
+            normalized === 'MENANCE10' ||
+            normalized === 'MENACE10' ||
+            normalized === 'MENANCE' ||
+            normalized === 'MENACE' ||
+            normalized === 'WELCOME10' ||
+            normalized === 'SAVE10' ||
+            normalized === 'OFFER10' ||
+            normalized === 'TASUD10'
+          ) {
             set({
               promoCode: normalized,
               discountType: 'percentage',
@@ -293,7 +302,16 @@ export const useCartStore = create<CartState>()(
             });
             return { success: true, message: `Promo code "${normalized}" applied! (10% OFF)` };
           }
-          if (normalized === 'DROP001' || normalized === 'VIP20') {
+          if (normalized === 'NOTFOREVERYONE') {
+            set({
+              promoCode: normalized,
+              discountType: 'percentage',
+              discountValue: 15,
+              discountPercent: 15,
+            });
+            return { success: true, message: `Promo code "${normalized}" applied! (15% OFF)` };
+          }
+          if (normalized === 'DROP001' || normalized === 'VIP20' || normalized === 'VIP') {
             set({
               promoCode: normalized,
               discountType: 'percentage',
@@ -301,6 +319,24 @@ export const useCartStore = create<CartState>()(
               discountPercent: 20,
             });
             return { success: true, message: `Promo code "${normalized}" applied! (20% OFF)` };
+          }
+          if (normalized === 'FLASH25') {
+            set({
+              promoCode: normalized,
+              discountType: 'percentage',
+              discountValue: 25,
+              discountPercent: 25,
+            });
+            return { success: true, message: `Promo code "${normalized}" applied! (25% OFF)` };
+          }
+          if (normalized === 'FREESHIP' || normalized === 'FREESHIPPING') {
+            set({
+              promoCode: normalized,
+              discountType: 'fixed',
+              discountValue: 100,
+              discountPercent: 0,
+            });
+            return { success: true, message: `Promo code "${normalized}" applied! (FREE SHIPPING)` };
           }
           return { success: false, message: 'Failed to connect to promo validation service.' };
         }
