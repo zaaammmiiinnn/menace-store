@@ -74,30 +74,67 @@ export async function createProductAction(data: any) {
           now
         ).run();
 
-        const variantsToInsert: any[] = (parsed.variants && parsed.variants.length > 0)
+        const baseSku = (parsed.slug || parsed.name)
+          .toUpperCase()
+          .replace(/[^A-Z0-9]/g, '')
+          .slice(0, 6) || 'PROD';
+        const seenSkus = new Set<string>();
+        const rawVariants = (parsed.variants && parsed.variants.length > 0)
           ? parsed.variants
           : [
-              { size: 'S', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-S`, stock: 25 },
-              { size: 'M', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-M`, stock: 50 },
-              { size: 'L', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-L`, stock: 40 },
-              { size: 'XL', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-XL`, stock: 20 },
+              { size: 'S', color: 'Black', sku: `MNC-${baseSku}-BLK-S`, stock: 25 },
+              { size: 'M', color: 'Black', sku: `MNC-${baseSku}-BLK-M`, stock: 50 },
+              { size: 'L', color: 'Black', sku: `MNC-${baseSku}-BLK-L`, stock: 40 },
+              { size: 'XL', color: 'Black', sku: `MNC-${baseSku}-BLK-XL`, stock: 20 },
             ];
+
+        const variantsToInsert = rawVariants.map((v: any, index: number) => {
+          let finalSku = (v.sku || '').trim().toUpperCase();
+          if (!finalSku || finalSku.startsWith('MNC-NEW-') || seenSkus.has(finalSku)) {
+            finalSku = `MNC-${baseSku}-${(v.color || 'BLK').toUpperCase().slice(0, 3)}-${v.size || index}-${id.slice(-4)}${seenSkus.has(finalSku) ? `-${index + 1}` : ''}`;
+          }
+          seenSkus.add(finalSku);
+          return {
+            ...v,
+            sku: finalSku,
+            stock: Number(v.stock) || 0,
+            color: v.color || 'Black',
+          };
+        });
 
         for (let index = 0; index < variantsToInsert.length; index++) {
           const v = variantsToInsert[index];
-          await d1.prepare(
-            `INSERT INTO product_variants (id, product_id, size, color, sku, stock, price_override, image_url)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-          ).bind(
-            v.id || `var_${id}_${index}`,
-            id,
-            v.size,
-            v.color || 'Black',
-            v.sku || `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-${v.size}`,
-            Number(v.stock) || 0,
-            v.priceOverride ? Number(v.priceOverride) : null,
-            v.imageUrl || null
-          ).run();
+          let varSku = v.sku;
+          try {
+            await d1.prepare(
+              `INSERT INTO product_variants (id, product_id, size, color, sku, stock, price_override, image_url)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+            ).bind(
+              v.id || `var_${id}_${index}`,
+              id,
+              v.size,
+              v.color || 'Black',
+              varSku,
+              Number(v.stock) || 0,
+              v.priceOverride ? Number(v.priceOverride) : null,
+              v.imageUrl || null
+            ).run();
+          } catch (varErr) {
+            varSku = `${varSku}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+            await d1.prepare(
+              `INSERT INTO product_variants (id, product_id, size, color, sku, stock, price_override, image_url)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+            ).bind(
+              v.id || `var_${id}_${index}`,
+              id,
+              v.size,
+              v.color || 'Black',
+              varSku,
+              Number(v.stock) || 0,
+              v.priceOverride ? Number(v.priceOverride) : null,
+              v.imageUrl || null
+            ).run();
+          }
         }
 
         const imagesToInsert = (parsed.images && parsed.images.length > 0)
@@ -234,31 +271,68 @@ export async function updateProductAction(id: string, data: any) {
           targetId
         ).run();
 
-        const variantsToSave: any[] = (parsed.variants && parsed.variants.length > 0)
+        const baseSku = (parsed.slug || parsed.name)
+          .toUpperCase()
+          .replace(/[^A-Z0-9]/g, '')
+          .slice(0, 6) || 'PROD';
+        const seenSkus = new Set<string>();
+        const rawVariants = (parsed.variants && parsed.variants.length > 0)
           ? parsed.variants
           : [
-              { size: 'S', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-S`, stock: 25 },
-              { size: 'M', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-M`, stock: 50 },
-              { size: 'L', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-L`, stock: 40 },
-              { size: 'XL', color: 'Black', sku: `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-XL`, stock: 20 },
+              { size: 'S', color: 'Black', sku: `MNC-${baseSku}-BLK-S`, stock: 25 },
+              { size: 'M', color: 'Black', sku: `MNC-${baseSku}-BLK-M`, stock: 50 },
+              { size: 'L', color: 'Black', sku: `MNC-${baseSku}-BLK-L`, stock: 40 },
+              { size: 'XL', color: 'Black', sku: `MNC-${baseSku}-BLK-XL`, stock: 20 },
             ];
+
+        const variantsToSave = rawVariants.map((v: any, index: number) => {
+          let finalSku = (v.sku || '').trim().toUpperCase();
+          if (!finalSku || finalSku.startsWith('MNC-NEW-') || seenSkus.has(finalSku)) {
+            finalSku = `MNC-${baseSku}-${(v.color || 'BLK').toUpperCase().slice(0, 3)}-${v.size || index}-${targetId.slice(-4)}${seenSkus.has(finalSku) ? `-${index + 1}` : ''}`;
+          }
+          seenSkus.add(finalSku);
+          return {
+            ...v,
+            sku: finalSku,
+            stock: Number(v.stock) || 0,
+            color: v.color || 'Black',
+          };
+        });
 
         await d1.prepare('DELETE FROM product_variants WHERE product_id = ?').bind(targetId).run();
         for (let idx = 0; idx < variantsToSave.length; idx++) {
           const v = variantsToSave[idx];
-          await d1.prepare(
-            `INSERT INTO product_variants (id, product_id, size, color, sku, stock, price_override, image_url)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-          ).bind(
-            v.id || `var_${targetId}_${idx}_${Date.now()}`,
-            targetId,
-            v.size,
-            v.color || 'Black',
-            v.sku || `MNC-${parsed.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-${v.size}`,
-            Number(v.stock) || 0,
-            v.priceOverride ? Number(v.priceOverride) : null,
-            v.imageUrl || null
-          ).run();
+          let varSku = v.sku;
+          try {
+            await d1.prepare(
+              `INSERT INTO product_variants (id, product_id, size, color, sku, stock, price_override, image_url)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+            ).bind(
+              v.id || `var_${targetId}_${idx}_${Date.now()}`,
+              targetId,
+              v.size,
+              v.color || 'Black',
+              varSku,
+              Number(v.stock) || 0,
+              v.priceOverride ? Number(v.priceOverride) : null,
+              v.imageUrl || null
+            ).run();
+          } catch (varErr) {
+            varSku = `${varSku}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+            await d1.prepare(
+              `INSERT INTO product_variants (id, product_id, size, color, sku, stock, price_override, image_url)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+            ).bind(
+              v.id || `var_${targetId}_${idx}_${Date.now()}`,
+              targetId,
+              v.size,
+              v.color || 'Black',
+              varSku,
+              Number(v.stock) || 0,
+              v.priceOverride ? Number(v.priceOverride) : null,
+              v.imageUrl || null
+            ).run();
+          }
         }
 
         const imagesToSave = (parsed.images && parsed.images.length > 0)
