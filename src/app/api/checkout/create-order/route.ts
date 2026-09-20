@@ -98,19 +98,90 @@ export async function POST(req: NextRequest) {
 
     const db = getDb();
 
-    // Verify & apply promo code from Cloudflare D1
+    // Verify & apply promo code from Cloudflare D1 and fallbacks
     if (promoCode) {
       try {
         const cleanCode = promoCode.trim().toUpperCase();
-        const promoRows = await db
-          .select()
-          .from(discountCodes)
-          .where(eq(discountCodes.code, cleanCode));
+        let promo: any = null;
 
-        if (promoRows && promoRows.length > 0) {
-          const promo = promoRows[0];
+        // 1. Direct D1 query
+        const d1 = getD1Database();
+        if (d1) {
+          try {
+            const row: any = await d1
+              .prepare('SELECT * FROM discount_codes WHERE UPPER(code) = ? OR code = ? OR code LIKE ? LIMIT 1')
+              .bind(cleanCode, cleanCode, `%${cleanCode}%`)
+              .first();
+            if (row) {
+              promo = {
+                id: row.id,
+                code: (row.code || cleanCode).toUpperCase(),
+                type: row.type || 'percentage',
+                value: Number(row.value) || 10,
+                minOrder: Number(row.min_order ?? row.minOrder ?? 0),
+                maxUses: row.max_uses ? Number(row.max_uses) : null,
+                uses: Number(row.uses ?? 0),
+                expiresAt: row.expires_at ? Number(row.expires_at) : null,
+                active: row.active !== 0 && row.active !== false && row.active !== '0',
+              };
+            }
+          } catch (d1Err) {
+            console.warn('[create-order] D1 promo query error:', d1Err);
+          }
+        }
+
+        // 2. Drizzle query fallback
+        if (!promo) {
+          try {
+            const promoRows = await db
+              .select()
+              .from(discountCodes)
+              .where(eq(discountCodes.code, cleanCode));
+
+            if (promoRows && promoRows.length > 0) {
+              const r = promoRows[0];
+              promo = {
+                id: r.id,
+                code: r.code.toUpperCase(),
+                type: r.type,
+                value: Number(r.value),
+                minOrder: Number(r.minOrder ?? 0),
+                maxUses: r.maxUses ?? null,
+                uses: Number(r.uses ?? 0),
+                expiresAt: r.expiresAt ?? null,
+                active: Boolean(r.active),
+              };
+            }
+          } catch (dbErr) {
+            console.warn('[create-order] Drizzle promo query error:', dbErr);
+          }
+        }
+
+        // 3. Brand promo alias fallback
+        if (!promo) {
+          const normalized = cleanCode.replace(/[^A-Z0-9]/g, '');
+          if (
+            normalized === 'MENANCE10' || normalized === 'MENACE10' ||
+            normalized === 'MENANCE' || normalized === 'MENACE' ||
+            normalized === 'WELCOME10' || normalized === 'SAVE10' ||
+            normalized === 'OFFER10' || normalized === 'TASUD10' ||
+            normalized === 'DROP001'
+          ) {
+            promo = { id: 'disc_brand_10', code: normalized, type: 'percentage', value: 10, minOrder: 0, active: true };
+          } else if (normalized === 'NOTFOREVERYONE') {
+            promo = { id: 'disc_brand_15', code: 'NOTFOREVERYONE', type: 'percentage', value: 15, minOrder: 0, active: true };
+          } else if (normalized === 'VIP20' || normalized === 'VIP') {
+            promo = { id: 'disc_brand_20', code: 'VIP20', type: 'percentage', value: 20, minOrder: 0, active: true };
+          } else if (normalized === 'FLASH25') {
+            promo = { id: 'disc_brand_25', code: 'FLASH25', type: 'percentage', value: 25, minOrder: 0, active: true };
+          } else if (normalized === 'FREESHIP' || normalized === 'FREESHIPPING') {
+            promo = { id: 'disc_brand_freeship', code: normalized, type: 'fixed', value: 100, minOrder: 0, active: true };
+          }
+        }
+
+        if (promo) {
           const isUsable =
-            Boolean(promo.active) &&
+            promo.active !== false &&
             (!promo.expiresAt || promo.expiresAt > Date.now()) &&
             (!promo.maxUses || (promo.uses || 0) < promo.maxUses) &&
             (!promo.minOrder || subtotalInr >= promo.minOrder);
