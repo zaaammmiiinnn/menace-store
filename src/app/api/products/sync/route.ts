@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { upsertDynamicProduct, deleteDynamicProduct, getDynamicProducts } from '@/data/products';
 import { getLocalStore } from '@/lib/db';
+import { invalidateProductsCache } from '@/lib/products/queries';
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,6 +17,8 @@ export async function POST(req: NextRequest) {
 
     const store = getLocalStore();
     const dbProducts = store.getTable('products');
+    const dbImages = store.getTable('product_images');
+    const dbVariants = store.getTable('product_variants');
 
     if (action === 'delete') {
       deleteDynamicProduct(product.id);
@@ -23,6 +26,18 @@ export async function POST(req: NextRequest) {
       if (idx !== -1) {
         dbProducts.splice(idx, 1);
       }
+      // Remove images
+      const filteredImages = dbImages.filter((img: any) => img.product_id !== product.id);
+      dbImages.length = 0;
+      dbImages.push(...filteredImages);
+
+      // Remove variants
+      const filteredVariants = dbVariants.filter((v: any) => v.product_id !== product.id);
+      dbVariants.length = 0;
+      dbVariants.push(...filteredVariants);
+
+      invalidateProductsCache();
+
       return NextResponse.json({
         success: true,
         message: `Product ${product.id} removed from storefront`,
@@ -62,6 +77,43 @@ export async function POST(req: NextRequest) {
       dbProducts.unshift({ ...dbRecord, created_at: Date.now() });
     }
 
+    // Upsert images in local table
+    if (Array.isArray(product.images) && product.images.length > 0) {
+      const filteredImages = dbImages.filter((img: any) => img.product_id !== product.id);
+      product.images.forEach((url: string, idx: number) => {
+        filteredImages.push({
+          id: `img_${product.id}_${idx}`,
+          product_id: product.id,
+          url,
+          alt: `${product.name} Image ${idx + 1}`,
+          sort_order: idx,
+        });
+      });
+      dbImages.length = 0;
+      dbImages.push(...filteredImages);
+    }
+
+    // Upsert variants if provided
+    if (Array.isArray(product.variants) && product.variants.length > 0) {
+      const filteredVariants = dbVariants.filter((v: any) => v.product_id !== product.id);
+      product.variants.forEach((v: any, idx: number) => {
+        filteredVariants.push({
+          id: v.id || `var_${product.id}_${idx}`,
+          product_id: product.id,
+          size: v.size,
+          color: v.color || 'Black',
+          sku: v.sku || `MNC-${updated.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'TEE'}-BLK-${v.size}`,
+          stock: Number(v.stock) || 0,
+          price_override: v.priceOverride ? Number(v.priceOverride) : null,
+          image_url: v.imageUrl || null,
+        });
+      });
+      dbVariants.length = 0;
+      dbVariants.push(...filteredVariants);
+    }
+
+    invalidateProductsCache();
+
     return NextResponse.json({
       success: true,
       message: `Product "${updated.name}" updated on storefront successfully`,
@@ -84,3 +136,4 @@ export async function GET() {
     products: current,
   });
 }
+

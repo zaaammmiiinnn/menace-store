@@ -13,11 +13,19 @@ interface ProductCardProps {
 
 export function ProductCard({ product, index = 0 }: ProductCardProps) {
   const shouldReduceMotion = useReducedMotion();
-  const [imgSrc, setImgSrc] = useState(product.images[0] || '/products/placeholder.svg');
+  const defaultImage = product.images && product.images.length > 0 ? product.images[0] : '/products/placeholder.svg';
+  const [imgSrc, setImgSrc] = useState(defaultImage);
   const [isHovered, setIsHovered] = useState(false);
+  const [hasHoverError, setHasHoverError] = useState(false);
+
+  React.useEffect(() => {
+    setImgSrc(product.images && product.images.length > 0 ? product.images[0] : '/products/placeholder.svg');
+    setHasHoverError(false);
+  }, [product.images]);
 
   // When hovered, show back view showing quote if available
-  const currentImage = isHovered && product.images[1] ? product.images[1] : imgSrc;
+  const hasBackView = Boolean(product.images && product.images.length > 1 && !hasHoverError);
+  const currentImage = isHovered && hasBackView ? product.images[1] : imgSrc;
 
   return (
     <motion.div
@@ -37,11 +45,18 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
         <motion.img
           src={currentImage}
           alt={product.name}
-          onError={() => setImgSrc('/products/placeholder.svg')}
+          onError={() => {
+            if (isHovered && hasBackView) {
+              setHasHoverError(true);
+            } else {
+              setImgSrc('/products/placeholder.svg');
+            }
+          }}
           animate={shouldReduceMotion ? {} : { scale: isHovered ? 1.04 : 1 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           className="w-full h-full object-contain object-center select-none filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)] relative z-0"
         />
+
 
         {/* Badges / Tags */}
         <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">

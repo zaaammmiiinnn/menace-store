@@ -10,6 +10,8 @@ export function getD1Database(): any {
   } catch {}
   if (typeof globalThis !== 'undefined') {
     const g = globalThis as any;
+    const ctxSymbol = Symbol.for('__cloudflare-context__');
+    if (g[ctxSymbol]?.env?.DB) return g[ctxSymbol].env.DB;
     if (g.__env__?.DB) return g.__env__.DB;
     if (g.DB) return g.DB;
     if (g.env?.DB) return g.env.DB;
@@ -31,6 +33,9 @@ export function getKVDatabase(): any {
   } catch {}
   if (typeof globalThis !== 'undefined') {
     const g = globalThis as any;
+    const ctxSymbol = Symbol.for('__cloudflare-context__');
+    if (g[ctxSymbol]?.env?.MENACE_KV) return g[ctxSymbol].env.MENACE_KV;
+    if (g[ctxSymbol]?.env?.MENANCE_KV) return g[ctxSymbol].env.MENANCE_KV;
     if (g.__env__?.MENACE_KV) return g.__env__.MENACE_KV;
     if (g.__env__?.MENANCE_KV) return g.__env__.MENANCE_KV;
     if (g.MENACE_KV) return g.MENACE_KV;

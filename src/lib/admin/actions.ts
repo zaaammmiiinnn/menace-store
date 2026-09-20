@@ -2,9 +2,44 @@
 
 import { revalidatePath } from 'next/cache';
 import { requireAdmin, requireStaff, logAuditAction } from './auth';
-import { getLocalStore, getD1Database } from '@/lib/db';
+import { getLocalStore, getD1Database, getKVDatabase } from '@/lib/db';
 import { productSchema, discountCodeSchema, storeSettingsSchema } from '@/lib/validation/admin';
 import { upsertDynamicProduct, deleteDynamicProduct } from '@/data/products';
+import { invalidateProductsCache } from '@/lib/products/queries';
+
+async function persistImagesToKV(images: string[], productId: string): Promise<string[]> {
+  const finalUrls: string[] = [];
+  const kv = getKVDatabase();
+
+  for (let i = 0; i < images.length; i++) {
+    const rawUrl = images[i];
+    if (rawUrl && typeof rawUrl === 'string' && rawUrl.startsWith('data:image/')) {
+      const match = rawUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+      if (match && kv) {
+        try {
+          const mime = match[1];
+          const base64Data = match[2];
+          const binaryString = atob(base64Data);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let j = 0; j < binaryString.length; j++) {
+            bytes[j] = binaryString.charCodeAt(j);
+          }
+          const imgKey = `img_${productId}_${i}`;
+          await Promise.all([
+            kv.put(`img:${imgKey}`, bytes.buffer),
+            kv.put(`mime:${imgKey}`, mime),
+          ]);
+          finalUrls.push(`/api/images/${imgKey}`);
+          continue;
+        } catch (e) {
+          console.error('[persistImagesToKV] Failed to store image to KV:', e);
+        }
+      }
+    }
+    finalUrls.push(rawUrl);
+  }
+  return finalUrls;
+}
 
 // --- PRODUCTS ---
 export async function createProductAction(data: any) {
@@ -13,6 +48,10 @@ export async function createProductAction(data: any) {
     const parsed = productSchema.parse(data);
     const id = `prod_${Date.now()}`;
     const now = Date.now();
+
+    // Persist heavy image assets to KV if available
+    const processedImages = await persistImagesToKV(parsed.images || [], id);
+    parsed.images = processedImages;
 
     const d1 = getD1Database();
     if (d1) {
@@ -141,6 +180,7 @@ export async function createProductAction(data: any) {
       details: `Created product "${parsed.name}" (${parsed.slug}).`,
     });
 
+    invalidateProductsCache();
     revalidatePath('/admin');
     revalidatePath('/admin/products');
     revalidatePath('/admin/inventory');
@@ -154,6 +194,7 @@ export async function createProductAction(data: any) {
     return { success: false, error: err?.message || 'Failed to create product.' };
   }
 }
+
 
 export async function updateProductAction(id: string, data: any) {
   try {
@@ -170,6 +211,10 @@ export async function updateProductAction(id: string, data: any) {
         if (existing?.id) {
           targetId = existing.id;
         }
+
+        // Persist heavy image assets to KV if available
+        const processedImages = await persistImagesToKV(parsed.images || [], targetId);
+        parsed.images = processedImages;
 
         await d1.prepare(
           `UPDATE products SET slug = ?, name = ?, description = ?, price_inr = ?, price_usd = ?, category = ?, drop_id = ?, status = ?, purchase_mode = ?, updated_at = ?
@@ -275,6 +320,20 @@ export async function updateProductAction(id: string, data: any) {
     store.getTable('product_variants').length = 0;
     store.getTable('product_variants').push(...filteredVariants);
 
+    const imagesTable = store.getTable('product_images');
+    const filteredImages = imagesTable.filter((img: any) => img.product_id !== id && img.product_id !== targetId);
+    (parsed.images || []).forEach((url: string, idx: number) => {
+      filteredImages.push({
+        id: `img_${targetId}_${idx}`,
+        product_id: targetId,
+        url,
+        alt: `${parsed.name} Image ${idx + 1}`,
+        sort_order: idx,
+      });
+    });
+    store.getTable('product_images').length = 0;
+    store.getTable('product_images').push(...filteredImages);
+
     upsertDynamicProduct({
       id: targetId,
       slug: parsed.slug,
@@ -293,6 +352,7 @@ export async function updateProductAction(id: string, data: any) {
       details: `Updated product "${parsed.name}".`,
     });
 
+    invalidateProductsCache();
     revalidatePath('/admin');
     revalidatePath('/admin/products');
     revalidatePath('/admin/inventory');
@@ -327,6 +387,16 @@ export async function deleteProductAction(id: string) {
   products.length = 0;
   products.push(...filtered);
 
+  const variants = store.getTable('product_variants');
+  const filteredVariants = variants.filter((v: any) => v.product_id !== id);
+  variants.length = 0;
+  variants.push(...filteredVariants);
+
+  const images = store.getTable('product_images');
+  const filteredImages = images.filter((img: any) => img.product_id !== id);
+  images.length = 0;
+  images.push(...filteredImages);
+
   deleteDynamicProduct(id);
 
   await logAuditAction({
@@ -336,12 +406,14 @@ export async function deleteProductAction(id: string) {
     details: `Deleted product ID "${id}".`,
   });
 
+  invalidateProductsCache();
   revalidatePath('/admin');
   revalidatePath('/admin/products');
   revalidatePath('/shop');
 
   return { success: true };
 }
+
 
 // --- INVENTORY ---
 export async function updateStockAction(variantId: string, change: number, reason: string) {

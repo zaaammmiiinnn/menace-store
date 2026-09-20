@@ -159,6 +159,135 @@ function getFallbackProducts(): FormattedProduct[] {
 }
 
 
+// Helper to format raw product database rows with variants and images
+function formatProductsList(rawProducts: any[], allVariants: any[], allImages: any[]): FormattedProduct[] {
+  return rawProducts.map((p: any) => {
+    const pId = p.id;
+    const pVariants = allVariants.filter((v: any) => (v.product_id || v.productId) === pId);
+    const pImages = allImages
+      .filter((img: any) => (img.product_id || img.productId) === pId)
+      .sort((a: any, b: any) => ((a.sort_order ?? a.sortOrder ?? 0) - (b.sort_order ?? b.sortOrder ?? 0)))
+      .map((img: any) => ({
+        url: (img.url?.startsWith('data:image/') || (img.url && img.url.length > 500)) && img.id
+          ? `/api/images/${img.id}`
+          : img.url,
+        sortOrder: img.sort_order ?? img.sortOrder ?? 0,
+      }));
+
+    const color = pVariants[0]?.color || p.color || 'Black';
+    const hasModel = [
+      'the-henley-offwhite',
+      'heavy-waffle-offwhite-full',
+      'the-classic-waffle-offwhite',
+      'the-classic-waffle-black',
+      'the-henley-black',
+      'heavy-waffle-black-full',
+      'heavy-waffle-brown-full',
+      'brown-boxy-fit-tshirt',
+      'off-white-boxy-fit-tshirt',
+    ].includes(p.slug);
+    const hasSecondModel = p.slug === 'the-henley-offwhite';
+
+    const { imagesList, plainImages } = resolveProductImages(
+      pImages.length > 0 ? pImages : undefined,
+      p.slug,
+      hasModel,
+      hasSecondModel
+    );
+
+    const colorHex = color.toLowerCase().includes('white')
+      ? '#F5F1E8'
+      : color.toLowerCase().includes('brown')
+      ? '#5A3D28'
+      : color.toLowerCase().includes('grey') || color.toLowerCase().includes('acid')
+      ? '#4A4E51'
+      : '#0A0A0A';
+
+    return {
+      id: p.id,
+      slug: p.slug,
+      name: p.name,
+      description: p.description || '',
+      price: p.price_inr ?? p.priceInr ?? 1499,
+      priceInr: p.price_inr ?? p.priceInr ?? 1499,
+      priceUsd: p.price_usd ?? p.priceUsd ?? 45,
+      category: p.category || 'tees',
+      dropId: p.drop_id ?? p.dropId ?? 'drop_001',
+      status: p.status || 'active',
+      purchaseMode: p.purchase_mode ?? p.purchaseMode ?? 'buy_now',
+      backQuote: p.back_quote ?? p.backQuote ?? 'NOT FOR EVERYONE.',
+      frontLogo: p.front_logo ?? p.frontLogo ?? 'MENANCE®',
+      fabricGsm: p.fabric_gsm ?? p.fabricGsm ?? 240,
+      fabricType: p.fabric_type ?? p.fabricType ?? 'Waffle Knit',
+      fit: p.fit || 'Boxy Oversized',
+      sleeveType: p.sleeve_type ?? p.sleeveType ?? 'Half Sleeve',
+      color,
+      images: imagesList,
+      plainImages,
+      colorways: [{ name: color, hex: colorHex, materialColor: colorHex }],
+      sizes: SIZES.map((size) => ({ value: size, label: size, scale: 1.0, inStock: true })),
+      tags: ['drop001', 'waffle', 'heavyweight'],
+      isBestSeller: false,
+      isNew: true,
+      vibeName: (p.category || 'tees').toLowerCase(),
+      variants: pVariants.length > 0
+        ? pVariants.map((v: any) => ({
+            id: v.id,
+            size: v.size,
+            color: v.color || color,
+            sku: v.sku || `MENANCE-${p.slug.toUpperCase().replace(/-/g, '-')}-${v.size}`,
+            stock: v.stock ?? 25,
+          }))
+        : SIZES.map((size) => ({
+            id: `var_${p.id}_${size.toLowerCase()}`,
+            size,
+            color,
+            sku: `MENANCE-${p.slug.toUpperCase().replace(/-/g, '-')}-${size}`,
+            stock: 25,
+          })),
+    };
+  });
+}
+
+function formatDynamicProduct(p: any): FormattedProduct {
+  const images = Array.isArray(p.images) && p.images.length > 0 ? p.images : [`/products/${p.slug}/front.jpg`];
+  return {
+    id: p.id,
+    slug: p.slug,
+    name: p.name,
+    description: p.description || '',
+    price: p.priceInr || p.price || 1499,
+    priceInr: p.priceInr || p.price || 1499,
+    priceUsd: p.priceUsd || 45,
+    category: p.category || 'tees',
+    dropId: p.dropId || 'drop_001',
+    status: (p.status as any) || 'active',
+    purchaseMode: p.purchaseMode || 'buy_now',
+    backQuote: p.backQuote || 'NOT FOR EVERYONE.',
+    frontLogo: p.frontLogo || 'MENANCE®',
+    fabricGsm: p.fabricGsm || 240,
+    fabricType: p.fabricType || 'Waffle Knit',
+    fit: p.fit || 'Boxy Oversized',
+    sleeveType: p.sleeveType || 'Half Sleeve',
+    color: p.color || 'Black',
+    images,
+    plainImages: images,
+    colorways: [{ name: p.color || 'Black', hex: '#0A0A0A', materialColor: '#0A0A0A' }],
+    sizes: SIZES.map((size) => ({ value: size, label: size, scale: 1.0, inStock: true })),
+    tags: p.tags || ['menance'],
+    isBestSeller: false,
+    isNew: true,
+    vibeName: (p.category || 'tees').toLowerCase(),
+    variants: SIZES.map((size) => ({
+      id: `var_${p.id}_${size.toLowerCase()}`,
+      size,
+      color: p.color || 'Black',
+      sku: `MENANCE-${p.slug.toUpperCase().replace(/-/g, '-')}-${size}`,
+      stock: 25,
+    })),
+  };
+}
+
 // Module-level in-memory cache to prevent redundant D1 queries and Worker CPU exhaustion
 let memoryProductsCache: { data: FormattedProduct[]; timestamp: number } | null = null;
 const CACHE_TTL_MS = 60 * 1000; // 60 seconds
@@ -188,102 +317,32 @@ export async function getProducts(): Promise<FormattedProduct[]> {
       const allImages = imagesRes?.results || [];
 
       if (rawProducts.length > 0) {
-        const formatted: FormattedProduct[] = rawProducts.map((p: any) => {
-          const pId = p.id;
-          const pVariants = allVariants.filter((v: any) => (v.product_id || v.productId) === pId);
-          const pImages = allImages
-            .filter((img: any) => (img.product_id || img.productId) === pId)
-            .sort((a: any, b: any) => ((a.sort_order ?? a.sortOrder ?? 0) - (b.sort_order ?? b.sortOrder ?? 0)))
-            .map((img: any) => ({
-              url: (img.url?.startsWith('data:image/') || (img.url && img.url.length > 500)) && img.id
-                ? `/api/images/${img.id}`
-                : img.url,
-              sortOrder: img.sort_order ?? img.sortOrder ?? 0,
-            }));
-
-          const color = pVariants[0]?.color || p.color || 'Black';
-          const hasModel = [
-            'the-henley-offwhite',
-            'heavy-waffle-offwhite-full',
-            'the-classic-waffle-offwhite',
-            'the-classic-waffle-black',
-            'the-henley-black',
-            'heavy-waffle-black-full',
-            'heavy-waffle-brown-full',
-            'brown-boxy-fit-tshirt',
-            'off-white-boxy-fit-tshirt',
-          ].includes(p.slug);
-          const hasSecondModel = p.slug === 'the-henley-offwhite';
-
-          const { imagesList, plainImages } = resolveProductImages(
-            pImages,
-            p.slug,
-            hasModel,
-            hasSecondModel
-          );
-
-          const colorHex = color.toLowerCase().includes('white')
-            ? '#F5F1E8'
-            : color.toLowerCase().includes('brown')
-            ? '#5A3D28'
-            : color.toLowerCase().includes('grey') || color.toLowerCase().includes('acid')
-            ? '#4A4E51'
-            : '#0A0A0A';
-
-          return {
-            id: p.id,
-            slug: p.slug,
-            name: p.name,
-            description: p.description,
-            price: p.price_inr ?? p.priceInr ?? 1499,
-            priceInr: p.price_inr ?? p.priceInr ?? 1499,
-            priceUsd: p.price_usd ?? p.priceUsd ?? 45,
-            category: p.category || 'tees',
-            dropId: p.drop_id ?? p.dropId ?? 'drop_001',
-            status: p.status || 'active',
-            purchaseMode: p.purchase_mode ?? p.purchaseMode ?? 'buy_now',
-            backQuote: p.back_quote ?? p.backQuote ?? 'NOT FOR EVERYONE.',
-            frontLogo: p.front_logo ?? p.frontLogo ?? 'MENANCE®',
-            fabricGsm: p.fabric_gsm ?? p.fabricGsm ?? 240,
-            fabricType: p.fabric_type ?? p.fabricType ?? 'Waffle Knit',
-            fit: p.fit || 'Boxy Oversized',
-            sleeveType: p.sleeve_type ?? p.sleeveType ?? 'Half Sleeve',
-            color,
-            images: imagesList,
-            plainImages,
-            colorways: [{ name: color, hex: colorHex, materialColor: colorHex }],
-            sizes: SIZES.map((size) => ({ value: size, label: size, scale: 1.0, inStock: true })),
-            tags: ['drop001', 'waffle', 'heavyweight'],
-            isBestSeller: false,
-            isNew: true,
-            vibeName: (p.category || 'tees').toLowerCase(),
-            variants: pVariants.length > 0
-              ? pVariants.map((v: any) => ({
-                  id: v.id,
-                  size: v.size,
-                  color: v.color,
-                  sku: v.sku,
-                  stock: v.stock ?? 25,
-                }))
-              : SIZES.map((size) => ({
-                  id: `var_${p.id}_${size.toLowerCase()}`,
-                  size,
-                  color,
-                  sku: `MENANCE-${p.slug.toUpperCase().replace(/-/g, '-')}-${size}`,
-                  stock: 25,
-                })),
-          };
-        });
-
+        const formatted = formatProductsList(rawProducts, allVariants, allImages);
         memoryProductsCache = { data: formatted, timestamp: Date.now() };
         return formatted;
       }
     } catch (err) {
-      console.warn('[getProducts] D1 query failed, using fallback:', err);
+      console.warn('[getProducts] D1 query failed, checking local store:', err);
     }
   }
 
-  // Fallback to static seed data
+  // 3. Check Local Database Store (LocalD1Fallback)
+  try {
+    const store = getLocalStore();
+    const localProds = (store.getTable('products') || []).filter((p: any) => (p.status || 'active') === 'active');
+    const localVariants = store.getTable('product_variants') || [];
+    const localImages = store.getTable('product_images') || [];
+
+    if (localProds.length > 0) {
+      const formatted = formatProductsList(localProds, localVariants, localImages);
+      memoryProductsCache = { data: formatted, timestamp: Date.now() };
+      return formatted;
+    }
+  } catch (storeErr) {
+    console.warn('[getProducts] LocalStore query failed:', storeErr);
+  }
+
+  // 4. Fallback to static seed data
   const fallback = getFallbackProducts();
   memoryProductsCache = { data: fallback, timestamp: Date.now() };
   return fallback;
@@ -314,88 +373,20 @@ export async function getProductBySlug(slug: string): Promise<FormattedProduct |
           sortOrder: img.sort_order ?? img.sortOrder ?? 0,
         }));
 
-        const color = (pVariants[0] as any)?.color || prodRes.color || 'Black';
-        const hasModel = [
-          'the-henley-offwhite',
-          'heavy-waffle-offwhite-full',
-          'the-classic-waffle-offwhite',
-          'the-classic-waffle-black',
-          'the-henley-black',
-          'heavy-waffle-black-full',
-          'heavy-waffle-brown-full',
-          'brown-boxy-fit-tshirt',
-          'off-white-boxy-fit-tshirt',
-        ].includes(prodRes.slug);
-        const hasSecondModel = prodRes.slug === 'the-henley-offwhite';
-
-        const { imagesList, plainImages } = resolveProductImages(
-          pImages,
-          prodRes.slug,
-          hasModel,
-          hasSecondModel
-        );
-
-        const colorHex = color.toLowerCase().includes('white')
-          ? '#F5F1E8'
-          : color.toLowerCase().includes('brown')
-          ? '#5A3D28'
-          : color.toLowerCase().includes('grey') || color.toLowerCase().includes('acid')
-          ? '#4A4E51'
-          : '#0A0A0A';
-
-        return {
-          id: prodRes.id,
-          slug: prodRes.slug,
-          name: prodRes.name,
-          description: prodRes.description,
-          price: prodRes.price_inr ?? prodRes.priceInr ?? 1499,
-          priceInr: prodRes.price_inr ?? prodRes.priceInr ?? 1499,
-          priceUsd: prodRes.price_usd ?? prodRes.priceUsd ?? 45,
-          category: prodRes.category || 'tees',
-          dropId: prodRes.drop_id ?? prodRes.dropId ?? 'drop_001',
-          status: prodRes.status || 'active',
-          purchaseMode: prodRes.purchase_mode ?? prodRes.purchaseMode ?? 'buy_now',
-          backQuote: prodRes.back_quote ?? prodRes.backQuote ?? 'NOT FOR EVERYONE.',
-          frontLogo: prodRes.front_logo ?? prodRes.frontLogo ?? 'MENANCE®',
-          fabricGsm: prodRes.fabric_gsm ?? prodRes.fabricGsm ?? 240,
-          fabricType: prodRes.fabric_type ?? prodRes.fabricType ?? 'Waffle Knit',
-          fit: prodRes.fit || 'Boxy Oversized',
-          sleeveType: prodRes.sleeve_type ?? prodRes.sleeveType ?? 'Half Sleeve',
-          color,
-          images: imagesList,
-          plainImages,
-          colorways: [{ name: color, hex: colorHex, materialColor: colorHex }],
-          sizes: SIZES.map((size) => ({ value: size, label: size, scale: 1.0, inStock: true })),
-          tags: ['drop001', 'waffle', 'heavyweight'],
-          isBestSeller: false,
-          isNew: true,
-          vibeName: (prodRes.category || 'tees').toLowerCase(),
-          variants: pVariants.length > 0
-            ? pVariants.map((v: any) => ({
-                id: v.id,
-                size: v.size,
-                color: v.color,
-                sku: v.sku,
-                stock: v.stock ?? 25,
-              }))
-            : SIZES.map((size) => ({
-                id: `var_${prodRes.id}_${size.toLowerCase()}`,
-                size,
-                color,
-                sku: `MENANCE-${prodRes.slug.toUpperCase().replace(/-/g, '-')}-${size}`,
-                stock: 25,
-              })),
-        };
+        const formatted = formatProductsList([prodRes], pVariants, pImages);
+        return formatted[0] || null;
       }
     } catch (err) {
       console.warn(`[getProductBySlug] D1 query failed for ${slug}:`, err);
     }
   }
 
+  // Check all available products
   const all = await getProducts();
-  const found = all.find((p) => p.slug === slug);
+  const found = all.find((p) => p.slug === slug || p.id === slug);
   return found || null;
 }
+
 
 export async function getDrop001() {
   const d1 = getD1Database();
