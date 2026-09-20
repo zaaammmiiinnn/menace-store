@@ -65,8 +65,11 @@ export function CartDrawer() {
     return null;
   }
 
-  const handleApplyPromo = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleApplyPromo = async (e?: React.FormEvent | React.MouseEvent | React.KeyboardEvent) => {
+    if (e) {
+      e.preventDefault();
+      (e as any).stopPropagation?.();
+    }
     const cleanCode = inputCode.trim().toUpperCase().replace(/\s+/g, '');
     if (!cleanCode || isApplyingPromo) return;
     setIsApplyingPromo(true);
@@ -350,6 +353,13 @@ export function CartDrawer() {
                             setPromoError(false);
                             setPromoMessage(null);
                           }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleApplyPromo(e);
+                            }
+                          }}
                           autoCapitalize="characters"
                           autoCorrect="off"
                           spellCheck={false}
@@ -360,7 +370,12 @@ export function CartDrawer() {
                         />
                       </div>
                       <button
-                        type="submit"
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleApplyPromo(e);
+                        }}
                         disabled={isApplyingPromo || !inputCode.trim()}
                         className="px-4 py-2 bg-surface hover:bg-acid-green hover:text-base-black text-xs font-display uppercase tracking-wider text-off-white rounded border border-border hover:border-acid-green transition-colors cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
                       >

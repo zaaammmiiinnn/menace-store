@@ -44,13 +44,17 @@ export function OrderSummary({
   const total = getTotal();
   const promoDiscount = getDiscountAmount();
 
-  const handleApplyPromo = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!promoInput.trim() || isApplyingPromo) return;
+  const handleApplyPromo = async (e?: React.FormEvent | React.MouseEvent | React.KeyboardEvent) => {
+    if (e) {
+      e.preventDefault();
+      (e as any).stopPropagation?.();
+    }
+    const clean = promoInput.trim().toUpperCase().replace(/\s+/g, '');
+    if (!clean || isApplyingPromo) return;
 
     setIsApplyingPromo(true);
     setPromoMessage(null);
-    const result = await applyPromoCode(promoInput.trim());
+    const result = await applyPromoCode(clean);
     setIsApplyingPromo(false);
 
     if (result.success) {
@@ -132,7 +136,7 @@ export function OrderSummary({
             </button>
           </div>
         ) : (
-          <form onSubmit={handleApplyPromo} className="space-y-1.5">
+          <div className="space-y-1.5">
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <Tag size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8A8A8A]" />
@@ -143,6 +147,13 @@ export function OrderSummary({
                     setPromoInput(e.target.value.toUpperCase());
                     setPromoMessage(null);
                   }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleApplyPromo(e);
+                    }
+                  }}
                   autoCapitalize="characters"
                   autoCorrect="off"
                   spellCheck={false}
@@ -152,7 +163,12 @@ export function OrderSummary({
                 />
               </div>
               <button
-                type="submit"
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleApplyPromo(e);
+                }}
                 disabled={isApplyingPromo || !promoInput.trim()}
                 className="px-4 py-2 bg-[#222222] hover:bg-[#C6FF00] text-[#F5F1E8] hover:text-[#0A0A0A] font-mono text-xs font-bold uppercase tracking-wider transition-colors disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
               >
@@ -168,7 +184,7 @@ export function OrderSummary({
                 {promoMessage.text}
               </p>
             )}
-          </form>
+          </div>
         )}
       </div>
 
