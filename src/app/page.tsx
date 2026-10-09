@@ -10,12 +10,18 @@ import { UgcWall } from "@/components/home/ugc-wall";
 import { BestSellers } from "@/components/home/best-sellers";
 import { ReviewsSection } from "@/components/home/reviews-section";
 import { SignupSection } from "@/components/home/signup-section";
+import { TextRevealByWord } from "@/components/ui/text-reveal";
 
 export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-between bg-base-black text-off-white overflow-hidden">
       {/* 1. Hero Section with 3D Tee, typewriter tagline, drop countdown, magnetic CTA */}
       <HeroSection />
+
+      {/* Epic Text Reveal */}
+      <div className="z-10 flex min-h-[64rem] w-full items-center justify-center rounded-lg bg-base-black">
+        <TextRevealByWord text="We are creating the most menacing street wear designs out there. Not for everyone. Only for the bold. Heavyweight boxy oversized tees with zero compromises." />
+      </div>
 
       {/* 2. Announcement Marquee */}
       <section className="w-full py-4 bg-acid-green text-base-black font-display text-lg md:text-2xl uppercase tracking-wider overflow-hidden">

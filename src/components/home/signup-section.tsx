@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Confetti } from "@/components/ui/confetti";
+import { AuroraBackground } from "@/components/ui/aurora-background";
 
 export function SignupSection() {
   const [status, setStatus] = useState<"idle" | "success">("idle");
@@ -25,8 +26,8 @@ export function SignupSection() {
   };
 
   return (
-    <section className="py-32 px-4 md:px-10 bg-base-black relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-acid-green/5 via-base-black to-base-black pointer-events-none" />
+    <AuroraBackground className="py-32 w-full h-[80vh]">
+
 
       <motion.div 
         className="max-w-2xl mx-auto text-center relative z-10"
@@ -89,6 +90,6 @@ export function SignupSection() {
           )}
         </AnimatePresence>
       </motion.div>
-    </section>
+    </AuroraBackground>
   );
 }

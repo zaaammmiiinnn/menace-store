@@ -35,6 +35,32 @@
   --animate-duration-slow: 500ms;
   --animate-duration-slower: 800ms;
 
+  /* Spotlight animation */
+  --animate-spotlight: spotlight 2s ease .75s 1 forwards;
+  
+  /* Aurora animation */
+  --animate-aurora: aurora 60s linear infinite;
+
+  @keyframes spotlight {
+    0% {
+      opacity: 0;
+      transform: translate(-72%, -62%) scale(0.5);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(-50%,-40%) scale(1);
+    }
+  }
+
+  @keyframes aurora {
+    from {
+      background-position: 50% 50%, 50% 50%;
+    }
+    to {
+      background-position: 350% 50%, 350% 50%;
+    }
+  }
+
   /* Breakpoints (mobile-first) */
   --breakpoint-xs: 375px;
   --breakpoint-sm: 640px;
