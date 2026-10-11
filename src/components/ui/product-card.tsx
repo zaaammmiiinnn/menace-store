@@ -53,17 +53,19 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
   }, []);
 
   // 3D Tilt calculation (only for mouse desktop devices)
-  const x = useSpring(0, { stiffness: 200, damping: 20 });
-  const y = useSpring(0, { stiffness: 200, damping: 20 });
+  const x = useSpring(0, { stiffness: 220, damping: 20 });
+  const y = useSpring(0, { stiffness: 220, damping: 20 });
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
-  const rotateX = useTransform(y, [-0.5, 0.5], ['8deg', '-8deg']);
-  const rotateY = useTransform(x, [-0.5, 0.5], ['-8deg', '8deg']);
+  const rotateX = useTransform(y, [-0.5, 0.5], ['10deg', '-10deg']);
+  const rotateY = useTransform(x, [-0.5, 0.5], ['-10deg', '10deg']);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (shouldReduceMotion || isTouchDevice || !ref.current) return;
     const rect = ref.current.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
+    setMousePos({ x: mouseX, y: mouseY });
     const xPct = mouseX / rect.width - 0.5;
     const yPct = mouseY / rect.height - 0.5;
     x.set(xPct);
@@ -107,7 +109,7 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
       transition={{ duration: 0.35, delay: Math.min(index * 0.05, 0.3) }}
       className={cn('group relative flex flex-col', className)}
     >
-      <div className="relative">
+      <div className="relative [perspective:1000px]">
         <Link href={`/shop/${product.slug}`} className="block">
           <motion.div
             ref={ref}
@@ -115,30 +117,48 @@ export function ProductCard({ product, index = 0, className }: ProductCardProps)
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             style={shouldReduceMotion || isTouchDevice ? {} : { rotateX, rotateY, transformStyle: 'preserve-3d' }}
-            className="relative w-full aspect-[4/5] rounded-xl overflow-hidden bg-[#111111] border border-border/80 group-hover:border-acid-green/60 transition-colors duration-300 shadow-lg"
+            className="relative w-full aspect-[4/5] rounded-xl overflow-hidden bg-[#111111] border border-border/80 group-hover:border-acid-green/80 transition-all duration-300 shadow-lg group-hover:shadow-[0_0_35px_rgba(198,255,0,0.22)]"
           >
+            {/* 21st.dev Interactive Mouse Spotlight Glare */}
+            <div
+              className="absolute inset-0 transition-opacity duration-300 pointer-events-none z-10"
+              style={{
+                opacity: isHovered ? 1 : 0,
+                background: `radial-gradient(350px circle at ${mousePos.x}px ${mousePos.y}px, rgba(198, 255, 0, 0.18), transparent 75%)`,
+              }}
+            />
+
             {/* Ambient dynamic background gradient matching colorway */}
             <div
-              className="absolute inset-0 transition-all duration-700 opacity-20 group-hover:opacity-50 pointer-events-none"
+              className="absolute inset-0 transition-all duration-700 opacity-20 group-hover:opacity-40 pointer-events-none"
               style={{
                 background: `radial-gradient(circle at 50% 40%, ${primaryColorHex} 0%, #0A0A0A 85%)`,
               }}
             />
 
-            {/* Real Garment Photo Display - Perfectly framed & never clipped */}
-            <div className="absolute inset-0 flex items-center justify-center select-none overflow-hidden p-3 sm:p-4">
+            {/* Real Garment Photo Display with 3D Popout Depth */}
+            <div 
+              style={{ 
+                transform: isHovered && !shouldReduceMotion ? 'translateZ(45px) scale(1.05)' : 'translateZ(0px)', 
+                transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)' 
+              }}
+              className="absolute inset-0 flex items-center justify-center select-none overflow-hidden p-3 sm:p-4"
+            >
               <img
                 src={hoverImage}
                 alt={product.name}
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = '/products/placeholder.svg';
                 }}
-                className="w-full h-full object-contain object-center transition-transform duration-500 group-hover:scale-105 filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.6)]"
+                className="w-full h-full object-contain object-center transition-all duration-500 filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.7)]"
               />
             </div>
 
-            {/* Tag / Badge */}
-            <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex gap-1.5 z-10">
+            {/* Tag / Badge with 3D Popout */}
+            <div 
+              style={{ transform: isHovered && !shouldReduceMotion ? 'translateZ(30px)' : 'translateZ(0px)', transition: 'transform 0.3s ease' }}
+              className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex gap-1.5 z-20"
+            >
               {product.isNew && (
                 <span className="px-2 py-0.5 text-[9px] sm:text-[10px] font-display uppercase tracking-wider bg-acid-green text-base-black rounded font-bold shadow-md">
                   NEW

@@ -18,11 +18,6 @@ export default function HomePage() {
       {/* 1. Hero Section with 3D Tee, typewriter tagline, drop countdown, magnetic CTA */}
       <HeroSection />
 
-      {/* Epic Text Reveal */}
-      <div className="z-10 flex min-h-[64rem] w-full items-center justify-center rounded-lg bg-base-black">
-        <TextRevealByWord text="We are creating the most menacing street wear designs out there. Not for everyone. Only for the bold. Heavyweight boxy oversized tees with zero compromises." />
-      </div>
-
       {/* 2. Announcement Marquee */}
       <section className="w-full py-4 bg-acid-green text-base-black font-display text-lg md:text-2xl uppercase tracking-wider overflow-hidden">
         <Marquee speed={60} pauseOnHover={true}>
@@ -41,7 +36,10 @@ export default function HomePage() {
         </Marquee>
       </section>
 
-      {/* 3. Featured Drop: 3D / horizontal drag carousel of 6 tees */}
+      {/* 3. Manifesto Scroll Text Reveal */}
+      <TextRevealByWord text="We are creating the most menacing streetwear silhouettes out there. Not for everyone. Only for the bold. Heavyweight boxy tees with zero compromises." />
+
+      {/* 4. Featured Drop: 3D / horizontal drag carousel of 6 tees */}
       <FeaturedDrop />
 
       {/* 4. Shop By Vibe: 4 interactive vibe flip tiles */}

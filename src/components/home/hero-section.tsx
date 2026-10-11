@@ -11,6 +11,7 @@ import { ArrowDown, Sparkles } from "lucide-react";
 import { playClickSound, playHoverSound } from "@/lib/sound";
 import { Spotlight } from "@/components/ui/spotlight";
 import { SparklesCore } from "@/components/ui/sparkles";
+import { RetroGrid } from "@/components/ui/retro-grid";
 
 const HERO_SWATCHES = [
   { name: 'Vintage Mocha', hex: '#423129' },
@@ -64,6 +65,7 @@ export function HeroSection() {
   return (
     <section className="relative w-full min-h-[85vh] sm:min-h-[92vh] flex flex-col items-center justify-between pt-2 sm:pt-4 pb-8 sm:pb-12 overflow-hidden">
       <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="var(--color-off-white)" />
+      <RetroGrid />
       {/* Background ambient lighting glow */}
       <div 
         className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] sm:w-[550px] h-[350px] sm:h-[550px] rounded-full blur-[100px] sm:blur-[140px] pointer-events-none opacity-25 transition-colors duration-1000"

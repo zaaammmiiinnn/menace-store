@@ -79,7 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="en"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
-      className={`${anton.variable} ${inter.variable} h-full antialiased`}
+      className={`${anton.variable} ${inter.variable} dark h-full antialiased`}
     >
       <head>
         <script

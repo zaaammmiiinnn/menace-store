@@ -61,6 +61,18 @@
     }
   }
 
+  /* Retro Grid animation */
+  --animate-grid: grid 20s linear infinite;
+
+  @keyframes grid {
+    0% {
+      transform: translateY(-50%);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+
   /* Breakpoints (mobile-first) */
   --breakpoint-xs: 375px;
   --breakpoint-sm: 640px;
