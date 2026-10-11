@@ -8,7 +8,6 @@ import { MagneticButton } from "@/components/ui/magnetic-button";
 import { getTimeRemaining } from "@/lib/utils";
 import { siteConfig } from "@/config/site";
 import { ArrowDown, Sparkles } from "lucide-react";
-import { ArrowDown, Sparkles } from "lucide-react";
 import { playClickSound, playHoverSound } from "@/lib/sound";
 import { Spotlight } from "@/components/ui/spotlight";
 import { SparklesCore } from "@/components/ui/sparkles";
