@@ -10,6 +10,7 @@ import { UgcWall } from "@/components/home/ugc-wall";
 import { BestSellers } from "@/components/home/best-sellers";
 import { ReviewsSection } from "@/components/home/reviews-section";
 import { SignupSection } from "@/components/home/signup-section";
+import { TextRevealByWord } from "@/components/ui/text-reveal";
 
 export default function HomePage() {
   return (
@@ -35,7 +36,10 @@ export default function HomePage() {
         </Marquee>
       </section>
 
-      {/* 3. Featured Drop: 3D / horizontal drag carousel of 6 tees */}
+      {/* 3. Manifesto Scroll Text Reveal */}
+      <TextRevealByWord text="We are creating the most menacing streetwear silhouettes out there. Not for everyone. Only for the bold. Heavyweight boxy tees with zero compromises." />
+
+      {/* 4. Featured Drop: 3D / horizontal drag carousel of 6 tees */}
       <FeaturedDrop />
 
       {/* 4. Shop By Vibe: 4 interactive vibe flip tiles */}

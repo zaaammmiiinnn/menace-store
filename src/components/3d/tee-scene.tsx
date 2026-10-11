@@ -129,11 +129,7 @@ export function TeeScene({
           <PerformanceMonitor onDecline={() => setDpr([1, 1])} />
           <AdaptiveDpr pixelated />
 
-          <Suspense fallback={
-            <Html center>
-              <div className="w-7 h-7 border-3 border-muted-grey/40 border-t-acid-green rounded-full animate-spin" />
-            </Html>
-          }>
+          <Suspense fallback={null}>
             <TeeModel color={color} scale={scale} onInteraction={handleInteractionStart} />
             
             {/* Environment & Lighting */}

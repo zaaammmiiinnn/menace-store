@@ -9,6 +9,9 @@ import { getTimeRemaining } from "@/lib/utils";
 import { siteConfig } from "@/config/site";
 import { ArrowDown, Sparkles } from "lucide-react";
 import { playClickSound, playHoverSound } from "@/lib/sound";
+import { Spotlight } from "@/components/ui/spotlight";
+import { SparklesCore } from "@/components/ui/sparkles";
+import { RetroGrid } from "@/components/ui/retro-grid";
 
 const HERO_SWATCHES = [
   { name: 'Vintage Mocha', hex: '#423129' },
@@ -61,6 +64,8 @@ export function HeroSection() {
 
   return (
     <section className="relative w-full min-h-[85vh] sm:min-h-[92vh] flex flex-col items-center justify-between pt-2 sm:pt-4 pb-8 sm:pb-12 overflow-hidden">
+      <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="var(--color-off-white)" />
+      <RetroGrid />
       {/* Background ambient lighting glow */}
       <div 
         className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] sm:w-[550px] h-[350px] sm:h-[550px] rounded-full blur-[100px] sm:blur-[140px] pointer-events-none opacity-25 transition-colors duration-1000"
@@ -164,16 +169,32 @@ export function HeroSection() {
       {/* Main Tagline & Countdown Box */}
       <div className="z-20 flex flex-col items-center gap-4 sm:gap-6 text-center px-4 max-w-4xl mt-1">
         {/* Tagline */}
-        <div className="overflow-hidden">
+        <div className="overflow-hidden relative h-40 flex flex-col items-center justify-center">
+          {/* Gradients */}
+          <div className="absolute inset-x-20 top-0 bg-gradient-to-r from-transparent via-acid-green to-transparent h-[2px] w-3/4 blur-sm opacity-50" />
+          <div className="absolute inset-x-20 top-0 bg-gradient-to-r from-transparent via-acid-green to-transparent h-px w-3/4 opacity-50" />
+          
+          {/* Core component */}
+          <div className="absolute inset-0 w-full h-full">
+            <SparklesCore
+              background="transparent"
+              minSize={0.4}
+              maxSize={1}
+              particleDensity={1200}
+              className="w-full h-full"
+              particleColor="#C6FF00"
+            />
+          </div>
+
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="font-display text-4xl sm:text-6xl md:text-8xl tracking-tight text-off-white uppercase"
+            className="font-display text-4xl sm:text-6xl md:text-8xl tracking-tight text-off-white uppercase relative z-20"
           >
             {tagline}
           </motion.h1>
-          <p className="font-mono text-[11px] sm:text-sm text-muted-grey tracking-widest uppercase mt-0.5 sm:mt-1">
+          <p className="font-mono text-[11px] sm:text-sm text-muted-grey tracking-widest uppercase mt-0.5 sm:mt-1 relative z-20">
             HEAVYWEIGHT BOXY OVERSIZED TEES. ZERO COMPROMISE.
           </p>
         </div>
