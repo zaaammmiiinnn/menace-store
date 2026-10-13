@@ -1,3 +1,4 @@
+import { getRemoteD1Database, getRemoteKVDatabase } from './remote-d1';
 import { drizzle as drizzleD1 } from 'drizzle-orm/d1';
 import * as schema from './schema';
 
@@ -21,6 +22,8 @@ export function getD1Database(): any {
     const p = process.env as any;
     if (p.DB) return p.DB;
   }
+  const remote = getRemoteD1Database();
+  if (remote) return remote;
   return null;
 }
 
